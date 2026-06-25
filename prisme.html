@@ -603,6 +603,17 @@ function sendToClaude(prompt) {
 }
 
 /* ════════════════════════════════════════════
+   SYSTEM PROMPT — FORMAT STRICT
+════════════════════════════════════════════ */
+const SYSTEM = `Tu es un analyste géopolitique expert. Tu réponds TOUJOURS et UNIQUEMENT avec du JSON valide et complet. Règles absolues :
+1. Aucun texte avant ou après le JSON
+2. Aucun backtick, aucune balise markdown
+3. Toutes les valeurs "string" sont remplacées par du vrai texte
+4. Toutes les valeurs "number" sont remplacées par un vrai nombre
+5. Le JSON doit être complet — ne jamais tronquer
+6. Les strings ne contiennent pas de guillemets non échappés`;
+
+/* ════════════════════════════════════════════
    STATE
 ════════════════════════════════════════════ */
 let mode = 's', depth = 'f', currentTopic = '';
@@ -769,6 +780,7 @@ async function callProxy(messages, maxTokens) {
     body: JSON.stringify({
       model: 'claude-sonnet-4-6',
       max_tokens: maxTokens || 4000,
+      system: SYSTEM,
       messages
     })
   });
@@ -875,17 +887,13 @@ async function launch() {
     updateLoadingStep('Synthèse générale…', 'Headline, résumé exécutif, contexte', 15);
 
     const raw1 = await callProxy([{ role:'user', content:
-      `Tu es un analyste géopolitique rigoureux. Sujet : "${t}".
-Sources à mobiliser : ${srcStr}.
-Cadres d'analyse : ${frmStr}.
-Réponds UNIQUEMENT en JSON valide, sans texte autour, sans backticks :
-{
-  "headline": string (titre accrocheur, max 12 mots),
-  "date_contexte": string (période concernée, ex: "2024-2025"),
-  "resume": string (résumé exécutif factuel, ${dl}),
-  "image_query": string (2-4 mots anglais pour image Unsplash),
-  "contexte_commun": string (paragraphe de 4-6 phrases résumant les faits clés, acteurs principaux, et enjeux centraux — ce texte sera utilisé comme contexte partagé pour toutes les analyses détaillées)
-}` }], 800);
+      `Analyse le sujet suivant : "${t}".
+Sources : ${srcStr}.
+Cadres : ${frmStr}.
+Profondeur requise : ${dl}.
+
+Retourne ce JSON (remplace chaque valeur par le vrai contenu) :
+{"headline":"<titre percutant max 12 mots>","date_contexte":"<période ex: 2024-2025>","resume":"<résumé exécutif factuel>","image_query":"<2-4 mots anglais pour Unsplash>","contexte_commun":"<4-6 phrases sur les faits clés, acteurs principaux et enjeux centraux>"}` }], 1000);
 
     const d1 = safeParseJSON(raw1);
     Object.assign(analysis, d1);
@@ -905,17 +913,10 @@ CONTEXTE ÉTABLI (à respecter pour cohérence) :
 
     // Appel 2 : Sections 1-4
     const p2 = callProxy([{ role:'user', content:
-      `Tu es un analyste géopolitique rigoureux. Sujet : "${t}".
-${contextBlock}
-Sources : ${srcStr}. Cadres : ${frmStr}.
-Profondeur : ${dl}.
-Réponds UNIQUEMENT en JSON valide sans backticks, structure exacte :
-{"sections":[
-  {"titre":"Faits établis","resume":string,"detail":string(HTML autorisé: <b><br><ul><li>),"type_viz":"none","viz_label":null,"viz_data":null,"image_query":string(2-4 mots anglais)},
-  {"titre":"Sources & récits","resume":string,"detail":string,"type_viz":"none","viz_label":null,"viz_data":null,"image_query":string},
-  {"titre":"Certitudes & incertitudes","resume":string,"detail":string,"type_viz":"none","viz_label":null,"viz_data":null,"image_query":string},
-  {"titre":"Intérêts des acteurs","resume":string,"detail":string,"type_viz":"none","viz_label":null,"viz_data":null,"image_query":string}
-]}` }], 3000)
+      `Sujet : "${t}". ${contextBlock} Sources : ${srcStr}. Cadres : ${frmStr}. Profondeur : ${dl}.
+
+Retourne EXACTEMENT ce JSON avec 4 sections remplies (remplace chaque placeholder <...> par le vrai contenu) :
+{"sections":[{"titre":"Faits établis","resume":"<2-3 phrases sur les faits vérifiés>","detail":"<analyse complète, HTML autorisé : <b> <br> <ul> <li>>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"},{"titre":"Sources & récits","resume":"<2-3 phrases>","detail":"<analyse complète>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"},{"titre":"Certitudes & incertitudes","resume":"<2-3 phrases>","detail":"<analyse complète>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"},{"titre":"Intérêts des acteurs","resume":"<2-3 phrases>","detail":"<analyse complète>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"}]}` }], 3000)
     .then(raw => {
       const d = safeParseJSON(raw);
       (d.sections || []).forEach((s, i) => { analysis.sections[i] = s; });
@@ -925,18 +926,11 @@ Réponds UNIQUEMENT en JSON valide sans backticks, structure exacte :
 
     // Appel 3 : Sections 5-8
     const p3 = callProxy([{ role:'user', content:
-      `Tu es un analyste géopolitique rigoureux. Sujet : "${t}".
-${contextBlock}
-Sources : ${srcStr}. Cadres : ${frmStr}.
-Profondeur : ${dl}.
-Réponds UNIQUEMENT en JSON valide sans backticks, structure exacte :
-{"sections":[
-  {"titre":"Biais & angles morts","resume":string,"detail":string(HTML autorisé),"type_viz":"none","viz_label":null,"viz_data":null,"image_query":string(2-4 mots anglais)},
-  {"titre":"Contexte historique","resume":string,"detail":string,"type_viz":"line","viz_label":string,"viz_data":{"labels":[string],"values":[number]},"image_query":string},
-  {"titre":"Tendances systémiques","resume":string,"detail":string,"type_viz":"bar","viz_label":string,"viz_data":{"labels":[string],"values":[number]},"image_query":string},
-  {"titre":"Trajectoires plausibles","resume":string,"detail":string,"type_viz":"none","viz_label":null,"viz_data":null,"image_query":string}
-]}
-Pour les graphiques : type_viz "line" pour contexte historique (timeline), "bar" pour tendances (comparaisons). viz_data obligatoire si type_viz != "none".` }], 3000)
+      `Sujet : "${t}". ${contextBlock} Sources : ${srcStr}. Cadres : ${frmStr}. Profondeur : ${dl}.
+
+Retourne EXACTEMENT ce JSON avec 4 sections remplies (remplace chaque placeholder <...> par le vrai contenu) :
+{"sections":[{"titre":"Biais & angles morts","resume":"<2-3 phrases>","detail":"<analyse complète, HTML autorisé>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"},{"titre":"Contexte historique","resume":"<2-3 phrases>","detail":"<analyse complète>","type_viz":"line","viz_label":"<titre du graphique>","viz_data":{"labels":["<année1>","<année2>","<année3>","<année4>","<année5>"],"values":[0,0,0,0,0]},"image_query":"<2-4 mots anglais>"},{"titre":"Tendances systémiques","resume":"<2-3 phrases>","detail":"<analyse complète>","type_viz":"bar","viz_label":"<titre du graphique>","viz_data":{"labels":["<tendance1>","<tendance2>","<tendance3>","<tendance4>"],"values":[0,0,0,0]},"image_query":"<2-4 mots anglais>"},{"titre":"Trajectoires plausibles","resume":"<2-3 phrases>","detail":"<analyse complète>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"}]}
+Pour viz_data : remplace les 0 par de vraies valeurs numériques, et les labels par de vrais noms.` }], 3500)
     .then(raw => {
       const d = safeParseJSON(raw);
       (d.sections || []).forEach((s, i) => { analysis.sections[i + 4] = s; });
@@ -946,19 +940,11 @@ Pour les graphiques : type_viz "line" pour contexte historique (timeline), "bar"
 
     // Appel 4 : Acteurs + Scénarios (avec contexte)
     const p4 = callProxy([{ role:'user', content:
-      `Tu es un analyste géopolitique rigoureux. Sujet : "${t}".
-${contextBlock}
-Sources : ${srcStr}.
-Réponds UNIQUEMENT en JSON valide sans backticks :
-{
-  "acteurs": [
-    {"nom":string,"role":string,"camp":"pro"|"contra"|"neutre"|"ambigu","interet":string(1 phrase sur leur intérêt réel, pas leur discours officiel)}
-  ],
-  "scenarios": [
-    {"titre":string,"probabilite":number(0-100),"description":string(2-3 phrases argumentées),"signal":string(signal faible à surveiller)}
-  ]
-}
-5-6 acteurs clés avec leurs motivations réelles. 3-4 scénarios plausibles et argumentés, cohérents avec le contexte établi.` }], 2000)
+      `Sujet : "${t}". ${contextBlock}
+
+Retourne EXACTEMENT ce JSON (remplace chaque placeholder <...> par le vrai contenu) :
+{"acteurs":[{"nom":"<nom>","role":"<rôle>","camp":"pro","interet":"<intérêt réel en 1 phrase>"},{"nom":"<nom>","role":"<rôle>","camp":"contra","interet":"<intérêt réel en 1 phrase>"},{"nom":"<nom>","role":"<rôle>","camp":"neutre","interet":"<intérêt réel en 1 phrase>"},{"nom":"<nom>","role":"<rôle>","camp":"ambigu","interet":"<intérêt réel en 1 phrase>"},{"nom":"<nom>","role":"<rôle>","camp":"contra","interet":"<intérêt réel en 1 phrase>"}],"scenarios":[{"titre":"<scénario optimiste>","probabilite":40,"description":"<2 phrases>","signal":"<signal faible à surveiller>"},{"titre":"<scénario médian>","probabilite":45,"description":"<2 phrases>","signal":"<signal faible>"},{"titre":"<scénario pessimiste>","probabilite":15,"description":"<2 phrases>","signal":"<signal faible>"}]}
+camp doit être exactement : "pro", "contra", "neutre" ou "ambigu". probabilite est un nombre entier entre 0 et 100.` }], 2500)
     .then(raw => {
       const d = safeParseJSON(raw);
       Object.assign(analysis, d);
