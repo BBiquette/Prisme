@@ -364,17 +364,15 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
   <!-- DROITE : DÉTAIL -->
   <div class="pane" id="pane-right" style="flex:0 0 320px">
     <div class="pane-tab" onclick="togglePane('right')">Détail contextuel ◨</div>
-    <div clas
+    <div class="pane-header">
+      <div class="pane-title">Détail contextuel</div>
+      <button class="picon" onclick="togglePane('right')">✕</button>
     </div>
+    <div class="pane-body" id="detail-pane">
+      <div class="detail-empty" id="detail-empty">
+        <div style="font-size:24px;opacity:.3">↙</div>
       <div id="detail-content" style="display:none"></div>
-    </div>
-  </div>
-
-</div><!-- /workbench -->
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
+        <div style="font-size:12px">Cliquez sur un acteur ou un camp pour afficher le détail
 <script>
 const PROXY_URL = 'https://summer-glade-e842.elias-kabli.workers.dev/';
 const SYSTEM = "Tu es un analyste geopolitique expert. JSON valide complet uniquement, aucun texte avant/apres, aucun backtick. Regles absolues : 1. Ne jamais deformer l'analyse pour coller a un format. 2. Realite prime sur symetrie : 4 acteurs dans un camp et 0 dans un autre est correct. 3. Ambigu/neutre uniquement si analytiquement justifie. 4. Probabilites refletent la realite, pas une distribution equilibree. 5. JSON toujours complet.";
@@ -669,7 +667,7 @@ JSON uniquement :
       setStep(4);});
 
     const p4b=callProxy([{role:'user',content:'Sujet : "'+t+'". Contexte : '+ctx+'. 3 scenarios plausibles. Ne lisse pas les probabilites — dis les vraies valeurs. Somment a 100. JSON : {"scenarios":[{"titre":"<sc1>","probabilite":<n>,"description":"<2ph>","signal":"<sf>","detail":"<3ph>"},{"titre":"<sc2>","probabilite":<n>,"description":"<2ph>","signal":"<sf>","detail":"<3ph>"},{"titre":"<sc3>","probabilite":<n>,"description":"<2ph>","signal":"<sf>","detail":"<3ph>"}]}'}],2000)
-
+.then(raw=>{try{const d=safeJSON(raw);const sc=d.scenarios||[];analysis.scenarios=sc;if(sc.length>0)renderScenarios(analysis);}catch(e){console.error('[p4b]',e.message);}setStep(5);})
     const results=await Promise.allSettled([p2,p3,p4a,p4b]);
     const failed=results.filter(r=>r.status==='rejected');
     if(failed.length===4) throw new Error((failed[0].reason?.message)||'Tous les appels API ont échoué — vérifiez votre connexion');
@@ -928,8 +926,8 @@ function drawMapInEl(el, d) {
     el.innerHTML='<div style="padding:1rem;font-size:11px;color:var(--txt3)">Carte non disponible (D3 non chargé)</div>';
     return;
   }
-  const w=el.offsetWidth||300, h=Math.round(w*0.48);
-  const svg=d3.select(el).append('svg').attr('viewBox',`0 0 ${w} ${h}`).attr('width','100%');
+  const w=el.offsetWidth||300, h=Math.round(w*0.42);
+  const svg=d3.select(el).append('svg').attr('viewBox',`0 0 ${w} ${h}`).attr('width','100%').style('background','#060d1a');
   const proj=d3.geoNaturalEarth1().scale(w/6.5).translate([w/2,h/2]);
   const path=d3.geoPath(proj);
   const colMap={pro:'#1a3a1a',contra:'#7f1d1d',neutre:'#888780',ambigu:'#633806'};
@@ -950,7 +948,7 @@ function drawMapInEl(el, d) {
   d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(world=>{
     svg.selectAll('path').data(topojson.feature(world,world.objects.countries).features).join('path')
       .attr('d',path)
-      .attr('fill',dd=>{const c=campById[+dd.id];return c?colMap[c]:'#2d2d2d';})
+      .attr('fill',dd=>{const c=campById[+dd.id];return c?colMap[c]:'#1e2530';})
       .attr('stroke','#1a1a1a').attr('stroke-width',0.4);
     const pts={840:[-100,38],364:[53,33],643:[105,62],156:[104,35],376:[35,31],368:[44,33],682:[45,24]};
     const lbl={840:'USA',364:'Iran',643:'Russie',156:'Chine',376:'Israël',368:'Irak',682:'Arabie S.'};
@@ -1100,6 +1098,7 @@ function openCampDetail(k) {
   ];
   showDetail(parts.join(''));
 }
+
 
 document.getElementById('topic-in').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();launch();}});
 document.getElementById('spec-in').addEventListener('keydown',e=>{if(e.key==='Enter')runSpectre();});</script>
