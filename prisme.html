@@ -829,8 +829,7 @@ async function callProxy(messages, maxTokens) {
   });
   if (!res.ok) throw new Error('HTTP ' + res.status);
 
-  // Lire le stream complet sans timeout
-  // Le stream reste ouvert et reçoit les données au fur et à mesure
+  // Lire tout le stream
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let raw = '';
@@ -840,15 +839,54 @@ async function callProxy(messages, maxTokens) {
     raw += decoder.decode(value, { stream: true });
   }
 
-  // Parser la réponse Anthropic
-  let data;
+  // Anthropic peut répondre de deux façons :
+  // 1. JSON simple (mode non-streaming) : {"content":[{"text":"..."}]}
+  // 2. Server-Sent Events (mode streaming) : data: {...}
+
+
+
+  // Cas 1 : JSON simple
   try {
-    data = JSON.parse(raw);
-  } catch(e) {
-    throw new Error('JSON invalide : ' + raw.slice(0, 200));
+    const data = JSON.parse(raw.trim());
+    if (data.error) throw new Error(JSON.stringify(data.error));
+    if (data.content) return data.content.map(x => x.text || '').join('');
+  } catch(e) {}
+
+  // Cas 2 : SSE — extraire les deltas de texte
+  let text = '';
+  const lines = raw.split('\n');
+  for (const line of lines) {
+    if (!line.startsWith('data: ')) continue;
+    const payload = line.slice(6).trim();
+    if (payload === '[DONE]') continue;
+    try {
+      const evt = JSON.parse(payload);
+      // event type: content_block_delta
+      if (evt.type === 'content_block_delta' && evt.delta && evt.delta.text) {
+        text += evt.delta.text;
+      }
+      // event type: message_delta (stop reason)
+      // event type: message_stop
+      // Récupérer aussi le message complet si présent
+      if (evt.type === 'message' && evt.content) {
+        return evt.content.map(x => x.text || '').join('');
+      }
+    } catch(e) {}
   }
-  if (data.error) throw new Error(JSON.stringify(data.error));
-  return (data.content || []).map(x => x.text || '').join('');
+
+  if (text) return text;
+
+  // Fallback : chercher du JSON dans le raw
+  const start = raw.indexOf('{');
+  const end = raw.lastIndexOf('}');
+  if (start !== -1 && end !== -1) {
+    try {
+      const data = JSON.parse(raw.slice(start, end + 1));
+      if (data.content) return data.content.map(x => x.text || '').join('');
+    } catch(e) {}
+  }
+
+  throw new Error('Impossible de parser la réponse : ' + raw.slice(0, 300));
 }
 
 async function launch() {
