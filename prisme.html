@@ -823,13 +823,61 @@ async function callProxy(messages, maxTokens) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model: 'claude-sonnet-4-6',
-      max_tokens: maxTokens || 3000,
+      max_tokens: maxTokens || 4000,
       messages
     })
   });
+
   if (!res.ok) throw new Error('HTTP ' + res.status);
 
-  // Lire tout le stream
+  const contentType = res.headers.get('content-type') || '';
+
+  // ── Mode SSE (streaming) ──────────────────────────────
+  if (contentType.includes('text/event-stream')) {
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let text = '';
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      // Traiter les lignes SSE complètes
+      const lines = buffer.split('
+');
+      buffer = lines.pop(); // Garder la ligne incomplète pour le prochain chunk
+
+      for (const line of lines) {
+        if (!line.startsWith('data: ')) continue;
+        const payload = line.slice(6).trim();
+        if (payload === '[DONE]') continue;
+        try {
+          const evt = JSON.parse(payload);
+          // Accumuler les deltas de texte
+          if (evt.type === 'content_block_delta' && evt.delta?.text) {
+            text += evt.delta.text;
+          }
+        } catch(e) {}
+      }
+    }
+
+    // Traiter le buffer restant
+    if (buffer.startsWith('data: ')) {
+      try {
+        const evt = JSON.parse(buffer.slice(6).trim());
+        if (evt.type === 'content_block_delta' && evt.delta?.text) {
+          text += evt.delta.text;
+        }
+      } catch(e) {}
+    }
+
+    if (!text) throw new Error('Stream vide reçu');
+    return text;
+  }
+
+  // ── Mode JSON simple (non-streaming) ─────────────────
   const reader = res.body.getReader();
   const decoder = new TextDecoder();
   let raw = '';
@@ -839,54 +887,20 @@ async function callProxy(messages, maxTokens) {
     raw += decoder.decode(value, { stream: true });
   }
 
-  // Anthropic peut répondre de deux façons :
-  // 1. JSON simple (mode non-streaming) : {"content":[{"text":"..."}]}
-  // 2. Server-Sent Events (mode streaming) : data: {...}
-
-
-
-  // Cas 1 : JSON simple
-  try {
-    const data = JSON.parse(raw.trim());
-    if (data.error) throw new Error(JSON.stringify(data.error));
-    if (data.content) return data.content.map(x => x.text || '').join('');
-  } catch(e) {}
-
-  // Cas 2 : SSE — extraire les deltas de texte
-  let text = '';
-  const lines = raw.split('\n');
-  for (const line of lines) {
-    if (!line.startsWith('data: ')) continue;
-    const payload = line.slice(6).trim();
-    if (payload === '[DONE]') continue;
-    try {
-      const evt = JSON.parse(payload);
-      // event type: content_block_delta
-      if (evt.type === 'content_block_delta' && evt.delta && evt.delta.text) {
-        text += evt.delta.text;
-      }
-      // event type: message_delta (stop reason)
-      // event type: message_stop
-      // Récupérer aussi le message complet si présent
-      if (evt.type === 'message' && evt.content) {
-        return evt.content.map(x => x.text || '').join('');
-      }
-    } catch(e) {}
+  let data;
+  try { data = JSON.parse(raw.trim()); }
+  catch(e) {
+    // Chercher du JSON dans le raw
+    const s = raw.indexOf('{'), e2 = raw.lastIndexOf('}');
+    if (s !== -1 && e2 !== -1) {
+      try { data = JSON.parse(raw.slice(s, e2 + 1)); }
+      catch(e) {}
+    }
+    if (!data) throw new Error('JSON invalide : ' + raw.slice(0, 200));
   }
 
-  if (text) return text;
-
-  // Fallback : chercher du JSON dans le raw
-  const start = raw.indexOf('{');
-  const end = raw.lastIndexOf('}');
-  if (start !== -1 && end !== -1) {
-    try {
-      const data = JSON.parse(raw.slice(start, end + 1));
-      if (data.content) return data.content.map(x => x.text || '').join('');
-    } catch(e) {}
-  }
-
-  throw new Error('Impossible de parser la réponse : ' + raw.slice(0, 300));
+  if (data.error) throw new Error(JSON.stringify(data.error));
+  return (data.content || []).map(x => x.text || '').join('');
 }
 
 async function launch() {
@@ -950,7 +964,7 @@ Réponds UNIQUEMENT en JSON valide sans backticks, structure exacte :
   {"titre":"Sources & récits","resume":string,"detail":string,"type_viz":"none","viz_label":null,"viz_data":null,"image_query":string},
   {"titre":"Certitudes & incertitudes","resume":string,"detail":string,"type_viz":"none","viz_label":null,"viz_data":null,"image_query":string},
   {"titre":"Intérêts des acteurs","resume":string,"detail":string,"type_viz":"none","viz_label":null,"viz_data":null,"image_query":string}
-]}` }], 2500)
+]}` }], 3000)
     .then(raw => {
       const d = safeParseJSON(raw);
       (d.sections || []).forEach((s, i) => { analysis.sections[i] = s; });
@@ -971,7 +985,7 @@ Réponds UNIQUEMENT en JSON valide sans backticks, structure exacte :
   {"titre":"Tendances systémiques","resume":string,"detail":string,"type_viz":"bar","viz_label":string,"viz_data":{"labels":[string],"values":[number]},"image_query":string},
   {"titre":"Trajectoires plausibles","resume":string,"detail":string,"type_viz":"none","viz_label":null,"viz_data":null,"image_query":string}
 ]}
-Pour les graphiques : type_viz "line" pour contexte historique (timeline), "bar" pour tendances (comparaisons). viz_data obligatoire si type_viz != "none".` }], 2500)
+Pour les graphiques : type_viz "line" pour contexte historique (timeline), "bar" pour tendances (comparaisons). viz_data obligatoire si type_viz != "none".` }], 3000)
     .then(raw => {
       const d = safeParseJSON(raw);
       (d.sections || []).forEach((s, i) => { analysis.sections[i + 4] = s; });
@@ -990,10 +1004,10 @@ Réponds UNIQUEMENT en JSON valide sans backticks :
     {"nom":string,"role":string,"camp":"pro"|"contra"|"neutre"|"ambigu","interet":string(1 phrase sur leur intérêt réel, pas leur discours officiel)}
   ],
   "scenarios": [
-    {"titre":string,"probabilite":number(0-100),"description":string(${dl}),"signal":string(signal faible à surveiller)}
+    {"titre":string,"probabilite":number(0-100),"description":string(2-3 phrases argumentées),"signal":string(signal faible à surveiller)}
   ]
 }
-4-6 acteurs clés. 3-4 scénarios argumentés, cohérents avec le contexte établi.` }], 1500)
+5-6 acteurs clés avec leurs motivations réelles. 3-4 scénarios plausibles et argumentés, cohérents avec le contexte établi.` }], 2000)
     .then(raw => {
       const d = safeParseJSON(raw);
       Object.assign(analysis, d);
