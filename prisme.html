@@ -620,7 +620,8 @@ Analyse sans langue de bois ni faux equilibre. JSON:
     const ctx=d1.contexte_commun||d1.resume||'';
 
     /* Appels parallèles */
-    const p2=callProxy([{role:'user',content:`Sujet : "${t}". Contexte : ${ctx}. Sources : ${as}. Cadres : ${af}. Profondeur : ${dl}. Analyse factuelle — ne relativise pas pour sembler neutre.\nJSON 4 sections:\n{"sections":[{"titre":"Faits établis","resume":"<2-3 ph>","detail":"<analyse HTML>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"},{"titre":"Sources & récits","resume":"<2-3 ph>","detail":"<analyse>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"},{"titre":"Certitudes & incertitudes","resume":"<2-3 ph>","detail":"<analyse>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"},{"titre":"Intérêts des acteurs","resume":"<2-3 ph>","detail":"<analyse>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"}]}`}],4000)
+    const p2=callProxy([{role:'user',content:`Sujet : "${t}". Contexte : ${ctx}. Sources : ${as}. Cadres : ${af}. Profondeur : ${dl}. Analyse factuelle — ne relativise pas pour sembler neutre.\nJSON 4 sections:\n{"sections":[{"titre":"Faits établis","resume":"<2-3 ph>","detail":"<analyse HTML>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"},{"titre":"Sources & récits","resume":"<2-3 ph>","detail":"<analyse>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"},{"titre":"Certitudes & incertitudes","resume":"<2-3 ph>","detail":"<analyse>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"},{"titre":"Intérêts des acteurs","resume":"<2-3 ph>","detail":"<analyse>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"}]}`}],5000)
+    .then(raw=>{try{const d=safeJSON(raw);(d.sections||[]).forEach((s,i)=>analysis.sections[i]=s)
     .then(raw=>{try{const d=safeJSON(raw);(d.sections||[]).forEach((s,i)=>analysis.sections[i]=s);}catch(e){console.error('[p2]',e.message);}setStep(2);});
 
     const p3=callProxy([{role:'user',content:`Sujet : "${t}". Contexte : ${ctx}. Sources : ${as}. Cadres : ${af}. Profondeur : ${dl}. Nomme les biais reels. Ne presente pas deux cotes comme equivalents si ce nest pas la realite.\nJSON 4 sections:\n{"sections":[{"titre":"Biais & angles morts","resume":"<2-3 ph>","detail":"<analyse HTML>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"},{"titre":"Contexte historique","resume":"<2-3 ph>","detail":"<analyse>","type_viz":"line","viz_label":"<titre>","viz_data":{"labels":["<a1>","<a2>","<a3>","<a4>","<a5>"],"values":[0,0,0,0,0]},"image_query":"<2-4 mots anglais>"},{"titre":"Tendances systémiques","resume":"<2-3 ph>","detail":"<analyse>","type_viz":"bar","viz_label":"<titre>","viz_data":{"labels":["<t1>","<t2>","<t3>","<t4>"],"values":[0,0,0,0]},"image_query":"<2-4 mots anglais>"},{"titre":"Trajectoires plausibles","resume":"<2-3 ph>","detail":"<analyse>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"}]}\nviz_data : remplace les 0 par de vraies valeurs numeriques.`}],5000)
@@ -665,7 +666,7 @@ JSON uniquement :
       }catch(e){console.error('[p4a]',e.message);}
       setStep(4);});
 
-        const p4b=callProxy([{role:'user',content:'Sujet : "'+t+'". Contexte : '+ctx+'. 3 scenarios plausibles. Ne lisse pas les probabilites — dis les vraies valeurs. Somment a 100. JSON : {"scenarios":[{"titre":"<sc1>","probabilite":<n>,"description":"<2ph>","signal":"<sf>","detail":"<3ph>"},{"titre":"<sc2>","probabilite":<n>,"description":"<2ph>","signal":"<sf>","detail":"<3ph>"},{"titre":"<sc3>","probabilite":<n>,"description":"<2ph>","signal":"<sf>","detail":"<3ph>"}]}'}],2000)
+    const p4b=callProxy([{role:'user',content:'Sujet : "'+t+'". Contexte : '+ctx+'. 3 scenarios plausibles. Ne lisse pas les probabilites — dis les vraies valeurs. Somment a 100. JSON : {"scenarios":[{"titre":"<sc1>","probabilite":<n>,"description":"<2ph>","signal":"<sf>","detail":"<3ph>"},{"titre":"<sc2>","probabilite":<n>,"description":"<2ph>","signal":"<sf>","detail":"<3ph>"},{"titre":"<sc3>","probabilite":<n>,"description":"<2ph>","signal":"<sf>","detail":"<3ph>"}]}'}],2000)
 
     const results=await Promise.allSettled([p2,p3,p4a,p4b]);
     const failed=results.filter(r=>r.status==='rejected');
@@ -712,14 +713,17 @@ async function fetchWikiImage(title) {
     const ctrl = new AbortController();
     const tid = setTimeout(() => ctrl.abort(), 5000);
     let r;
-    try { r = await fetch('https://en.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(title),{headers:{'Accept':'application/json'},signal:ctrl.signal}); }
+    try { r = await fetch('https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&pithumbsize=240&format=json&origin=*&titles='+encodeURIComponent(title),{signal:ctrl.signal}); }
     finally { clearTimeout(tid); }
     if (!r.ok) return null;
     const d = await r.json();
-    let src = d.thumbnail && d.thumbnail.source;
+    const pages = d.query && d.query.pages;
+    if (!pages) return null;
+    const page = Object.values(pages)[0];
+    let src = page && page.thumbnail && page.thumbnail.source;
     if (!src) return null;
     if (src.startsWith('//')) src = 'https:' + src;
-    return src.replace(/\/\d+px-/, '/240px-');
+    return src;
   } catch(e) { return null; }
 }
 
@@ -933,11 +937,50 @@ function runSpectre() {
   const msgs=['Cartographie…','Calibrage spectre…','Analyse par camp…'];
   let mi=0;
   const ticker=setInterval(()=>{document.getElementById('spec-lbl').textContent=msgs[++mi%msgs.length];},1800);
-  callProxy([{role:'user',content:prompt}],4000)
 
-  .then(raw=>{clearInterval(ticker);document.getElementById('spec-loading').style.display='none';document.getElementById('spec-btn').disabled=false;try{renderSpectre(safeJSON(raw));}catch(e){const eb=document.getElementById('spec-err');eb.textContent='Erreur : '+e.message;eb.classList.add('on');}})
-  .catch(err=>{clearInterval(ticker);document.getElementById('spec-loading').style.display='none';document.getElementById('spec-btn').disabled=false;const eb=document.getElementById('spec-err');eb.textContent='Erreur : '+err.message;eb.classList.add('on');});
+  const specPrompt = 'Analyse médiatique comparée de : "'+t+'". Le spectre reflète la réalité de la couverture, pas une distribution artificielle. JSON uniquement, remplace tous les <...> :'
+    + '{"topic":"'+t+'",'
+    + '"spectrum":{"gauche_radicale":0,"gauche":0,"centre":0,"droite":0,"droite_radicale":0},'
+    + '"stats":{"sources":0,"consensus":0,"polarisation":"<Faible|Moderee|Forte|Tres forte>","tonalite":"<mot>"},'
+    + '"camps":{"gauche_radicale":{"angle":"<angle>","elements_langage":["<m1>","<m2>","<m3>"],"angle_mort":"<omission>","nb_sources":0},'
+    + '"gauche":{"angle":"<angle>","elements_langage":["<m1>","<m2>","<m3>"],"angle_mort":"<omission>","nb_sources":0},'
+    + '"centre":{"angle":"<angle>","elements_langage":["<m1>","<m2>","<m3>"],"angle_mort":"<omission>","nb_sources":0},'
+    + '"droite":{"angle":"<angle>","elements_langage":["<m1>","<m2>","<m3>"],"angle_mort":"<omission>","nb_sources":0},'
+    + '"droite_radicale":{"angle":"<angle>","elements_langage":["<m1>","<m2>","<m3>"],"angle_mort":"<omission>","nb_sources":0}},'
+    + '"consensus":["<fait factuel partage>","<fait 2>","<fait 3>"],'
+    + '"divergences":["<point de desaccord>","<desaccord 2>","<desaccord 3>"],'
+    + '"angles_morts":["<angle mort commun>","<angle mort 2>","<angle mort 3>"],'
+    + '"cadrage":{"gauche_radicale":{"met_en_avant":"<...>","omet":"<...>","recit":"<...>"},'
+    + '"gauche":{"met_en_avant":"<...>","omet":"<...>","recit":"<...>"},'
+    + '"centre":{"met_en_avant":"<...>","omet":"<...>","recit":"<...>"},'
+    + '"droite":{"met_en_avant":"<...>","omet":"<...>","recit":"<...>"},'
+    + '"droite_radicale":{"met_en_avant":"<...>","omet":"<...>","recit":"<...>"}},'
+    + '"timeline":{"labels":["J-6","J-5","J-4","J-3","J-2","J-1","Auj."],'
+    + '"gauche_radicale":[0,0,0,0,0,0,0],"gauche":[0,0,0,0,0,0,0],"centre":[0,0,0,0,0,0,0],"droite":[0,0,0,0,0,0,0],"droite_radicale":[0,0,0,0,0,0,0]}}'
+    + ' spectrum doit sommer a 100. nb_sources = nombre estime de sources.';
+
+  callProxy([{role:'user',content:specPrompt}],4000)
+  .then(raw=>{
+    clearInterval(ticker);
+    loading.style.display='none';
+    document.getElementById('spec-btn').disabled=false;
+    try { renderSpectre(safeJSON(raw)); }
+    catch(e) {
+      const eb=document.getElementById('spec-err');
+      eb.textContent='Erreur : '+e.message;
+      eb.classList.add('on');
+    }
+  })
+  .catch(err=>{
+    clearInterval(ticker);
+    loading.style.display='none';
+    document.getElementById('spec-btn').disabled=false;
+    const eb=document.getElementById('spec-err');
+    eb.textContent='Erreur : '+err.message;
+    eb.classList.add('on');
+  });
 }
+
 
 function renderSpectre(d) {
   _spectreData=d;
