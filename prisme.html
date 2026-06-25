@@ -337,7 +337,7 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
         <div class="an-meta" id="an-meta"></div>
         <div class="an-resume" id="an-resume"></div>
         <div id="an-hero" style="display:none;margin-bottom:.75rem">
-          <img id="an-hero-img" src="" alt="" style="width:100%;height:140px;object-fit:cover;border-radius:var(--r);display:block" loading="eager">
+          <img id="an-hero-img" src="" alt="" style="width:100%;height:280px;object-fit:cover;border-radius:var(--r);display:block" loading="eager">
           <div id="an-hero-caption" style="font-size:10px;color:var(--txt3);margin-top:4px;font-style:italic"></div>
         </div>
         <div class="slabel">Acteurs & intérêts — <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px">cliquez pour les détails →</span></div>
@@ -379,8 +379,7 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 <script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
 <script>
 const PROXY_URL = 'https://summer-glade-e842.elias-kabli.workers.dev/';
-const SYSTEM = 'Tu reponds UNIQUEMENT en JSON valide et complet. Aucun texte avant ou apres. Aucun backtick. Tous les placeholders <...> remplaces par du vrai contenu. JSON toujours complet et bien ferme.';
-
+const SYSTEM = "Tu es un analyste geopolitique expert. JSON valide complet uniquement, aucun texte avant/apres, aucun backtick. Regles absolues : 1. Ne jamais deformer l'analyse pour coller a un format. 2. Realite prime sur symetrie : 4 acteurs dans un camp et 0 dans un autre est correct. 3. Ambigu/neutre uniquement si analytiquement justifie. 4. Probabilites refletent la realite, pas une distribution equilibree. 5. JSON toujours complet.";
 /* STATE */
 let mode='s', depth='f', currentTopic='';
 let srcs={ag:1,pr:1,in:1,tk:1,ac:1,pa:1,lo:1,da:1};
@@ -503,7 +502,62 @@ function safeJSON(raw) {
   return JSON.parse(s.slice(a,b+1));
 }
 
-function imgUrl(q,w,h){let seed=0;const s=(q||'world').toLowerCase();for(let i=0;i<s.length;i++)seed=(seed*31+s.charCodeAt(i))&0xffff;return 'https://picsum.photos/seed/'+seed+'/'+w+'/'+h;}
+function imgUrl(q,w,h){return '';}
+
+// Mapping nom d'acteur -> code ISO du pays pour le drapeau
+const FLAG_MAP = {
+  'etats-unis':'US','états-unis':'US','usa':'US','united states':'US','washington':'US',
+  'iran':'IR','tehran':'IR','teheran':'IR','khamenei':'IR','raisi':'IR',
+  'russie':'RU','russia':'RU','poutine':'RU','kremlin':'RU','moscou':'RU',
+  'chine':'CN','china':'CN','beijing':'CN','pekin':'CN','xi':'CN',
+  'israel':'IL','israël':'IL','netanyahu':'IL','tel aviv':'IL',
+  'arabie saoudite':'SA','saudi':'SA','riyad':'SA','mbs':'SA',
+  'turquie':'TR','turkey':'TR','erdogan':'TR','ankara':'TR',
+  'france':'FR','paris':'FR','macron':'FR',
+  'allemagne':'DE','berlin':'DE','scholz':'DE',
+  'royaume-uni':'GB','uk':'GB','london':'GB','boris':'GB',
+  'irak':'IQ','iraq':'IQ','bagdad':'IQ',
+  'emirats':'AE','uae':'AE','dubai':'AE',
+  'qatar':'QA','doha':'QA',
+  'oman':'OM','muscat':'OM',
+  'pakistan':'PK','islamabad':'PK',
+  'inde':'IN','india':'IN','modi':'IN','delhi':'IN',
+  'japon':'JP','japan':'JP','tokyo':'JP',
+  'coree':'KR','korea':'KR','seoul':'KR',
+  'ukraine':'UA','kiev':'UA','zelensky':'UA',
+  'otan':'NATO','nato':'NATO',
+  'union europeenne':'EU','ue ':'EU','europe':'EU',
+  'onu':'UN','nations unies':'UN',
+  'hezbollah':'LB','liban':'LB','beirut':'LB',
+  'hamas':'PS','gaza':'PS','palestine':'PS',
+  'yemen':'YE','houthis':'YE',
+  'syrie':'SY','damas':'SY',
+  'egypte':'EG','egypt':'EG','le caire':'EG',
+  'jordanie':'JO','amman':'JO',
+  'maroc':'MA','rabat':'MA',
+  'algerie':'DZ','alger':'DZ',
+  'afrique du sud':'ZA','pretoria':'ZA',
+  'nigeria':'NG','abuja':'NG',
+  'bresil':'BR','brazil':'BR','brasilia':'BR',
+  'mexique':'MX','mexico':'MX',
+  'venezuela':'VE','caracas':'VE',
+  'iran':'IR','corée du nord':'KP','north korea':'KP'
+};
+
+function getCountryCode(nom) {
+  const key = (nom||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z\s-]/g,'').trim();
+  for (const [k,v] of Object.entries(FLAG_MAP)) {
+    const nk = k.normalize('NFD').replace(/[̀-ͯ]/g,'');
+    if (key.includes(nk) || nk.includes(key)) return v;
+  }
+  return null;
+}
+
+function getFlagUrl(nom) {
+  const code = getCountryCode(nom);
+  if (!code || code === 'NATO' || code === 'EU' || code === 'UN') return null;
+  return 'https://flagcdn.com/w320/' + code.toLowerCase() + '.png';
+}
 
 /* LOADING */
 const STEPS=[['Synthèse…','Header et contexte',15],['Sections 1-4…','Faits, sources, certitudes',35],['Sections 5-8…','Biais, histoire, tendances',60],['Acteurs…','Motivations réelles',75],['Scénarios…','Trajectoires plausibles',88],['Finalisation…','Assemblage',95]];
@@ -536,7 +590,9 @@ async function launch() {
 
   try {
     /* Appel 1 : header */
-    const r1=await callProxy([{role:'user',content:`Sujet : "${t}". Sources : ${as}. Cadres : ${af}. Profondeur : ${dl}.\nJSON:\n{"headline":"<titre max 12 mots>","date_contexte":"<periode>","resume":"<resume factuel>","image_query":"<2-4 mots anglais Unsplash>","contexte_commun":"<4-5 phrases faits cles acteurs enjeux>"}`}],800);
+    const r1=await callProxy([{role:'user',content:`Sujet : "${t}". Sources : ${as}. Cadres : ${af}. Profondeur : ${dl}.
+Analyse sans langue de bois ni faux equilibre. JSON:
+{"headline":"<titre percutant max 12 mots — reflète la réalité>","date_contexte":"<periode exacte>","resume":"<résumé factuel sans langue de bois>","image_query":"<2-4 mots anglais Unsplash>","contexte_commun":"<4-5 phrases sur faits clés, rapports de force réels, enjeux concrets — sans faux équilibre>"}`}],800);
     const d1=safeJSON(r1);
     Object.assign(analysis,d1);
     renderHeader(analysis);
@@ -544,17 +600,37 @@ async function launch() {
     const ctx=d1.contexte_commun||d1.resume||'';
 
     /* Appels parallèles */
-    const p2=callProxy([{role:'user',content:`Sujet : "${t}". Contexte : ${ctx}. Sources : ${as}. Cadres : ${af}. Profondeur : ${dl}.\nJSON 4 sections:\n{"sections":[{"titre":"Faits établis","resume":"<2-3 ph>","detail":"<analyse HTML>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"},{"titre":"Sources & récits","resume":"<2-3 ph>","detail":"<analyse>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"},{"titre":"Certitudes & incertitudes","resume":"<2-3 ph>","detail":"<analyse>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"},{"titre":"Intérêts des acteurs","resume":"<2-3 ph>","detail":"<analyse>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"}]}`}],4000)
+    const p2=callProxy([{role:'user',content:`Sujet : "${t}". Contexte : ${ctx}. Sources : ${as}. Cadres : ${af}. Profondeur : ${dl}. Analyse factuelle — ne relativise pas pour sembler neutre.\nJSON 4 sections:\n{"sections":[{"titre":"Faits établis","resume":"<2-3 ph>","detail":"<analyse HTML>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"},{"titre":"Sources & récits","resume":"<2-3 ph>","detail":"<analyse>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"},{"titre":"Certitudes & incertitudes","resume":"<2-3 ph>","detail":"<analyse>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"},{"titre":"Intérêts des acteurs","resume":"<2-3 ph>","detail":"<analyse>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"}]}`}],4000)
     .then(raw=>{try{const d=safeJSON(raw);(d.sections||[]).forEach((s,i)=>analysis.sections[i]=s);}catch(e){console.error('[p2]',e.message);}setStep(2);});
 
-    const p3=callProxy([{role:'user',content:`Sujet : "${t}". Contexte : ${ctx}. Sources : ${as}. Cadres : ${af}. Profondeur : ${dl}.\nJSON 4 sections:\n{"sections":[{"titre":"Biais & angles morts","resume":"<2-3 ph>","detail":"<analyse HTML>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"},{"titre":"Contexte historique","resume":"<2-3 ph>","detail":"<analyse>","type_viz":"line","viz_label":"<titre>","viz_data":{"labels":["<a1>","<a2>","<a3>","<a4>","<a5>"],"values":[0,0,0,0,0]},"image_query":"<2-4 mots anglais>"},{"titre":"Tendances systémiques","resume":"<2-3 ph>","detail":"<analyse>","type_viz":"bar","viz_label":"<titre>","viz_data":{"labels":["<t1>","<t2>","<t3>","<t4>"],"values":[0,0,0,0]},"image_query":"<2-4 mots anglais>"},{"titre":"Trajectoires plausibles","resume":"<2-3 ph>","detail":"<analyse>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"}]}\nviz_data : remplace les 0 par de vraies valeurs numeriques.`}],5000)
+    const p3=callProxy([{role:'user',content:`Sujet : "${t}". Contexte : ${ctx}. Sources : ${as}. Cadres : ${af}. Profondeur : ${dl}. Nomme les biais reels. Ne presente pas deux cotes comme equivalents si ce nest pas la realite.\nJSON 4 sections:\n{"sections":[{"titre":"Biais & angles morts","resume":"<2-3 ph>","detail":"<analyse HTML>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"},{"titre":"Contexte historique","resume":"<2-3 ph>","detail":"<analyse>","type_viz":"line","viz_label":"<titre>","viz_data":{"labels":["<a1>","<a2>","<a3>","<a4>","<a5>"],"values":[0,0,0,0,0]},"image_query":"<2-4 mots anglais>"},{"titre":"Tendances systémiques","resume":"<2-3 ph>","detail":"<analyse>","type_viz":"bar","viz_label":"<titre>","viz_data":{"labels":["<t1>","<t2>","<t3>","<t4>"],"values":[0,0,0,0]},"image_query":"<2-4 mots anglais>"},{"titre":"Trajectoires plausibles","resume":"<2-3 ph>","detail":"<analyse>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"}]}\nviz_data : remplace les 0 par de vraies valeurs numeriques.`}],5000)
     .then(raw=>{try{const d=safeJSON(raw);(d.sections||[]).forEach((s,i)=>analysis.sections[i+4]=s);}catch(e){console.error('[p3]',e.message);}setStep(3);});
 
-    const p4a=callProxy([{role:'user',content:`Sujet : "${t}". Contexte : ${ctx}.\nIdentifie 5 acteurs clés. Determine le camp de chaque acteur SELON CE SUJET specifique (pas de regle fixe - analyse la position reelle de cet acteur).\ncamp="pro" si favorable/allie dans ce contexte, "contra" si oppose/adversaire, "neutre" si equilibre, "ambigu" si contradictoire.\nJSON:\n{"acteurs":[{"nom":"<nom reel>","role":"<role precis>","camp":"<pro|contra|neutre|ambigu selon ce sujet>","interet":"<interet geopolitique reel 1 phrase>","image_query":"<2-4 mots anglais pour photo Unsplash de ce pays ou personnage>"},{"nom":"<nom>","role":"<role>","camp":"<camp>","interet":"<interet>","image_query":"<mots anglais>"},{"nom":"<nom>","role":"<role>","camp":"<camp>","interet":"<interet>","image_query":"<mots anglais>"},{"nom":"<nom>","role":"<role>","camp":"<camp>","interet":"<interet>","image_query":"<mots anglais>"},{"nom":"<nom>","role":"<role>","camp":"<camp>","interet":"<interet>","image_query":"<mots anglais>"}]}`}],2000)
-    .then(raw=>{try{const d=safeJSON(raw);analysis.acteurs=d.acteurs||[];_lastActeurs=analysis.acteurs;renderActeurs(analysis);}catch(e){console.error('[p4a]',e.message);}setStep(4);});
+    const p4a=callProxy([{role:'user',content:`Sujet : "${t}". Contexte : ${ctx}.
+Identifie 5 acteurs clés et leur position REELLE sur ce sujet.
+Definitions strictes — ne pas utiliser pour equilibrer les colonnes :
+- "pro" : soutient ou beneficie de la position dominante dans ce conflit
+- "contra" : s'oppose ou nuit a cette position
+- "neutre" : veritablement equidistant, sans alignement clair
+- "ambigu" : position REELLEMENT contradictoire — uniquement si justifie analytiquement
+Il peut y avoir 4 "pro" et 1 "contra" — pas d'imperatif de symetrie.
+JSON uniquement :
+{"acteurs":[
+{"nom":"<nom reel>","role":"<role precis>","camp":"<camp selon realite>","interet":"<interet reel 1 phrase>","wiki":"<titre exact page Wikipedia anglaise>"},
+{"nom":"<nom>","role":"<role>","camp":"<camp>","interet":"<interet>","wiki":"<titre Wikipedia anglais>"},
+{"nom":"<nom>","role":"<role>","camp":"<camp>","interet":"<interet>","wiki":"<titre Wikipedia anglais>"},
+{"nom":"<nom>","role":"<role>","camp":"<camp>","interet":"<interet>","wiki":"<titre Wikipedia anglais>"},
+{"nom":"<nom>","role":"<role>","camp":"<camp>","interet":"<interet>","wiki":"<titre Wikipedia anglais>"}
+]}`}],2000)
+    .then(raw=>{try{
+        const d=safeJSON(raw);
+        analysis.acteurs=d.acteurs||[];
+        _lastActeurs=analysis.acteurs;
+        loadActeurImages(_lastActeurs).then(()=>renderActeurs(analysis)).catch(()=>renderActeurs(analysis));
+      }catch(e){console.error('[p4a]',e.message);}
+      setStep(4);});
 
-    const p4b=callProxy([{role:'user',content:`Sujet : "${t}". Contexte : ${ctx}.\nJSON 3 scenarios:\n{"scenarios":[{"titre":"<scenario>","probabilite":40,"description":"<2 phrases>","signal":"<signal faible>","detail":"<analyse 3-4 phrases>"},{"titre":"<scenario>","probabilite":45,"description":"<2 phrases>","signal":"<signal>","detail":"<analyse>"},{"titre":"<scenario>","probabilite":15,"description":"<2 phrases>","signal":"<signal>","detail":"<analyse>"}]}\nLes probabilites doivent sommer a 100.`}],2000)
-    .then(raw=>{try{const d=safeJSON(raw);analysis.scenarios=d.scenarios||[];renderScenarios(analysis);}catch(e){console.error('[p4b]',e.message);}setStep(5);});
+        const p4b=callProxy([{role:'user',content:'Sujet : "'+t+'". Contexte : '+ctx+'. 3 scenarios plausibles. Ne lisse pas les probabilites — dis les vraies valeurs. Somment a 100. JSON : {"scenarios":[{"titre":"<sc1>","probabilite":<n>,"description":"<2ph>","signal":"<sf>","detail":"<3ph>"},{"titre":"<sc2>","probabilite":<n>,"description":"<2ph>","signal":"<sf>","detail":"<3ph>"},{"titre":"<sc3>","probabilite":<n>,"description":"<2ph>","signal":"<sf>","detail":"<3ph>"}]}'}],2000)
 
     const results=await Promise.allSettled([p2,p3,p4a,p4b]);
     const failed=results.filter(r=>r.status==='rejected');
@@ -579,7 +655,7 @@ function renderHeader(d) {
   document.getElementById('an-meta').innerHTML=`<span>📅 ${d.date_contexte||''}</span><span>· ${Object.values(srcs).filter(Boolean).length} sources</span><span>· ${Object.values(frames).filter(Boolean).length} cadres</span>`;
   document.getElementById('an-resume').textContent=d.resume||'';
   if(d.image_query){
-    document.getElementById('an-hero-img').src=imgUrl(d.image_query,680,140);
+    document.getElementById('an-hero-img').src=imgUrl(d.image_query,680,280);
     document.getElementById('an-hero-img').loading='eager';
     document.getElementById('an-hero-caption').textContent='Illustration : '+d.image_query;
     document.getElementById('an-hero').style.display='';
@@ -588,6 +664,31 @@ function renderHeader(d) {
 }
 
 /* RENDER ACTEURS */
+async function fetchWikiImage(title) {
+  if (!title) return null;
+  try {
+    const r = await fetch(
+      'https://en.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(title),
+      {headers: {'Accept': 'application/json'}}
+    );
+    if (!r.ok) return null;
+    const d = await r.json();
+    let src = (d.thumbnail && d.thumbnail.source) ? d.thumbnail.source : null;
+    if (!src) return null;
+    // Assurer le protocole https
+    if (src.startsWith('//')) src = 'https:' + src;
+    // Agrandir la résolution (remplacer la taille dans l'URL)
+    src = src.replace(/\/\d+px-/, '/240px-');
+    return src;
+  } catch(e) { return null; }
+}
+
+async function loadActeurImages(acteurs) {
+  // Charger toutes les images Wikipedia en parallèle
+  const urls = await Promise.all(acteurs.map(a => fetchWikiImage(a.wiki)));
+  urls.forEach((url, i) => { acteurs[i]._wikiImg = url; });
+}
+
 function renderActeurs(d) {
   _lastActeurs = d.acteurs || [];
   const acteurs = _lastActeurs;
@@ -609,16 +710,24 @@ function renderActeurs(d) {
 
     const wrap = document.createElement('div');
     wrap.className = 'actor-imgwrap';
+
+    // Initiale toujours visible en fond
     const init = document.createElement('div');
     init.className = 'actor-init';
     init.textContent = a.nom.slice(0, 2).toUpperCase();
     wrap.appendChild(init);
-    const img = document.createElement('img');
-    img.src = imgUrl(a.image_query || a.nom, 260, 80);
-    img.alt = a.nom;
-    img.setAttribute('loading', 'eager');
-    img.onerror = function() { this.style.display = 'none'; };
-    wrap.appendChild(img);
+
+    // Image Wikipedia si disponible, sinon drapeau
+    const imgSrc = a._wikiImg || getFlagUrl(a.nom);
+    if (imgSrc) {
+      const img = document.createElement('img');
+      img.src = imgSrc;
+      img.alt = a.nom;
+      img.setAttribute('loading', 'eager');
+      img.style.cssText = 'width:100%;height:80px;object-fit:cover;position:absolute;top:0;left:0;display:block';
+      img.onerror = function() { this.style.display = 'none'; };
+      wrap.appendChild(img);
+    }
     card.appendChild(wrap);
 
     const body = document.createElement('div');
@@ -660,25 +769,24 @@ function renderActeurs(d) {
 
 
 function openActeur(idx) {
-  const a=_lastActeurs[idx]; if(!a) return;
-  document.querySelectorAll('.actor-card').forEach((c,i)=>c.classList.toggle('active',i===idx));
-  const [bg,fg,lbl]=BADGE[a.camp||'neutre']||BADGE.neutre;
-  const q=encodeURIComponent((a.image_query||a.nom||'politics').toLowerCase().replace(/[()]/g,''));
-  const parts=[
+  const a = _lastActeurs[idx]; if (!a) return;
+  document.querySelectorAll('.actor-card').forEach((c,i) => c.classList.toggle('active', i===idx));
+  const [bg,fg,lbl] = BADGE[a.camp||'neutre'] || BADGE.neutre;
+  const flagUrl = a._wikiImg || getFlagUrl(a.nom);
+  const imgHtml = flagUrl
+    ? `<div style="position:relative;width:100%;height:120px;background:var(--bg3);border-radius:var(--r);margin-bottom:.5rem;overflow:hidden"><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:36px;font-weight:500;color:var(--txt3)">${a.nom.slice(0,2).toUpperCase()}</div><img src="${flagUrl}" loading="eager" style="width:100%;height:120px;object-fit:cover;position:absolute;top:0;left:0" onerror="this.style.display='none'"></div>`
+    : `<div style="width:100%;height:80px;background:var(--bg3);border-radius:var(--r);margin-bottom:.5rem;display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:500;color:var(--txt3)">${a.nom.slice(0,2).toUpperCase()}</div>`;
+  const parts = [
     `<div class="detail-title">${a.nom}</div>`,
-    `<div style="position:relative;width:100%;height:140px;background:var(--bg3);border-radius:var(--r);margin-bottom:.5rem;overflow:hidden">`,
-    `<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:40px;font-weight:500;color:var(--txt3)">${a.nom.slice(0,2).toUpperCase()}</div>`,
-    `<img src="${imgUrl(a.image_query||a.nom,340,140)}" loading="eager" style="width:100%;height:140px;object-fit:cover;position:absolute;top:0;left:0;display:block" onerror="this.style.display='none'">`,
-    `</div>`,
-    `<div class="detail-caption">Illustration : ${a.image_query||a.nom}</div>`,
+    imgHtml,
     `<div style="margin-bottom:.6rem"><span class="actor-badge" style="background:${bg};color:${fg};padding:3px 10px;border-radius:999px;font-size:11px;font-weight:500">${lbl}</span><span style="font-size:12px;color:var(--txt2);margin-left:8px">${a.role}</span></div>`,
     `<div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:.6rem;padding:9px 11px;background:var(--bg3);border-radius:var(--r);font-style:italic">${a.interet}</div>`,
-    a.detail?`<div class="detail-body">${a.detail.replace(/\n/g,'<br>')}</div>`:''
+    a.detail ? '<div class="detail-body">' + a.detail.split('\n').join('<br>') + '</div>' : ''
   ];
   showDetail(parts.join(''));
 }
 
-/* RENDER SCÉNARIOS */
+
 function renderScenarios(d) {
   const scenarios=d.scenarios||[];
   const el=document.getElementById('an-scenarios');
@@ -779,10 +887,10 @@ function runSpectre() {
   const msgs=['Cartographie…','Calibrage spectre…','Analyse par camp…'];
   let mi=0;
   const ticker=setInterval(()=>{document.getElementById('spec-lbl').textContent=msgs[++mi%msgs.length];},1800);
-  const prompt=`Analyse médiatique comparée de : "${t}". JSON uniquement, remplace tous les <...> :\n{"topic":"${t}","spectrum":{"gauche_radicale":0,"gauche":0,"centre":0,"droite":0,"droite_radicale":0},"stats":{"sources":0,"consensus":0,"polarisation":"<Faible|Moderee|Forte|Tres forte>","tonalite":"<mot>"},"camps":{"gauche_radicale":{"angle":"<angle editorial>","elements_langage":["<m1>","<m2>","<m3>"],"angle_mort":"<omission>","nb_sources":0},"gauche":{"angle":"<angle>","elements_langage":["<m1>","<m2>","<m3>"],"angle_mort":"<omission>","nb_sources":0},"centre":{"angle":"<angle>","elements_langage":["<m1>","<m2>","<m3>"],"angle_mort":"<omission>","nb_sources":0},"droite":{"angle":"<angle>","elements_langage":["<m1>","<m2>","<m3>"],"angle_mort":"<omission>","nb_sources":0},"droite_radicale":{"angle":"<angle>","elements_langage":["<m1>","<m2>","<m3>"],"angle_mort":"<omission>","nb_sources":0}},"consensus":["<fait factuel partage>","<fait 2>","<fait 3>"],"divergences":["<point de desaccord>","<desaccord 2>","<desaccord 3>"],"angles_morts":["<angle mort commun>","<angle mort 2>","<angle mort 3>"],"cadrage":{"gauche_radicale":{"met_en_avant":"<...>","omet":"<...>","recit":"<...>"},"gauche":{"met_en_avant":"<...>","omet":"<...>","recit":"<...>"},"centre":{"met_en_avant":"<...>","omet":"<...>","recit":"<...>"},"droite":{"met_en_avant":"<...>","omet":"<...>","recit":"<...>"},"droite_radicale":{"met_en_avant":"<...>","omet":"<...>","recit":"<...>"}},"timeline":{"labels":["J-6","J-5","J-4","J-3","J-2","J-1","Auj."],"gauche_radicale":[0,0,0,0,0,0,0],"gauche":[0,0,0,0,0,0,0],"centre":[0,0,0,0,0,0,0],"droite":[0,0,0,0,0,0,0],"droite_radicale":[0,0,0,0,0,0,0]}}\nspectrum doit sommer a 100. nb_sources = nombre estime sources. timeline 0-100.`;
   callProxy([{role:'user',content:prompt}],4000)
-  .then(raw=>{clearInterval(ticker);loading.style.display='none';document.getElementById('spec-btn').disabled=false;renderSpectre(safeJSON(raw));})
-  .catch(err=>{clearInterval(ticker);loading.style.display='none';document.getElementById('spec-btn').disabled=false;const eb=document.getElementById('spec-err');eb.textContent='Erreur : '+err.message;eb.classList.add('on');});
+
+  .then(raw=>{clearInterval(ticker);document.getElementById('spec-loading').style.display='none';document.getElementById('spec-btn').disabled=false;try{renderSpectre(safeJSON(raw));}catch(e){const eb=document.getElementById('spec-err');eb.textContent='Erreur : '+e.message;eb.classList.add('on');}})
+  .catch(err=>{clearInterval(ticker);document.getElementById('spec-loading').style.display='none';document.getElementById('spec-btn').disabled=false;const eb=document.getElementById('spec-err');eb.textContent='Erreur : '+err.message;eb.classList.add('on');});
 }
 
 function renderSpectre(d) {
@@ -807,7 +915,6 @@ function renderSpectre(d) {
     cg.appendChild(card);
   });
 
-  /* Consensus / Divergences / Angles morts */
   const consEl=document.getElementById('spec-consensus');
   if(consEl)consEl.innerHTML=(d.consensus||[]).map(pt=>`<div class="spec-list-item"><span style="color:#86efac;font-weight:600;flex-shrink:0">✓</span>${pt}</div>`).join('');
   const divEl=document.getElementById('spec-divergence');
@@ -815,7 +922,6 @@ function renderSpectre(d) {
   const angEl=document.getElementById('spec-angles');
   if(angEl)angEl.innerHTML=(d.angles_morts||[]).map(pt=>`<div class="spec-list-item"><span style="color:#fbbf24;font-weight:600;flex-shrink:0">○</span>${pt}</div>`).join('');
 
-  /* Sources par camp */
   const srcEl=document.getElementById('spec-sources-camps');
   if(srcEl){
     const data=CAMP_KEYS.map(k=>({name:CAMP_SHORT[k],col:CAMP_COLS[k],nb:d.camps[k]&&d.camps[k].nb_sources?d.camps[k].nb_sources:Math.max(1,Math.round(d.spectrum[k]/5))}));
@@ -823,11 +929,9 @@ function renderSpectre(d) {
     srcEl.innerHTML=data.map(c=>`<div class="src-bar-row"><div class="src-bar-name" style="color:${c.col}">${c.name}</div><div class="src-bar-track"><div class="src-bar-fill" style="width:${Math.round(c.nb/mx*100)}%;background:${c.col}"></div></div><div class="src-bar-nb">${c.nb}</div></div>`).join('');
   }
 
-  /* Cadrage comparé */
   const tb=document.getElementById('at-body');tb.innerHTML='';
   CAMP_KEYS.forEach(k=>{const cd=d.cadrage[k]||{};tb.innerHTML+=`<tr><td style="color:${CAMP_COLS[k]}">${CAMP_SHORT[k]}</td><td>${cd.met_en_avant||''}</td><td>${cd.omet||''}</td><td>${cd.recit||''}</td></tr>`;});
 
-  /* Timeline */
   if(_tChart){_tChart.destroy();_tChart=null;}
   const tl=d.timeline||{};
   _tChart=new Chart(document.getElementById('tChart'),{
@@ -841,7 +945,6 @@ function renderSpectre(d) {
     ]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{font:{size:9},color:'#555',autoSkip:false}},y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{font:{size:9},color:'#555'},min:0,max:100}}}
   });
-
   document.getElementById('spec-results').style.display='';
 }
 
@@ -867,7 +970,6 @@ function openCampDetail(k) {
   showDetail(parts.join(''));
 }
 
-/* KEYBOARD */
 document.getElementById('topic-in').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();launch();}});
 document.getElementById('spec-in').addEventListener('keydown',e=>{if(e.key==='Enter')runSpectre();});
 </script>
