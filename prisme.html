@@ -778,95 +778,180 @@ function imgUrl(query, w, h) {
 }
 
 /* ════════════════════════════════════════════
-   ANALYSE — PROMPT BUILDER
+   ANALYSE — APPEL API SÉQUENTIEL + PARALLÈLE
+   
+   Architecture :
+   ┌─ Appel 1 (séquentiel) ────────────────────┐
+   │  headline + résumé + date + image (~3s)    │
+   │  → affiché immédiatement                  │
+   └───────────────────┬───────────────────────┘
+                       │ résultat injecté comme contexte
+           ┌───────────┴────────────────┐
+           │                            │
+   ┌───────▼──────┐  ┌──────────────────▼──────┐
+   │ Appel 2      │  │ Appel 3                  │
+   │ Sections 1-4 │  │ Sections 5-8             │
+   │ (~8s)        │  │ (~8s)                    │
+   └───────┬──────┘  └──────────────────┬───────┘
+           │                            │
+           └───────────┬────────────────┘
+                       │
+           ┌───────────▼────────────────┐
+           │ Appel 4                    │
+           │ Acteurs + Scénarios (~5s)  │
+           │ (avec contexte complet)    │
+           └────────────────────────────┘
 ════════════════════════════════════════════ */
-function buildAnalysisPrompt(topic) {
+
+function getSourcesAndFrames() {
   const as = Object.entries(srcs).filter(([k,v])=>v).map(([k])=>SL[k]);
   const af = Object.entries(frames).filter(([k,v])=>v).map(([k])=>FL[k]);
-  const depthInstr = {
-    f:'Synthèse concise pour chaque point (3-4 phrases par section, 2-3 pour le résumé).',
-    a:'Analyse développée (6-8 phrases par section, paragraphe de 4-5 phrases pour le résumé).',
-    d:'Traitement approfondi (8-12 phrases par section, résumé de 5-6 phrases, données chiffrées obligatoires).'
+  return { as, af };
+}
+
+function depthLabel() {
+  return {
+    f:'2 phrases max par point, très synthétique',
+    a:'3-4 phrases par point, bien développé',
+    d:'5-6 phrases par point, exhaustif avec données chiffrées'
   }[depth];
-
-  return `Tu es un analyste géopolitique rigoureux. Analyse "${topic}".
-
-${depthInstr}
-
-Sources à mobiliser : ${as.join(' ; ')}
-Cadres d'analyse : ${af.join(' ; ')}
-
-Réponds UNIQUEMENT avec un objet JSON valide, sans texte avant ou après, sans backticks.
-
-SCHEMA STRICT :
-{
-  "topic": string,
-  "headline": string (titre percutant, max 12 mots),
-  "date_contexte": string (période couverte, ex: "2024–2025"),
-  "resume": string (résumé exécutif, faits bruts, sans jargon),
-  "image_query": string (requête anglaise pour image Unsplash illustrant le sujet, 2-4 mots),
-  "sections": [
-    {
-      "titre": string (= un des 8 titres de la grille),
-      "resume": string (2-3 phrases pour le dashboard),
-      "detail": string (développement complet pour le panneau de détail, HTML simple autorisé : <b>, <br>, <ul><li>),
-      "type_viz": "none"|"bar"|"line"|"doughnut"|"timeline",
-      "viz_label": string (titre du graphique, si type_viz != none),
-      "viz_data": {
-        "labels": [string],
-        "values": [number],
-        "colors": [string] (hex optionnel)
-      } | null,
-      "image_query": string (requête anglaise Unsplash pour cette section, 2-4 mots)
-    }
-  ] (exactement 8 sections dans l'ordre de la grille),
-  "acteurs": [
-    {
-      "nom": string,
-      "role": string,
-      "camp": "pro"|"contra"|"neutre"|"ambigu",
-      "interet": string (1 phrase sur leur intérêt réel)
-    }
-  ] (4-8 acteurs clés),
-  "scenarios": [
-    {
-      "titre": string,
-      "probabilite": number (0-100),
-      "description": string (2-3 phrases),
-      "signal": string (signal faible à surveiller)
-    }
-  ] (3-4 scénarios)
 }
 
-Sois direct, sans langue de bois. Nomme les intérêts réels. Reste factuel et nuancé.`;
+async function callProxy(messages, maxTokens) {
+  const res = await fetch(PROXY_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: maxTokens,
+      messages
+    })
+  });
+  if (!res.ok) throw new Error('HTTP ' + res.status);
+  const data = await res.json();
+  if (data.error) throw new Error(JSON.stringify(data.error));
+  return (data.content || []).map(x => x.text || '').join('');
 }
 
-/* ════════════════════════════════════════════
-   ANALYSE — CALL API
-════════════════════════════════════════════ */
 async function launch() {
   const t = (document.getElementById('topic-in').value || '').trim();
   if (!t) { document.getElementById('topic-in').focus(); return; }
   setCurrentTopic(t);
   startLoading();
 
+  const { as, af } = getSourcesAndFrames();
+  const dl = depthLabel();
+  const srcStr = as.join(' ; ');
+  const frmStr = af.join(' ; ');
+
+  // Résultat global assemblé progressivement
+  const analysis = { topic: t, sections: new Array(8).fill(null), acteurs: [], scenarios: [] };
+
   try {
-    const res = await fetch(PROXY_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: 8000,
-        messages: [{ role: 'user', content: buildAnalysisPrompt(t) }]
-      })
+    /* ── APPEL 1 (séquentiel) : Header + résumé
+       Rapide (~3s), son résultat sera injecté
+       dans tous les appels suivants comme contexte */
+    updateLoadingStep('Synthèse générale…', 'Headline, résumé exécutif, contexte', 15);
+
+    const raw1 = await callProxy([{ role:'user', content:
+      `Tu es un analyste géopolitique rigoureux. Sujet : "${t}".
+Sources à mobiliser : ${srcStr}.
+Cadres d'analyse : ${frmStr}.
+Réponds UNIQUEMENT en JSON valide, sans texte autour, sans backticks :
+{
+  "headline": string (titre accrocheur, max 12 mots),
+  "date_contexte": string (période concernée, ex: "2024-2025"),
+  "resume": string (résumé exécutif factuel, ${dl}),
+  "image_query": string (2-4 mots anglais pour image Unsplash),
+  "contexte_commun": string (paragraphe de 4-6 phrases résumant les faits clés, acteurs principaux, et enjeux centraux — ce texte sera utilisé comme contexte partagé pour toutes les analyses détaillées)
+}` }], 800);
+
+    const d1 = safeParseJSON(raw1);
+    Object.assign(analysis, d1);
+
+    // Afficher le header immédiatement
+    renderHeader(analysis);
+    updateLoadingStep('Analyse en cours…', 'Sections 1–8 et acteurs en parallèle', 35);
+
+    /* ── Le contexte commun garantit la cohérence entre appels parallèles */
+    const ctx = d1.contexte_commun || d1.resume || '';
+    const contextBlock = `
+CONTEXTE ÉTABLI (à respecter pour cohérence) :
+"${ctx}"
+`;
+
+    /* ── APPELS 2, 3, 4 EN PARALLÈLE — avec contexte injecté */
+
+    // Appel 2 : Sections 1-4
+    const p2 = callProxy([{ role:'user', content:
+      `Tu es un analyste géopolitique rigoureux. Sujet : "${t}".
+${contextBlock}
+Sources : ${srcStr}. Cadres : ${frmStr}.
+Profondeur : ${dl}.
+Réponds UNIQUEMENT en JSON valide sans backticks, structure exacte :
+{"sections":[
+  {"titre":"Faits établis","resume":string,"detail":string(HTML autorisé: <b><br><ul><li>),"type_viz":"none","viz_label":null,"viz_data":null,"image_query":string(2-4 mots anglais)},
+  {"titre":"Sources & récits","resume":string,"detail":string,"type_viz":"none","viz_label":null,"viz_data":null,"image_query":string},
+  {"titre":"Certitudes & incertitudes","resume":string,"detail":string,"type_viz":"none","viz_label":null,"viz_data":null,"image_query":string},
+  {"titre":"Intérêts des acteurs","resume":string,"detail":string,"type_viz":"none","viz_label":null,"viz_data":null,"image_query":string}
+]}` }], 2500)
+    .then(raw => {
+      const d = safeParseJSON(raw);
+      (d.sections || []).forEach((s, i) => { analysis.sections[i] = s; });
+      renderSectionsPartial(analysis, 0, 4);
+      updateLoadingStep('Sections 1–4 reçues…', 'En attente des sections 5–8', 60);
     });
-    if (!res.ok) throw new Error('Erreur HTTP ' + res.status);
-    const data = await res.json();
-    const raw = (data.content || []).map(x => x.text || '').join('');
-    const d = safeParseJSON(raw);
-    _currentAnalysis = d;
+
+    // Appel 3 : Sections 5-8
+    const p3 = callProxy([{ role:'user', content:
+      `Tu es un analyste géopolitique rigoureux. Sujet : "${t}".
+${contextBlock}
+Sources : ${srcStr}. Cadres : ${frmStr}.
+Profondeur : ${dl}.
+Réponds UNIQUEMENT en JSON valide sans backticks, structure exacte :
+{"sections":[
+  {"titre":"Biais & angles morts","resume":string,"detail":string(HTML autorisé),"type_viz":"none","viz_label":null,"viz_data":null,"image_query":string(2-4 mots anglais)},
+  {"titre":"Contexte historique","resume":string,"detail":string,"type_viz":"line","viz_label":string,"viz_data":{"labels":[string],"values":[number]},"image_query":string},
+  {"titre":"Tendances systémiques","resume":string,"detail":string,"type_viz":"bar","viz_label":string,"viz_data":{"labels":[string],"values":[number]},"image_query":string},
+  {"titre":"Trajectoires plausibles","resume":string,"detail":string,"type_viz":"none","viz_label":null,"viz_data":null,"image_query":string}
+]}
+Pour les graphiques : type_viz "line" pour contexte historique (timeline), "bar" pour tendances (comparaisons). viz_data obligatoire si type_viz != "none".` }], 2500)
+    .then(raw => {
+      const d = safeParseJSON(raw);
+      (d.sections || []).forEach((s, i) => { analysis.sections[i + 4] = s; });
+      renderSectionsPartial(analysis, 4, 8);
+      updateLoadingStep('Sections 5–8 reçues…', 'En attente des acteurs et scénarios', 75);
+    });
+
+    // Appel 4 : Acteurs + Scénarios (avec contexte)
+    const p4 = callProxy([{ role:'user', content:
+      `Tu es un analyste géopolitique rigoureux. Sujet : "${t}".
+${contextBlock}
+Sources : ${srcStr}.
+Réponds UNIQUEMENT en JSON valide sans backticks :
+{
+  "acteurs": [
+    {"nom":string,"role":string,"camp":"pro"|"contra"|"neutre"|"ambigu","interet":string(1 phrase sur leur intérêt réel, pas leur discours officiel)}
+  ],
+  "scenarios": [
+    {"titre":string,"probabilite":number(0-100),"description":string(${dl}),"signal":string(signal faible à surveiller)}
+  ]
+}
+4-6 acteurs clés. 3-4 scénarios argumentés, cohérents avec le contexte établi.` }], 1500)
+    .then(raw => {
+      const d = safeParseJSON(raw);
+      Object.assign(analysis, d);
+      renderActeursScenarios(analysis);
+      updateLoadingStep('Acteurs & scénarios reçus…', 'Finalisation', 90);
+    });
+
+    // Attendre les 3 appels parallèles
+    await Promise.all([p2, p3, p4]);
+
+    _currentAnalysis = analysis;
     stopLoading();
-    renderAnalysis(d);
+    finalizeResults(analysis);
+
   } catch(err) {
     stopLoading();
     showAnErr('Erreur : ' + err.message + ' — Vérifie ta connexion ou réessaie.');
@@ -874,18 +959,27 @@ async function launch() {
   }
 }
 
+function updateLoadingStep(label, sub, pct) {
+  document.getElementById('an-loading-label').textContent = label;
+  document.getElementById('an-loading-sub').textContent = sub;
+  document.getElementById('an-progress').style.width = pct + '%';
+}
+
 /* ════════════════════════════════════════════
-   ANALYSE — RENDER DASHBOARD
+   ANALYSE — RENDER PROGRESSIF
 ════════════════════════════════════════════ */
-function renderAnalysis(d) {
-  /* Header */
-  document.getElementById('an-headline').textContent = d.headline || d.topic;
+/* ════════════════════════════════════════════
+   ANALYSE — RENDER PROGRESSIF (fonctions modulaires)
+════════════════════════════════════════════ */
+
+// Appelé dès que le header arrive
+function renderHeader(d) {
+  document.getElementById('an-headline').textContent = d.headline || d.topic || '';
   document.getElementById('an-meta').innerHTML =
     `<span>📅 ${d.date_contexte || ''}</span>` +
     `<span>🔍 ${Object.values(srcs).filter(Boolean).length} catégories de sources</span>` +
     `<span>⚙️ ${Object.values(frames).filter(Boolean).length} cadres d'analyse</span>`;
-
-  /* Hero image */
+  if (d.resume) document.getElementById('an-resume').textContent = d.resume;
   if (d.image_query) {
     const heroEl = document.getElementById('an-hero');
     const heroImg = document.getElementById('an-hero-img');
@@ -894,17 +988,36 @@ function renderAnalysis(d) {
     document.getElementById('an-hero-caption').textContent = 'Illustration : ' + d.image_query;
     heroEl.style.display = '';
   }
+  // Afficher les résultats dès le premier bloc
+  document.getElementById('an-results').classList.add('on');
+  document.getElementById('an-results').scrollIntoView({behavior:'smooth', block:'start'});
+}
 
-  /* Résumé */
-  document.getElementById('an-resume').textContent = d.resume || '';
-
-  /* Section cards */
+// Appelé quand un lot de sections arrive (from=0,to=4 ou from=4,to=8)
+function renderSectionsPartial(d, from, to) {
   const secCol = document.getElementById('an-sections');
-  secCol.innerHTML = '';
-  (d.sections || []).forEach((sec, i) => {
-    const card = document.createElement('div');
-    card.className = 'section-card';
-    card.id = 'sec-card-' + i;
+  // Initialiser les 8 placeholders si pas encore fait
+  if (secCol.children.length === 0) {
+    for (let i = 0; i < 8; i++) {
+      const card = document.createElement('div');
+      card.className = 'section-card loading-card';
+      card.id = 'sec-card-' + i;
+      card.innerHTML = `
+        <div class="section-card-head">
+          <div class="section-num">${i+1}</div>
+          <div class="section-title" style="color:var(--txt3)">${SECTION_TITLES[i]}</div>
+          <div class="section-arrow" style="opacity:.3">›</div>
+        </div>`;
+      secCol.appendChild(card);
+    }
+  }
+  // Mettre à jour les sections disponibles
+  for (let i = from; i < to; i++) {
+    const sec = d.sections[i];
+    if (!sec) continue;
+    const card = document.getElementById('sec-card-' + i);
+    if (!card) continue;
+    card.classList.remove('loading-card');
     card.innerHTML = `
       <div class="section-card-head" onclick="toggleSection(${i})">
         <div class="section-num">${i+1}</div>
@@ -915,10 +1028,13 @@ function renderAnalysis(d) {
         ${sec.resume || ''}
         ${sec.image_query ? `<img class="section-img" src="${imgUrl(sec.image_query, 400, 120)}" alt="${sec.titre}" loading="lazy" onerror="this.style.display='none'">` : ''}
       </div>`;
-    secCol.appendChild(card);
-  });
+  }
+  // Auto-ouvrir section 1 quand elle est prête
+  if (from === 0 && d.sections[0]) setTimeout(() => toggleSection(0), 300);
+}
 
-  /* Acteurs */
+// Appelé quand acteurs + scénarios arrivent
+function renderActeursScenarios(d) {
   const campColors = {pro:'#27500A',contra:'#7f1d1d',neutre:'#374151',ambigu:'#633806'};
   const campBg = {pro:'#EAF3DE',contra:'#FEF2F2',neutre:'#F9FAFB',ambigu:'#FAEEDA'};
   const campLabel = {pro:'Favorable',contra:'Opposé',neutre:'Neutre',ambigu:'Ambigu'};
@@ -933,8 +1049,6 @@ function renderAnalysis(d) {
       <div class="acteur-interet">${a.interet}</div>
     </div>`;
   });
-
-  /* Scénarios */
   const scEl = document.getElementById('an-scenarios');
   scEl.innerHTML = '';
   (d.scenarios || []).forEach(sc => {
@@ -952,13 +1066,21 @@ function renderAnalysis(d) {
       </div>
     </div>`;
   });
+}
 
-  /* Show results */
+// Appelé une fois tous les appels terminés
+function finalizeResults(d) {
+  _currentAnalysis = d;
+  // S'assurer que les résultats sont visibles
   document.getElementById('an-results').classList.add('on');
-  document.getElementById('an-results').scrollIntoView({behavior:'smooth', block:'start'});
+}
 
-  /* Auto-open section 1 */
-  setTimeout(() => toggleSection(0), 400);
+// Compatibilité — garde renderAnalysis pour usage éventuel
+function renderAnalysis(d) {
+  renderHeader(d);
+  renderSectionsPartial(d, 0, 8);
+  renderActeursScenarios(d);
+  finalizeResults(d);
 }
 
 /* ════════════════════════════════════════════
@@ -1117,7 +1239,7 @@ Remplis avec de vraies valeurs. spectrum doit sommer à 100. Jauges entre 0-100.
   fetch(PROXY_URL, {
     method: 'POST',
     headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({model:'claude-sonnet-4-6',max_tokens:8000,messages:[{role:'user',content:prompt}]})
+    body: JSON.stringify({model:'claude-sonnet-4-6',max_tokens:4000,messages:[{role:'user',content:prompt}]})
   })
   .then(r => { if (!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
   .then(data => {
