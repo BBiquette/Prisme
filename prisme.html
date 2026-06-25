@@ -7,16 +7,12 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#fff;--bg2:#f5f5f3;--bg3:#efefec;
-  --txt:#1a1a1a;--txt2:#666;--txt3:#999;
-  --brd:rgba(0,0,0,0.12);--brd2:rgba(0,0,0,0.22);
+  --bg:#1a1a1a;--bg2:#232323;--bg3:#2d2d2d;
+  --txt:#ececec;--txt2:#999999;--txt3:#555555;
+  --brd:rgba(255,255,255,0.10);--brd2:rgba(255,255,255,0.18);
+  --accent:#ececec;--accent2:#888888;
   --r:8px;--rl:12px;
 }
-@media(prefers-color-scheme:dark){:root{
-  --bg:#1a1a1a;--bg2:#242424;--bg3:#2e2e2e;
-  --txt:#f0f0ee;--txt2:#aaa;--txt3:#666;
-  --brd:rgba(255,255,255,0.12);--brd2:rgba(255,255,255,0.22);
-}}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--txt);background:var(--bg);padding:1.25rem;max-width:100%;margin:0}
 
 /* ── NAV ── */
@@ -26,7 +22,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 .topic-pill{font-size:11px;color:var(--txt3);font-style:italic;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .nav{display:flex;border-bottom:0.5px solid var(--brd);margin-bottom:1rem}
 .ntab{padding:7px 14px;font-size:12px;color:var(--txt2);cursor:pointer;border:none;background:none;font-family:inherit;border-bottom:1.5px solid transparent;margin-bottom:-0.5px;transition:all .15s;white-space:nowrap}
-.ntab.on{color:var(--txt);font-weight:500;border-bottom-color:var(--txt)}
+.ntab.on{color:var(--accent);font-weight:500;border-bottom-color:var(--accent)}
 .panel{display:none}.panel.on{display:block}
 .slabel{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--txt3);margin-bottom:.5rem;margin-top:1rem}
 .slabel:first-child{margin-top:0}
@@ -53,7 +49,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 .fgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin-bottom:.6rem}
 .fbtn{padding:5px 4px;border:0.5px solid var(--brd);border-radius:var(--r);background:transparent;font-size:10px;color:var(--txt2);cursor:pointer;font-family:inherit;text-align:center;line-height:1.3;transition:all .15s}
 .fbtn.on{background:var(--bg2);color:var(--txt);border-color:var(--brd2)}
-.gobtn{width:100%;padding:10px;border-radius:var(--r);background:var(--txt);border:none;color:var(--bg);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;margin-bottom:.5rem;transition:opacity .15s}
+.gobtn{width:100%;padding:10px;border-radius:var(--r);background:var(--accent);border:none;color:#FAF8F5;font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;margin-bottom:.5rem;transition:opacity .15s}
 .gobtn:hover{opacity:.85}
 .gobtn:disabled{opacity:.4;cursor:not-allowed}
 .vbtn{width:100%;padding:8px;border:0.5px dashed var(--brd2);border-radius:var(--r);background:transparent;font-size:12px;color:var(--txt2);cursor:pointer;font-family:inherit;margin-bottom:.75rem;transition:all .15s}
@@ -84,7 +80,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 .results-headline{font-size:16px;font-weight:500;margin-bottom:4px;line-height:1.4}
 .results-meta{font-size:11px;color:var(--txt3);display:flex;gap:12px;flex-wrap:wrap}
 .results-meta span{display:flex;align-items:center;gap:4px}
-.results-resume{font-size:13px;color:var(--txt2);line-height:1.6;margin-bottom:1rem;padding:10px 14px;background:var(--bg2);border-radius:var(--r);border-left:3px solid var(--brd2);border-radius:0 var(--r) var(--r) 0}
+.results-resume{font-size:13px;color:var(--txt2);line-height:1.6;margin-bottom:1rem;padding:10px 14px;background:var(--bg2);border-left:3px solid var(--accent2);border-radius:0 var(--r) var(--r) 0}
 
 /* Hero image */
 .hero-img{width:100%;height:180px;object-fit:cover;border-radius:var(--r);margin-bottom:1rem;display:block}
@@ -103,7 +99,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 .section-card.active{border-color:var(--txt);background:var(--bg)}
 .section-card-head{display:flex;align-items:center;gap:10px;padding:10px 14px}
 .section-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--bg2);border:0.5px solid var(--brd);font-size:10px;font-weight:500;color:var(--txt2);flex-shrink:0}
-.section-card.active .section-num{background:var(--txt);color:var(--bg);border-color:var(--txt)}
+.section-card.active .section-num{background:var(--accent);color:#FAF8F5;border-color:var(--accent)}
 .section-title{font-size:12px;font-weight:500;flex:1}
 .section-arrow{font-size:11px;color:var(--txt3);transition:transform .15s}
 .section-card.active .section-arrow{transform:rotate(90deg)}
@@ -126,30 +122,18 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 .detail-chart-wrap{position:relative;width:100%;height:160px;margin:.75rem 0}
 .detail-map-wrap{width:100%;margin:.75rem 0;border-radius:var(--r);overflow:hidden;border:0.5px solid var(--brd)}
 
-/* ── ACTEURS CARDS ── */
-.acteurs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;margin-bottom:1rem}
-.acteur-card{border:0.5px solid var(--brd);border-radius:var(--r);padding:8px 10px;background:var(--bg)}
-.acteur-name{font-size:11px;font-weight:500;margin-bottom:2px}
-.acteur-role{font-size:10px;color:var(--txt3);margin-bottom:4px}
-.acteur-interet{font-size:10px;color:var(--txt2);line-height:1.4}
-.acteur-badge{display:inline-block;padding:1px 6px;border-radius:999px;font-size:9px;font-weight:500;margin-bottom:4px}
-
-/* ── SCENARIOS ── */
-.scenarios-list{margin-bottom:1rem}
-.scenario-item{display:flex;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--brd)}
-.scenario-item:last-child{border-bottom:none}
-.scenario-prob{flex-shrink:0;width:36px;text-align:center}
-.scenario-prob-val{font-size:14px;font-weight:500}
-.scenario-prob-lbl{font-size:9px;color:var(--txt3)}
-.scenario-content{}
-.scenario-title{font-size:12px;font-weight:500;margin-bottom:2px}
-.scenario-desc{font-size:11px;color:var(--txt2);line-height:1.5}
+/* ── ACTEURS & SCÉNARIOS — nouveau design ── */
+.acteurs-grid{margin-bottom:1rem}
+.actor-card{border:0.5px solid var(--brd);border-radius:var(--rl);overflow:hidden;background:var(--bg);width:100%;min-width:180px;max-width:260px;display:flex;flex-direction:column;cursor:pointer;transition:border-color .2s,transform .15s}
+.actor-card:hover{border-color:var(--brd2);transform:translateY(-2px)}
+.actor-ambigu{border-style:dashed}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
 
 /* ── BOTTOM ACTIONS ── */
 .bottom-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:1rem;padding-top:.85rem;border-top:0.5px solid var(--brd)}
 .abtn{padding:7px 12px;border:0.5px solid var(--brd2);border-radius:var(--r);background:transparent;font-size:11px;color:var(--txt2);cursor:pointer;font-family:inherit;transition:all .15s}
 .abtn:hover{background:var(--bg2);color:var(--txt)}
-.abtn.pri{background:var(--txt);color:var(--bg);border-color:var(--txt)}
+.abtn.pri{background:var(--accent);color:#FAF8F5;border-color:var(--accent)}
 .abtn.pri:hover{opacity:.85}
 .discl{font-size:10px;color:var(--txt3);margin-top:.5rem;line-height:1.5}
 
@@ -341,12 +325,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
     </div>
 
     <!-- Acteurs -->
-    <div class="slabel">Acteurs & intérêts</div>
+    <div class="slabel">Acteurs & intérêts — <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px">cliquez sur une fiche pour les détails</span></div>
     <div class="acteurs-grid" id="an-acteurs"></div>
 
     <!-- Scénarios -->
-    <div class="slabel">Trajectoires plausibles</div>
-    <div class="scenarios-list" id="an-scenarios"></div>
+    <div class="slabel">Trajectoires plausibles — <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px">cliquez pour les détails</span></div>
+    <div id="an-scenarios"></div>
 
     <!-- Actions -->
     <div class="bottom-actions">
@@ -1039,33 +1023,89 @@ function renderSectionsPartial(d, from, to) {
 
 // Appelé quand acteurs + scénarios arrivent
 function renderActeursScenarios(d) {
-  const campColors = {pro:'#27500A',contra:'#7f1d1d',neutre:'#374151',ambigu:'#633806'};  const campBg = {pro:'#EAF3DE',contra:'#FEF2F2',neutre:'#F9FAFB',ambigu:'#FAEEDA'};  const campLabel = {pro:'Favorable',contra:'Opposé',neutre:'Neutre',ambigu:'Ambigu'};  const actEl = document.getElementById('an-acteurs');  actEl.innerHTML = '';
-  (d.acteurs || []).forEach(a => {
+  const campColors = {pro:'#27500A',contra:'#7f1d1d',neutre:'#374151',ambigu:'#633806'};  const campBg    = {pro:'#EAF3DE',contra:'#FEF2F2',neutre:'#F2EDE6',ambigu:'#FAEEDA'};  const campLabel = {pro:'Favorable',contra:'Opposé',neutre:'Neutre',ambigu:'Ambigu'};  const campIcon  = {pro:'✓',contra:'✕',neutre:'−',ambigu:'?'};
+  const acteurs   = d.acteurs || [];
+  const pros      = acteurs.filter(a => a.camp === 'pro' || a.camp === 'ambigu');  const contras   = acteurs.filter(a => a.camp === 'contra');  const neutres   = acteurs.filter(a => a.camp !== 'pro' && a.camp !== 'contra' && a.camp !== 'ambigu');
+
+  function acteurCard(a) {
     const c = a.camp || 'neutre';
-    actEl.innerHTML += `<div class="acteur-card">
-      <span class="acteur-badge" style="background:${campBg[c]};color:${campColors[c]}">${campLabel[c]||c}</span>
-      <div class="acteur-name">${a.nom}</div>
-      <div class="acteur-role">${a.role}</div>
-      <div class="acteur-interet">${a.interet}</div>
+    const iq = a.image_query ? encodeURIComponent(a.image_query) : encodeURIComponent(a.nom);
+    return `<div class="actor-card ${c==='ambigu'?'actor-ambigu':''}" onclick="toggleActorCard(this)">      <img style="width:100%;height:90px;object-fit:cover;display:block;flex-shrink:0" src="https://source.unsplash.com/260x90/?${iq}" alt="${a.nom}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+      <div style="width:100%;height:90px;display:none;align-items:center;justify-content:center;font-size:24px;font-weight:500;color:var(--txt3);background:var(--bg2);flex-shrink:0">${a.nom.slice(0,2).toUpperCase()}</div>
+      <div style="padding:10px 12px;flex:1;display:flex;flex-direction:column">
+        <span style="display:inline-flex;align-items:center;gap:3px;padding:3px 9px;border-radius:999px;font-size:11px;font-weight:500;margin-bottom:7px;align-self:flex-start;background:${campBg[c]};color:${campColors[c]}">${campIcon[c]} ${campLabel[c]||c}</span>
+        <div style="font-size:13px;font-weight:500;margin-bottom:2px;color:var(--txt)">${a.nom}</div>
+        <div style="font-size:11px;color:var(--txt2);margin-bottom:7px">${a.role}</div>
+        <div style="font-size:11px;color:var(--txt2);line-height:1.55;padding-top:7px;border-top:0.5px solid var(--brd);margin-top:auto">${a.interet}</div>
+        <div style="font-size:10px;color:var(--txt3);margin-top:8px;display:flex;align-items:center;gap:3px" class="actor-hint">▾ Voir l'analyse</div>
+        <div class="actor-detail" style="font-size:12px;color:var(--txt2);line-height:1.6;max-height:0;overflow:hidden;transition:max-height .35s ease,padding-top .25s;padding-top:0"></div>
+      </div>
     </div>`;
-  });
-  const scEl = document.getElementById('an-scenarios');  scEl.innerHTML = '';
-  (d.scenarios || []).forEach(sc => {
+  }
+
+  const actEl = document.getElementById('an-acteurs');
+  actEl.innerHTML = `<div style="display:grid;grid-template-columns:1fr 200px 1fr;gap:12px;align-items:start">
+    <div style="display:flex;flex-direction:column;gap:10px">${pros.map(acteurCard).join('')}</div>
+    <div style="display:flex;flex-direction:column;gap:10px;align-items:center">
+      <div style="width:1px;background:var(--brd);flex:1;min-height:20px"></div>
+      <div style="font-size:13px;font-weight:500;color:var(--txt3);padding:8px 0;letter-spacing:.1em">VS</div>
+      <div style="width:1px;background:var(--brd);flex:1;min-height:20px"></div>
+      ${neutres.map(acteurCard).join('')}
+      <div style="width:1px;background:var(--brd);flex:1;min-height:20px"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px">${contras.map(acteurCard).join('')}</div>
+  </div>`;
+
+  const scEl = document.getElementById('an-scenarios');
+  const scenarios = d.scenarios || [];
+  let currentSc = -1;
+  const cols = Math.min(scenarios.length, 3);
+  const scCards = scenarios.map((sc, i) => {
     const p = Math.round(sc.probabilite || 0);
     const col = p >= 60 ? '#27500A' : p >= 35 ? '#633806' : '#7f1d1d';
-    scEl.innerHTML += `<div class="scenario-item">
-      <div class="scenario-prob">
-        <div class="scenario-prob-val" style="color:${col}">${p}%</div>
-        <div class="scenario-prob-lbl">prob.</div>
+    return `<div class="scenario-box" id="scbox-${i}" onclick="toggleSc(${i})" style="padding:14px 16px;border:0.5px solid var(--brd);border-radius:var(--rl);background:var(--bg);cursor:pointer;display:flex;flex-direction:column;gap:8px;transition:border-color .15s,transform .15s;user-select:none">
+      <div style="display:flex;align-items:center;gap:10px">
+        <div style="font-size:22px;font-weight:500;flex-shrink:0;color:${col}">${p}%</div>
+        <div style="font-size:13px;font-weight:500;line-height:1.4;color:var(--txt)">${sc.titre}</div>
       </div>
-      <div class="scenario-content">
-        <div class="scenario-title">${sc.titre}</div>
-        <div class="scenario-desc">${sc.description}</div>
-        ${sc.signal ? `<div style="font-size:10px;color:var(--txt3);margin-top:3px">⚠ Signal : ${sc.signal}</div>` : ''}
-      </div>
+      <div style="font-size:11px;color:var(--txt2);line-height:1.55">${sc.description}</div>
+      ${sc.signal ? `<div style="font-size:10px;color:var(--txt3);display:flex;align-items:flex-start;gap:4px;padding-top:8px;border-top:0.5px solid var(--brd)">⚠ ${sc.signal}</div>` : ''}
+      <div style="font-size:10px;color:var(--txt3);display:flex;align-items:center;gap:3px">▾ Voir le détail</div>
     </div>`;
-  });
+  }).join('');
+
+  scEl.innerHTML = `<div style="display:grid;grid-template-columns:repeat(${cols},minmax(0,1fr));gap:12px">${scCards}</div>
+  <div id="sc-panel" style="display:none;margin-top:12px;padding:16px 18px;border:0.5px solid var(--accent2);border-radius:var(--rl);background:var(--bg2);font-size:12px;color:var(--txt2);line-height:1.7">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+      <span id="sc-panel-title" style="font-size:13px;font-weight:500"></span>
+      <button onclick="closeSc()" style="background:none;border:none;cursor:pointer;font-size:16px;color:var(--txt3);padding:0">✕</button>
+    </div>
+    <div id="sc-panel-body"></div>
+  </div>`;
+
+  window.toggleSc = function(i) {
+    const panel = document.getElementById('sc-panel');
+    if (currentSc === i) { closeSc(); return; }
+    currentSc = i;
+    document.querySelectorAll('.scenario-box').forEach((b,j) => {      b.style.borderColor = j===i ? 'var(--accent)' : 'var(--brd)';      b.style.transform = j===i ? 'none' : '';
+    });
+    const sc = scenarios[i];
+    const p = Math.round(sc.probabilite||0);
+    const col = p>=60?'#27500A':p>=35?'#633806':'#7f1d1d';    document.getElementById('sc-panel-title').textContent = p + '% — ' + sc.titre;    document.getElementById('sc-panel-title').style.color = col;    document.getElementById('sc-panel-body').innerHTML = sc.detail || sc.description || '';    panel.style.display = 'block';
+  };
+  window.closeSc = function() {
+    currentSc = -1;
+    const panel = document.getElementById('sc-panel');    if (panel) panel.style.display = 'none';    document.querySelectorAll('.scenario-box').forEach(b => b.style.borderColor = 'var(--brd)');
+  };
 }
+
+window.toggleActorCard = function(el) {
+  const detail = el.querySelector('.actor-detail');  const isOpen = detail.style.maxHeight && detail.style.maxHeight !== '0px';  document.querySelectorAll('.actor-card .actor-detail').forEach(d => { d.style.maxHeight='0'; d.style.paddingTop='0'; });  document.querySelectorAll('.actor-card').forEach(c => c.style.borderColor='');
+  if (!isOpen) {
+    detail.style.maxHeight = '300px';    detail.style.paddingTop = '10px';    el.style.borderColor = 'var(--accent)';
+  }
+};
+
 
 // Appelé une fois tous les appels terminés
 function finalizeResults(d) {
