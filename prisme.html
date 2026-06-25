@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prisme — Analyse systémique</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#fff;--bg2:#f5f5f3;--bg3:#efefec;
+  --txt:#1a1a1a;--txt2:#666;--txt3:#999;
+  --brd:rgba(0,0,0,0.12);--brd2:rgba(0,0,0,0.22);
+  --r:8px;--rl:12px;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1a1a1a;--bg2:#242424;--bg3:#2e2e2e;
+  --txt:#f0f0ee;--txt2:#aaa;--txt3:#666;
+  --brd:rgba(255,255,255,0.12);--brd2:rgba(255,255,255,0.22);
+}}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--txt);background:var(--bg);padding:1.25rem;max-width:100%;margin:0}
+
+/* ── NAV ── */
+.mast{display:flex;align-items:center;justify-content:space-between;padding-bottom:.75rem;border-bottom:0.5px solid var(--brd);margin-bottom:0}
+.brand{font-size:16px;font-weight:500;letter-spacing:-.02em}
+.brand span{font-weight:400;color:var(--txt2)}
+.topic-pill{font-size:11px;color:var(--txt3);font-style:italic;max-width:280px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nav{display:flex;border-bottom:0.5px solid var(--brd);margin-bottom:1rem}
+.ntab{padding:7px 14px;font-size:12px;color:var(--txt2);cursor:pointer;border:none;background:none;font-family:inherit;border-bottom:1.5px solid transparent;margin-bottom:-0.5px;transition:all .15s;white-space:nowrap}
+.ntab.on{color:var(--txt);font-weight:500;border-bottom-color:var(--txt)}
+.panel{display:none}.panel.on{display:block}
+.slabel{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--txt3);margin-bottom:.5rem;margin-top:1rem}
+.slabel:first-child{margin-top:0}
+.sep{border:none;border-top:0.5px solid var(--brd);margin:.85rem 0}
+
+/* ── ANALYSER INPUT ── */
+.mrow{display:flex;gap:6px;margin-bottom:.6rem}
+.mbtn{flex:1;padding:7px 0;border:0.5px solid var(--brd2);border-radius:var(--r);background:var(--bg);font-size:12px;color:var(--txt2);cursor:pointer;font-family:inherit;transition:all .15s}
+.mbtn.on{background:var(--bg2);color:var(--txt);font-weight:500}
+.tinput{width:100%;padding:9px 12px;border:0.5px solid var(--brd2);border-radius:var(--r);background:var(--bg);font-size:13px;color:var(--txt);font-family:inherit;margin-bottom:.6rem;resize:none}
+.tinput:focus{outline:none;border-color:var(--txt3)}
+.drow{display:flex;gap:5px;margin-bottom:.6rem}
+.dbtn{flex:1;padding:5px 4px;border:0.5px solid var(--brd);border-radius:var(--r);background:transparent;font-size:11px;color:var(--txt2);cursor:pointer;font-family:inherit;text-align:center;line-height:1.3;transition:all .15s}
+.dbtn small{font-size:9px;display:block;opacity:.7}
+.dbtn.on{background:var(--bg2);color:var(--txt);border-color:var(--brd2);font-weight:500}
+.src-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px;margin-bottom:.4rem}
+.scat{padding:7px 10px;border:0.5px solid var(--brd);border-radius:var(--r);cursor:pointer;transition:all .15s;background:var(--bg)}
+.scat.on{border-color:var(--brd2);background:var(--bg2)}
+.scat-h{font-size:11px;font-weight:500;color:var(--txt2);margin-bottom:2px}
+.scat.on .scat-h{color:var(--txt)}
+.scat-ex{font-size:10px;color:var(--txt3);line-height:1.3}
+.counter-row{font-size:10px;color:var(--txt3);margin-bottom:.6rem}
+.counter-row span{font-weight:500;color:var(--txt2)}
+.fgrid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin-bottom:.6rem}
+.fbtn{padding:5px 4px;border:0.5px solid var(--brd);border-radius:var(--r);background:transparent;font-size:10px;color:var(--txt2);cursor:pointer;font-family:inherit;text-align:center;line-height:1.3;transition:all .15s}
+.fbtn.on{background:var(--bg2);color:var(--txt);border-color:var(--brd2)}
+.gobtn{width:100%;padding:10px;border-radius:var(--r);background:var(--txt);border:none;color:var(--bg);font-size:13px;font-weight:500;cursor:pointer;font-family:inherit;margin-bottom:.5rem;transition:opacity .15s}
+.gobtn:hover{opacity:.85}
+.gobtn:disabled{opacity:.4;cursor:not-allowed}
+.vbtn{width:100%;padding:8px;border:0.5px dashed var(--brd2);border-radius:var(--r);background:transparent;font-size:12px;color:var(--txt2);cursor:pointer;font-family:inherit;margin-bottom:.75rem;transition:all .15s}
+.vbtn:hover{background:var(--bg2)}
+.etags{display:flex;flex-wrap:wrap;gap:4px}
+.etag{padding:3px 9px;border:0.5px solid var(--brd);border-radius:999px;font-size:11px;color:var(--txt2);cursor:pointer;background:transparent;transition:all .15s}
+.etag:hover{background:var(--bg2);color:var(--txt)}
+
+/* ── LOADING ── */
+.loading-overlay{display:none;flex-direction:column;align-items:center;justify-content:center;padding:3rem 1rem;gap:14px;text-align:center}
+.loading-overlay.on{display:flex}
+.spinner{width:24px;height:24px;border:2px solid var(--brd2);border-top-color:var(--txt);border-radius:50%;animation:spin .7s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-label{font-size:12px;color:var(--txt2);font-weight:500}
+.loading-sub{font-size:11px;color:var(--txt3)}
+.loading-progress{width:200px;height:3px;background:var(--bg2);border-radius:999px;overflow:hidden;margin-top:4px}
+.loading-bar{height:100%;background:var(--txt);border-radius:999px;width:0%;transition:width .4s ease}
+
+/* ── ERROR ── */
+.err-banner{display:none;align-items:flex-start;gap:8px;padding:10px 12px;border:0.5px solid #FECACA;border-radius:var(--r);background:#FEF2F2;margin-bottom:.85rem;font-size:12px;color:#7f1d1d;line-height:1.5}
+.err-banner.on{display:flex}
+.err-close{margin-left:auto;cursor:pointer;font-size:14px;color:#7f1d1d;background:none;border:none;padding:0;flex-shrink:0}
+
+/* ── ANALYSE RESULTS LAYOUT ── */
+.results-wrap{display:none}
+.results-wrap.on{display:block}
+.results-header{margin-bottom:1rem;padding-bottom:.75rem;border-bottom:0.5px solid var(--brd)}
+.results-headline{font-size:16px;font-weight:500;margin-bottom:4px;line-height:1.4}
+.results-meta{font-size:11px;color:var(--txt3);display:flex;gap:12px;flex-wrap:wrap}
+.results-meta span{display:flex;align-items:center;gap:4px}
+.results-resume{font-size:13px;color:var(--txt2);line-height:1.6;margin-bottom:1rem;padding:10px 14px;background:var(--bg2);border-radius:var(--r);border-left:3px solid var(--brd2);border-radius:0 var(--r) var(--r) 0}
+
+/* Hero image */
+.hero-img{width:100%;height:180px;object-fit:cover;border-radius:var(--r);margin-bottom:1rem;display:block}
+.hero-img-wrap{position:relative;margin-bottom:1rem}
+.hero-img-wrap img{width:100%;height:180px;object-fit:cover;border-radius:var(--r);display:block}
+.hero-img-caption{font-size:10px;color:var(--txt3);margin-top:4px;font-style:italic}
+
+/* Split layout */
+.split{display:grid;grid-template-columns:1fr;gap:1rem}
+@media(min-width:700px){.split{grid-template-columns:3fr 2fr}}
+
+/* ── SECTION CARDS (left column) ── */
+.sections-col{}
+.section-card{border:0.5px solid var(--brd);border-radius:var(--rl);margin-bottom:6px;cursor:pointer;transition:all .15s;overflow:hidden;background:var(--bg)}
+.section-card:hover{border-color:var(--brd2);background:var(--bg2)}
+.section-card.active{border-color:var(--txt);background:var(--bg)}
+.section-card-head{display:flex;align-items:center;gap:10px;padding:10px 14px}
+.section-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--bg2);border:0.5px solid var(--brd);font-size:10px;font-weight:500;color:var(--txt2);flex-shrink:0}
+.section-card.active .section-num{background:var(--txt);color:var(--bg);border-color:var(--txt)}
+.section-title{font-size:12px;font-weight:500;flex:1}
+.section-arrow{font-size:11px;color:var(--txt3);transition:transform .15s}
+.section-card.active .section-arrow{transform:rotate(90deg)}
+.section-summary{font-size:11px;color:var(--txt2);line-height:1.6;padding:0 14px 10px 44px}
+.section-viz{padding:0 14px 10px 14px}
+.section-img{width:100%;height:100px;object-fit:cover;border-radius:var(--r);margin-bottom:6px;display:block}
+
+/* ── DETAIL PANEL (right column) ── */
+.detail-col{position:relative}
+.detail-panel{border:0.5px solid var(--brd);border-radius:var(--rl);padding:14px;background:var(--bg);min-height:200px}
+.detail-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem 1rem;text-align:center;min-height:200px;color:var(--txt3)}
+.detail-empty-icon{font-size:28px;margin-bottom:8px;opacity:.3}
+.detail-empty-txt{font-size:12px}
+.detail-title{font-size:13px;font-weight:500;margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:0.5px solid var(--brd)}
+.detail-body{font-size:12px;color:var(--txt2);line-height:1.7}
+.detail-body p{margin-bottom:.6rem}
+.detail-body p:last-child{margin-bottom:0}
+.detail-img{width:100%;height:120px;object-fit:cover;border-radius:var(--r);margin-bottom:.6rem;display:block}
+.detail-img-caption{font-size:10px;color:var(--txt3);font-style:italic;margin-bottom:.75rem}
+.detail-chart-wrap{position:relative;width:100%;height:160px;margin:.75rem 0}
+.detail-map-wrap{width:100%;margin:.75rem 0;border-radius:var(--r);overflow:hidden;border:0.5px solid var(--brd)}
+
+/* ── ACTEURS CARDS ── */
+.acteurs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:6px;margin-bottom:1rem}
+.acteur-card{border:0.5px solid var(--brd);border-radius:var(--r);padding:8px 10px;background:var(--bg)}
+.acteur-name{font-size:11px;font-weight:500;margin-bottom:2px}
+.acteur-role{font-size:10px;color:var(--txt3);margin-bottom:4px}
+.acteur-interet{font-size:10px;color:var(--txt2);line-height:1.4}
+.acteur-badge{display:inline-block;padding:1px 6px;border-radius:999px;font-size:9px;font-weight:500;margin-bottom:4px}
+
+/* ── SCENARIOS ── */
+.scenarios-list{margin-bottom:1rem}
+.scenario-item{display:flex;gap:10px;padding:8px 0;border-bottom:0.5px solid var(--brd)}
+.scenario-item:last-child{border-bottom:none}
+.scenario-prob{flex-shrink:0;width:36px;text-align:center}
+.scenario-prob-val{font-size:14px;font-weight:500}
+.scenario-prob-lbl{font-size:9px;color:var(--txt3)}
+.scenario-content{}
+.scenario-title{font-size:12px;font-weight:500;margin-bottom:2px}
+.scenario-desc{font-size:11px;color:var(--txt2);line-height:1.5}
+
+/* ── BOTTOM ACTIONS ── */
+.bottom-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:1rem;padding-top:.85rem;border-top:0.5px solid var(--brd)}
+.abtn{padding:7px 12px;border:0.5px solid var(--brd2);border-radius:var(--r);background:transparent;font-size:11px;color:var(--txt2);cursor:pointer;font-family:inherit;transition:all .15s}
+.abtn:hover{background:var(--bg2);color:var(--txt)}
+.abtn.pri{background:var(--txt);color:var(--bg);border-color:var(--txt)}
+.abtn.pri:hover{opacity:.85}
+.discl{font-size:10px;color:var(--txt3);margin-top:.5rem;line-height:1.5}
+
+/* ── SPECTRE TAB ── */
+.spec-bar{height:26px;border-radius:var(--r);display:flex;overflow:hidden;margin-bottom:5px}
+.seg{display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;transition:width .6s cubic-bezier(.4,0,.2,1);min-width:0;overflow:hidden}
+.seg-gg{background:#DC2626;color:#FEE2E2}
+.seg-g{background:#F97316;color:#7c2d12}
+.seg-c{background:#D1D5DB;color:#374151}
+.seg-d{background:#60A5FA;color:#1e3a5f}
+.seg-dd{background:#2563EB;color:#BFDBFE}
+.spec-leg{display:flex;justify-content:space-between;font-size:10px;color:var(--txt3);margin-bottom:.85rem}
+.stats-g{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-bottom:.85rem}
+.stc{background:var(--bg2);border-radius:var(--r);padding:8px 10px}
+.stc-l{font-size:10px;color:var(--txt2);margin-bottom:2px}
+.stc-v{font-size:17px;font-weight:500}
+.stc-s{font-size:9px;color:var(--txt3);margin-top:1px}
+.camps-g{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-bottom:.85rem}
+.ccard{border:0.5px solid var(--brd);border-radius:var(--rl);padding:10px 12px;background:var(--bg)}
+.ch{display:flex;align-items:center;gap:7px;margin-bottom:8px}
+.cdot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.cn{font-size:12px;font-weight:500}
+.cpct{margin-left:auto;font-size:11px;color:var(--txt2)}
+.cst{font-size:9px;text-transform:uppercase;letter-spacing:.06em;color:var(--txt3);margin-bottom:3px;margin-top:6px}
+.ctxt{font-size:11px;color:var(--txt2);line-height:1.5}
+.tag-m{display:inline-block;padding:2px 7px;border-radius:999px;font-size:10px;margin:2px 2px 0 0;border:0.5px solid}
+.gauge-g{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin-bottom:.85rem}
+.gcard{border:0.5px solid var(--brd);border-radius:var(--r);padding:8px 10px;background:var(--bg)}
+.gl{font-size:10px;color:var(--txt2);margin-bottom:5px}
+.gtrack{height:5px;background:var(--bg2);border-radius:999px;overflow:hidden;margin-bottom:3px}
+.gfill{height:100%;border-radius:999px;transition:width .8s cubic-bezier(.4,0,.2,1)}
+.gvals{display:flex;justify-content:space-between;font-size:9px;color:var(--txt3)}
+.at{width:100%;border-collapse:collapse;font-size:11px;margin-bottom:.85rem;table-layout:fixed}
+.at th{text-align:left;padding:5px 7px;background:var(--bg2);font-weight:500;font-size:10px;color:var(--txt2);border-bottom:0.5px solid var(--brd)}
+.at td{padding:6px 7px;border-bottom:0.5px solid var(--brd);vertical-align:top;line-height:1.4;word-wrap:break-word}
+.at td:first-child{width:13%;font-weight:500}
+.at td:nth-child(2){width:29%}.at td:nth-child(3){width:30%}.at td:nth-child(4){width:28%}
+.cw{position:relative;width:100%;height:160px;margin-bottom:.5rem}
+.cleg{display:flex;gap:12px;margin-bottom:.5rem;font-size:10px;color:var(--txt2);flex-wrap:wrap}
+.cl-item{display:flex;align-items:center;gap:4px}
+.cl-sq{width:12px;height:2px;display:inline-block}
+.spec-tinput{width:100%;padding:8px 12px;border:0.5px solid var(--brd2);border-radius:var(--r);background:var(--bg);font-size:12px;color:var(--txt);font-family:inherit;margin-bottom:.5rem}
+.spec-tinput:focus{outline:none;border-color:var(--txt3)}
+
+/* ── SOURCES TAB ── */
+.src-pills-section{margin-bottom:.85rem}
+.src-cat-title{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.06em;color:var(--txt3);margin-bottom:5px;margin-top:10px}
+.src-cat-title:first-child{margin-top:0}
+.pills-wrap{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:4px}
+.spill{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border-radius:999px;font-size:11px;cursor:pointer;border:0.5px solid;text-decoration:none;transition:opacity .15s}
+.spill:hover{opacity:.72}
+
+/* ── GRILLE TAB ── */
+.step-row{display:flex;gap:9px;align-items:flex-start;padding:7px 0;border-bottom:0.5px solid var(--brd)}
+.step-row:last-child{border-bottom:none}
+.snum{display:inline-flex;align-items:center;justify-content:center;width:19px;height:19px;border-radius:50%;background:var(--bg2);border:0.5px solid var(--brd);font-size:10px;font-weight:500;color:var(--txt2);flex-shrink:0;margin-top:1px}
+.sname{font-size:12px;font-weight:500;margin-bottom:2px}
+.sdesc{font-size:11px;color:var(--txt2);line-height:1.5}
+.frame-row{display:flex;gap:8px;align-items:flex-start;padding:5px 0;border-bottom:0.5px solid var(--brd)}
+.frame-row:last-child{border-bottom:none}
+.fpill{font-size:10px;font-weight:500;padding:2px 8px;border-radius:999px;background:var(--bg2);border:0.5px solid var(--brd);color:var(--txt2);white-space:nowrap;flex-shrink:0;margin-top:2px}
+.fq{font-size:11px;color:var(--txt2);line-height:1.5;flex:1}
+.eval-g{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin-top:.5rem}
+.eval-card{padding:8px 10px;border:0.5px solid var(--brd);border-radius:var(--r);background:var(--bg)}
+.eval-t{font-size:11px;font-weight:500;margin-bottom:2px}
+.eval-d{font-size:10px;color:var(--txt2);line-height:1.4}
+</style>
+</head>
+<body>
+
+<div class="mast">
+  <div class="brand">Prisme <span>· analyse systémique</span></div>
+  <div class="topic-pill" id="mast-topic">Aucun sujet sélectionné</div>
+</div>
+<div class="nav">
+  <button class="ntab on" onclick="showTab('analyser')">Analyser</button>
+  <button class="ntab" onclick="showTab('spectre')">Spectre médiatique</button>
+  <button class="ntab" onclick="showTab('sources')">Sources</button>
+  <button class="ntab" onclick="showTab('grille')">Grille</button>
+</div>
+
+<!-- ══════════════════════════════════════════
+     TAB : ANALYSER
+══════════════════════════════════════════ -->
+<div id="tab-analyser" class="panel on">
+
+  <!-- Formulaire de saisie -->
+  <div id="analyser-form">
+    <div class="mrow">
+      <button class="mbtn on" id="m-s" onclick="setMode('s')">Sujet précis</button>
+      <button class="mbtn" id="m-v" onclick="setMode('v')">Veille auto</button>
+    </div>
+    <div id="zone-s">
+      <textarea class="tinput" id="topic-in" rows="2" placeholder="Ex : droites radicales en Europe, crise de la dette japonaise…"></textarea>
+    </div>
+    <div id="zone-v" style="display:none">
+      <button class="vbtn" onclick="launchVeille()">Identifier les 5 sujets chauds du moment →</button>
+    </div>
+    <div class="slabel">Profondeur</div>
+    <div class="drow">
+      <button class="dbtn on" id="d-f" onclick="setD('f')">Flash<small>3 min</small></button>
+      <button class="dbtn" id="d-a" onclick="setD('a')">Analyse<small>8 min</small></button>
+      <button class="dbtn" id="d-d" onclick="setD('d')">Dossier<small>20 min</small></button>
+    </div>
+    <div class="slabel">Sources actives</div>
+    <div class="src-grid">
+      <div class="scat on" id="sc-ag" onclick="toggleS('ag')"><div class="scat-h">Agences</div><div class="scat-ex">AFP, Reuters, AP, Bloomberg</div></div>
+      <div class="scat on" id="sc-pr" onclick="toggleS('pr')"><div class="scat-h">Presse internationale</div><div class="scat-ex">FT, NYT, Le Monde, Al Jazeera…</div></div>
+      <div class="scat on" id="sc-in" onclick="toggleS('in')"><div class="scat-h">Institutions</div><div class="scat-ex">ONU, OCDE, BCE, Eurostat…</div></div>
+      <div class="scat on" id="sc-tk" onclick="toggleS('tk')"><div class="scat-h">Think tanks</div><div class="scat-ex">IFRI, Carnegie, RAND, CSIS…</div></div>
+      <div class="scat on" id="sc-ac" onclick="toggleS('ac')"><div class="scat-h">Chercheurs</div><div class="scat-ex">Articles académiques, working papers</div></div>
+      <div class="scat on" id="sc-pa" onclick="toggleS('pa')"><div class="scat-h">Sources situées</div><div class="scat-ex">Gauche, droite, décolonial…</div></div>
+      <div class="scat on" id="sc-lo" onclick="toggleS('lo')"><div class="scat-h">Médias locaux</div><div class="scat-ex">Presse terrain, langues locales</div></div>
+      <div class="scat on" id="sc-da" onclick="toggleS('da')"><div class="scat-h">Données longues</div><div class="scat-ex">PIB, démographie, armement…</div></div>
+    </div>
+    <div class="counter-row" id="src-counter"><span>8</span> / 8 sources · <span id="frame-count">8</span> / 8 cadres actifs</div>
+    <div class="slabel">Cadres d'analyse</div>
+    <div class="fgrid">
+      <button class="fbtn on" id="f-ge" onclick="tF('ge')">Géopolitique réaliste</button>
+      <button class="fbtn on" id="f-ep" onclick="tF('ep')">Économie politique</button>
+      <button class="fbtn on" id="f-so" onclick="tF('so')">Sociologie</button>
+      <button class="fbtn on" id="f-de" onclick="tF('de')">Démographie</button>
+      <button class="fbtn on" id="f-jx" onclick="tF('jx')">Théorie des jeux</button>
+      <button class="fbtn on" id="f-sy" onclick="tF('sy')">Théorie des systèmes</button>
+      <button class="fbtn on" id="f-hi" onclick="tF('hi')">Histoire longue</button>
+      <button class="fbtn on" id="f-me" onclick="tF('me')">Analyse médiatique</button>
+    </div>
+    <button class="gobtn" id="go-btn" onclick="launch()">Lancer l'analyse →</button>
+    <div class="slabel">Exemples</div>
+    <div class="etags">
+      <span class="etag" onclick="setT('Guerre commerciale USA–Chine')">USA–Chine</span>
+      <span class="etag" onclick="setT('Droites radicales en Europe')">Droites Europe</span>
+      <span class="etag" onclick="setT('Immigration en France')">Immigration France</span>
+      <span class="etag" onclick="setT('Sahel post-France')">Sahel</span>
+      <span class="etag" onclick="setT('Dédollarisation & BRICS')">BRICS</span>
+      <span class="etag" onclick="setT('IA et concentration du capital')">IA & capital</span>
+      <span class="etag" onclick="setT('Conflit en Ukraine : bilan et scénarios')">Ukraine</span>
+      <span class="etag" onclick="setT('Crise démographique européenne')">Démographie EU</span>
+    </div>
+  </div>
+
+  <!-- Error -->
+  <div class="err-banner" id="an-err" style="margin-top:.75rem">
+    <span id="an-err-msg"></span>
+    <button class="err-close" onclick="hideAnErr()">✕</button>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-overlay" id="an-loading">
+    <div class="spinner"></div>
+    <div class="loading-label" id="an-loading-label">Analyse en cours…</div>
+    <div class="loading-sub" id="an-loading-sub">Mobilisation des sources</div>
+    <div class="loading-progress"><div class="loading-bar" id="an-progress"></div></div>
+  </div>
+
+  <!-- Results dashboard -->
+  <div class="results-wrap" id="an-results">
+
+    <!-- Header -->
+    <div class="results-header">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">
+        <button class="abtn" onclick="resetAnalyse()" style="font-size:11px;padding:5px 10px">← Nouveau sujet</button>
+        <button class="abtn pri" onclick="deepenInChat()" style="font-size:11px;padding:5px 10px">Approfondir dans le chat →</button>
+      </div>
+      <div class="results-headline" id="an-headline"></div>
+      <div class="results-meta" id="an-meta"></div>
+    </div>
+
+    <!-- Hero image -->
+    <div class="hero-img-wrap" id="an-hero" style="display:none">
+      <img id="an-hero-img" src="" alt="" loading="lazy">
+      <div class="hero-img-caption" id="an-hero-caption"></div>
+    </div>
+
+    <!-- Résumé exécutif -->
+    <div class="results-resume" id="an-resume"></div>
+
+    <!-- Split: sections + detail -->
+    <div class="split">
+      <div class="sections-col" id="an-sections"></div>
+      <div class="detail-col">
+        <div class="detail-panel" id="an-detail">
+          <div class="detail-empty">
+            <div class="detail-empty-icon">↖</div>
+            <div class="detail-empty-txt">Cliquez sur une section pour voir le détail</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Acteurs -->
+    <div class="slabel">Acteurs & intérêts</div>
+    <div class="acteurs-grid" id="an-acteurs"></div>
+
+    <!-- Scénarios -->
+    <div class="slabel">Trajectoires plausibles</div>
+    <div class="scenarios-list" id="an-scenarios"></div>
+
+    <!-- Actions -->
+    <div class="bottom-actions">
+      <button class="abtn pri" onclick="deepenInChat()">Approfondir dans le chat →</button>
+      <button class="abtn" onclick="doSpectre()">Analyser le spectre médiatique →</button>
+      <button class="abtn" onclick="doBiasChat()">Déconstruire les biais →</button>
+    </div>
+    <div class="discl">Analyse générée par IA à partir de sources ouvertes — à croiser avec vos propres sources.</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     TAB : SPECTRE MÉDIATIQUE
+══════════════════════════════════════════ -->
+<div id="tab-spectre" class="panel">
+  <div style="margin-bottom:.85rem">
+    <div class="slabel" style="margin-top:0">Sujet à analyser</div>
+    <div style="display:flex;gap:6px;margin-bottom:.5rem">
+      <input class="spec-tinput" id="spec-in" placeholder="Sujet pour l'analyse médiatique…"/>
+      <button class="abtn pri" id="spec-btn" onclick="runSpectre()" style="white-space:nowrap;padding:7px 14px;font-size:12px;flex-shrink:0">Analyser →</button>
+    </div>
+    <div class="etags">
+      <span class="etag" onclick="specT('Immigration en France')">Immigration France</span>
+      <span class="etag" onclick="specT('Droites radicales en Europe')">Droites Europe</span>
+      <span class="etag" onclick="specT('Réforme des retraites')">Retraites</span>
+      <span class="etag" onclick="specT('IA et emploi')">IA & emploi</span>
+      <span class="etag" onclick="specT('Conflit en Ukraine')">Ukraine</span>
+    </div>
+  </div>
+  <div class="err-banner" id="spec-err"><span id="spec-err-msg"></span><button class="err-close" onclick="hideSpecErr()">✕</button></div>
+  <div class="loading-overlay" id="spec-loading">
+    <div class="spinner"></div>
+    <div class="loading-label" id="spec-loading-label">Analyse en cours…</div>
+    <div class="loading-sub">Cartographie des sources, calibrage du spectre</div>
+  </div>
+  <div id="spec-results" style="display:none">
+    <div class="sep" style="margin-top:.2rem"></div>
+    <div class="slabel" id="spec-title-label">Résultats</div>
+    <div class="spec-bar">
+      <div class="seg seg-gg" id="s-gg" style="width:0%"></div>
+      <div class="seg seg-g"  id="s-g"  style="width:0%"></div>
+      <div class="seg seg-c"  id="s-c"  style="width:0%"></div>
+      <div class="seg seg-d"  id="s-d"  style="width:0%"></div>
+      <div class="seg seg-dd" id="s-dd" style="width:0%"></div>
+    </div>
+    <div class="spec-leg">
+      <span style="color:#DC2626">Gauche radicale</span>
+      <span style="color:#F97316">Gauche</span>
+      <span style="color:#9CA3AF">Centre</span>
+      <span style="color:#60A5FA">Droite</span>
+      <span style="color:#2563EB">Droite radicale</span>
+    </div>
+    <div class="stats-g">
+      <div class="stc"><div class="stc-l">Sources</div><div class="stc-v" id="st-src">—</div><div class="stc-s">sur 7 jours</div></div>
+      <div class="stc"><div class="stc-l">Consensus factuel</div><div class="stc-v" id="st-con">—</div><div class="stc-s">éléments partagés</div></div>
+      <div class="stc"><div class="stc-l">Polarisation</div><div class="stc-v" id="st-pol">—</div><div class="stc-s">écart narratif</div></div>
+      <div class="stc"><div class="stc-l">Tonalité</div><div class="stc-v" id="st-ton">—</div><div class="stc-s">dominante</div></div>
+    </div>
+    <div class="slabel">Analyse par camp</div>
+    <div class="camps-g" id="camps-g"></div>
+    <div class="slabel">Jauges d'intensité</div>
+    <div class="gauge-g" id="gauge-g"></div>
+    <div class="slabel">Cadrage comparé</div>
+    <table class="at">
+      <thead><tr><th>Camp</th><th>Met en avant</th><th>Minimise / omet</th><th>Récit</th></tr></thead>
+      <tbody id="at-body"></tbody>
+    </table>
+    <div class="slabel">Couverture — 7 jours</div>
+    <div class="cleg">
+      <span class="cl-item"><span class="cl-sq" style="background:#DC2626"></span>G. rad.</span>
+      <span class="cl-item"><span class="cl-sq" style="background:#F97316"></span>Gauche</span>
+      <span class="cl-item"><span class="cl-sq" style="background:#9CA3AF"></span>Centre</span>
+      <span class="cl-item"><span class="cl-sq" style="background:#60A5FA"></span>Droite</span>
+      <span class="cl-item"><span class="cl-sq" style="background:#2563EB"></span>D. rad.</span>
+    </div>
+    <div class="cw"><canvas id="tChart" role="img" aria-label="Couverture médiatique 7 jours">Données couverture.</canvas></div>
+    <div class="sep"></div>
+    <div style="display:flex;gap:6px;flex-wrap:wrap">
+      <button class="abtn pri" onclick="doDeepSpec()">Analyse approfondie →</button>
+      <button class="abtn" onclick="doBiasSpec()">Déconstruire les biais →</button>
+      <button class="abtn" onclick="doHistoSpec()">Contexte historique →</button>
+    </div>
+    <div class="discl">Proportions estimées par analyse IA qualitative — pas une mesure exacte.</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     TAB : SOURCES
+══════════════════════════════════════════ -->
+<div id="tab-sources" class="panel">
+  <div class="src-pills-section">
+    <div class="src-cat-title">Agences de presse</div>
+    <div class="pills-wrap">
+      <a class="spill" href="https://www.afp.com" target="_blank" style="background:#EFF6FF;color:#1e3a5f;border-color:#BFDBFE">AFP</a>
+      <a class="spill" href="https://www.reuters.com" target="_blank" style="background:#EFF6FF;color:#1e3a5f;border-color:#BFDBFE">Reuters</a>
+      <a class="spill" href="https://apnews.com" target="_blank" style="background:#EFF6FF;color:#1e3a5f;border-color:#BFDBFE">AP</a>
+      <a class="spill" href="https://www.bloomberg.com" target="_blank" style="background:#EFF6FF;color:#1e3a5f;border-color:#BFDBFE">Bloomberg</a>
+      <a class="spill" href="https://xinhua.net" target="_blank" style="background:#EFF6FF;color:#1e3a5f;border-color:#BFDBFE">Xinhua</a>
+      <a class="spill" href="https://tass.com" target="_blank" style="background:#EFF6FF;color:#1e3a5f;border-color:#BFDBFE">TASS</a>
+      <a class="spill" href="https://www.dw.com" target="_blank" style="background:#EFF6FF;color:#1e3a5f;border-color:#BFDBFE">DPA/DW</a>
+      <a class="spill" href="https://www.efe.com" target="_blank" style="background:#EFF6FF;color:#1e3a5f;border-color:#BFDBFE">EFE</a>
+      <a class="spill" href="https://www.kyodonews.net" target="_blank" style="background:#EFF6FF;color:#1e3a5f;border-color:#BFDBFE">Kyodo</a>
+    </div>
+    <div class="src-cat-title">Presse internationale — Anglophone</div>
+    <div class="pills-wrap">
+      <a class="spill" href="https://www.ft.com" target="_blank" style="background:#F0FDF4;color:#14532d;border-color:#BBF7D0">Financial Times</a>
+      <a class="spill" href="https://www.nytimes.com" target="_blank" style="background:#F0FDF4;color:#14532d;border-color:#BBF7D0">NYT</a>
+      <a class="spill" href="https://www.theguardian.com" target="_blank" style="background:#F0FDF4;color:#14532d;border-color:#BBF7D0">The Guardian</a>
+      <a class="spill" href="https://www.economist.com" target="_blank" style="background:#F0FDF4;color:#14532d;border-color:#BBF7D0">The Economist</a>
+      <a class="spill" href="https://www.bbc.com/news" target="_blank" style="background:#F0FDF4;color:#14532d;border-color:#BBF7D0">BBC</a>
+      <a class="spill" href="https://foreignpolicy.com" target="_blank" style="background:#F0FDF4;color:#14532d;border-color:#BBF7D0">Foreign Policy</a>
+      <a class="spill" href="https://www.foreignaffairs.com" target="_blank" style="background:#F0FDF4;color:#14532d;border-color:#BBF7D0">Foreign Affairs</a>
+      <a class="spill" href="https://www.wsj.com" target="_blank" style="background:#F0FDF4;color:#14532d;border-color:#BBF7D0">WSJ</a>
+      <a class="spill" href="https://www.politico.eu" target="_blank" style="background:#F0FDF4;color:#14532d;border-color:#BBF7D0">Politico EU</a>
+    </div>
+    <div class="src-cat-title">Presse — Francophone & Europe</div>
+    <div class="pills-wrap">
+      <a class="spill" href="https://www.lemonde.fr" target="_blank" style="background:#F0FDF4;color:#14532d;border-color:#BBF7D0">Le Monde</a>
+      <a class="spill" href="https://www.liberation.fr" target="_blank" style="background:#F0FDF4;color:#14532d;border-color:#BBF7D0">Libération</a>
+      <a class="spill" href="https://www.lefigaro.fr" target="_blank" style="background:#F0FDF4;color:#14532d;border-color:#BBF7D0">Le Figaro</a>
+      <a class="spill" href="https://www.mediapart.fr" target="_blank" style="background:#F0FDF4;color:#14532d;border-color:#BBF7D0">Mediapart</a>
+      <a class="spill" href="https://www.lepoint.fr" target="_blank" style="background:#F0FDF4;color:#14532d;border-color:#BBF7D0">Le Point</a>
+      <a class="spill" href="https://www.elpais.com" target="_blank" style="background:#F0FDF4;color:#14532d;border-color:#BBF7D0">El País</a>
+      <a class="spill" href="https://www.spiegel.de/international" target="_blank" style="background:#F0FDF4;color:#14532d;border-color:#BBF7D0">Der Spiegel</a>
+      <a class="spill" href="https://www.corriere.it" target="_blank" style="background:#F0FDF4;color:#14532d;border-color:#BBF7D0">Corriere</a>
+    </div>
+    <div class="src-cat-title">Presse — Monde</div>
+    <div class="pills-wrap">
+      <a class="spill" href="https://www.aljazeera.com" target="_blank" style="background:#F0FDF4;color:#14532d;border-color:#BBF7D0">Al Jazeera</a>
+      <a class="spill" href="https://www.scmp.com" target="_blank" style="background:#F0FDF4;color:#14532d;border-color:#BBF7D0">SCMP</a>
+      <a class="spill" href="https://www.haaretz.com" target="_blank" style="background:#F0FDF4;color:#14532d;border-color:#BBF7D0">Haaretz</a>
+      <a class="spill" href="https://www.thehindu.com" target="_blank" style="background:#F0FDF4;color:#14532d;border-color:#BBF7D0">The Hindu</a>
+      <a class="spill" href="https://www.dawn.com" target="_blank" style="background:#F0FDF4;color:#14532d;border-color:#BBF7D0">Dawn (PK)</a>
+      <a class="spill" href="https://www.arabnews.com" target="_blank" style="background:#F0FDF4;color:#14532d;border-color:#BBF7D0">Arab News</a>
+      <a class="spill" href="https://africaarguments.org" target="_blank" style="background:#F0FDF4;color:#14532d;border-color:#BBF7D0">Africa Arguments</a>
+      <a class="spill" href="https://www.rfi.fr" target="_blank" style="background:#F0FDF4;color:#14532d;border-color:#BBF7D0">RFI</a>
+    </div>
+    <div class="src-cat-title">Institutions</div>
+    <div class="pills-wrap">
+      <a class="spill" href="https://www.un.org" target="_blank" style="background:#FAEEDA;color:#633806;border-color:#FAC775">ONU</a>
+      <a class="spill" href="https://www.oecd.org" target="_blank" style="background:#FAEEDA;color:#633806;border-color:#FAC775">OCDE</a>
+      <a class="spill" href="https://www.imf.org" target="_blank" style="background:#FAEEDA;color:#633806;border-color:#FAC775">FMI</a>
+      <a class="spill" href="https://www.worldbank.org" target="_blank" style="background:#FAEEDA;color:#633806;border-color:#FAC775">Banque Mondiale</a>
+      <a class="spill" href="https://www.ecb.europa.eu" target="_blank" style="background:#FAEEDA;color:#633806;border-color:#FAC775">BCE</a>
+      <a class="spill" href="https://ec.europa.eu/eurostat" target="_blank" style="background:#FAEEDA;color:#633806;border-color:#FAC775">Eurostat</a>
+      <a class="spill" href="https://www.wto.org" target="_blank" style="background:#FAEEDA;color:#633806;border-color:#FAC775">OMC</a>
+      <a class="spill" href="https://www.insee.fr" target="_blank" style="background:#FAEEDA;color:#633806;border-color:#FAC775">INSEE</a>
+      <a class="spill" href="https://www.bis.org" target="_blank" style="background:#FAEEDA;color:#633806;border-color:#FAC775">BRI</a>
+    </div>
+    <div class="src-cat-title">Think tanks & centres de recherche</div>
+    <div class="pills-wrap">
+      <a class="spill" href="https://www.ifri.org" target="_blank" style="background:#EEEDFE;color:#26215C;border-color:#CECBF6">IFRI</a>
+      <a class="spill" href="https://carnegieendowment.org" target="_blank" style="background:#EEEDFE;color:#26215C;border-color:#CECBF6">Carnegie</a>
+      <a class="spill" href="https://www.csis.org" target="_blank" style="background:#EEEDFE;color:#26215C;border-color:#CECBF6">CSIS</a>
+      <a class="spill" href="https://www.brookings.edu" target="_blank" style="background:#EEEDFE;color:#26215C;border-color:#CECBF6">Brookings</a>
+      <a class="spill" href="https://www.rand.org" target="_blank" style="background:#EEEDFE;color:#26215C;border-color:#CECBF6">RAND</a>
+      <a class="spill" href="https://ecfr.eu" target="_blank" style="background:#EEEDFE;color:#26215C;border-color:#CECBF6">ECFR</a>
+      <a class="spill" href="https://www.chathamhouse.org" target="_blank" style="background:#EEEDFE;color:#26215C;border-color:#CECBF6">Chatham House</a>
+      <a class="spill" href="https://www.crisisgroup.org" target="_blank" style="background:#EEEDFE;color:#26215C;border-color:#CECBF6">ICG</a>
+      <a class="spill" href="https://www.sipri.org" target="_blank" style="background:#EEEDFE;color:#26215C;border-color:#CECBF6">SIPRI</a>
+      <a class="spill" href="https://www.wilsoncenter.org" target="_blank" style="background:#EEEDFE;color:#26215C;border-color:#CECBF6">Wilson Center</a>
+      <a class="spill" href="https://www.iiss.org" target="_blank" style="background:#EEEDFE;color:#26215C;border-color:#CECBF6">IISS</a>
+      <a class="spill" href="https://www.piie.com" target="_blank" style="background:#EEEDFE;color:#26215C;border-color:#CECBF6">PIIE</a>
+      <a class="spill" href="https://www.bruegel.org" target="_blank" style="background:#EEEDFE;color:#26215C;border-color:#CECBF6">Bruegel</a>
+    </div>
+    <div class="src-cat-title">Académique</div>
+    <div class="pills-wrap">
+      <a class="spill" href="https://scholar.google.com" target="_blank" style="background:#E1F5EE;color:#04342C;border-color:#9FE1CB">Google Scholar</a>
+      <a class="spill" href="https://www.jstor.org" target="_blank" style="background:#E1F5EE;color:#04342C;border-color:#9FE1CB">JSTOR</a>
+      <a class="spill" href="https://ssrn.com" target="_blank" style="background:#E1F5EE;color:#04342C;border-color:#9FE1CB">SSRN</a>
+      <a class="spill" href="https://repec.org" target="_blank" style="background:#E1F5EE;color:#04342C;border-color:#9FE1CB">RePEc</a>
+      <a class="spill" href="https://www.cairn.info" target="_blank" style="background:#E1F5EE;color:#04342C;border-color:#9FE1CB">Cairn</a>
+      <a class="spill" href="https://www.persee.fr" target="_blank" style="background:#E1F5EE;color:#04342C;border-color:#9FE1CB">Persée</a>
+    </div>
+    <div class="src-cat-title">Sources situées — par spectre</div>
+    <div class="pills-wrap">
+      <a class="spill" href="https://jacobin.com" target="_blank" style="background:#FEF2F2;color:#7f1d1d;border-color:#FECACA">Jacobin (G. rad.)</a>
+      <a class="spill" href="https://www.monde-diplomatique.fr" target="_blank" style="background:#FFF7ED;color:#7c2d12;border-color:#FED7AA">Monde Diplo (G.)</a>
+      <a class="spill" href="https://www.commondreams.org" target="_blank" style="background:#FFF7ED;color:#7c2d12;border-color:#FED7AA">Common Dreams (G.)</a>
+      <a class="spill" href="https://www.project-syndicate.org" target="_blank" style="background:#F9FAFB;color:#374151;border-color:#D1D5DB">Project Syndicate (C.)</a>
+      <a class="spill" href="https://www.nationalreview.com" target="_blank" style="background:#EFF6FF;color:#1e3a5f;border-color:#BFDBFE">Nat. Review (D.)</a>
+      <a class="spill" href="https://www.valeurs-actuelles.com" target="_blank" style="background:#EFF6FF;color:#1e3a5f;border-color:#BFDBFE">Valeurs Act. (D.)</a>
+      <a class="spill" href="https://www.breitbart.com" target="_blank" style="background:#EFF6FF;color:#1e3a5f;border-color:#BFDBFE">Breitbart (D. rad.)</a>
+      <a class="spill" href="https://www.bvoltaire.fr" target="_blank" style="background:#EFF6FF;color:#1e3a5f;border-color:#BFDBFE">Bvoltaire (D. rad.)</a>
+      <a class="spill" href="https://orientxxi.info" target="_blank" style="background:#EEEDFE;color:#26215C;border-color:#CECBF6">Orient XXI</a>
+      <a class="spill" href="https://www.middleeasteye.net" target="_blank" style="background:#EEEDFE;color:#26215C;border-color:#CECBF6">Middle East Eye</a>
+    </div>
+    <div class="src-cat-title">Données longues & statistiques</div>
+    <div class="pills-wrap">
+      <a class="spill" href="https://ourworldindata.org" target="_blank" style="background:#E1F5EE;color:#04342C;border-color:#9FE1CB">Our World in Data</a>
+      <a class="spill" href="https://data.worldbank.org" target="_blank" style="background:#E1F5EE;color:#04342C;border-color:#9FE1CB">WB Data</a>
+      <a class="spill" href="https://www.sipri.org/databases" target="_blank" style="background:#E1F5EE;color:#04342C;border-color:#9FE1CB">SIPRI Arms</a>
+      <a class="spill" href="https://unstats.un.org" target="_blank" style="background:#E1F5EE;color:#04342C;border-color:#9FE1CB">UN Stats</a>
+      <a class="spill" href="https://stats.oecd.org" target="_blank" style="background:#E1F5EE;color:#04342C;border-color:#9FE1CB">OECD Stats</a>
+      <a class="spill" href="https://www.gapminder.org" target="_blank" style="background:#E1F5EE;color:#04342C;border-color:#9FE1CB">Gapminder</a>
+      <a class="spill" href="https://v-dem.net" target="_blank" style="background:#E1F5EE;color:#04342C;border-color:#9FE1CB">V-Dem</a>
+      <a class="spill" href="https://freedomhouse.org" target="_blank" style="background:#E1F5EE;color:#04342C;border-color:#9FE1CB">Freedom House</a>
+    </div>
+  </div>
+  <div class="sep"></div>
+  <div class="slabel" style="margin-top:0">Grille d'évaluation des sources</div>
+  <div class="eval-g">
+    <div class="eval-card"><div class="eval-t">Proximité factuelle</div><div class="eval-d">Correspondants sur place ? Accès direct aux sources primaires ?</div></div>
+    <div class="eval-card"><div class="eval-t">Compétence</div><div class="eval-d">Expertise de l'auteur ou du média sur ce sujet précis ?</div></div>
+    <div class="eval-card"><div class="eval-t">Incitation au biais</div><div class="eval-d">Qui finance la source ? Intérêt à orienter le récit ?</div></div>
+    <div class="eval-card"><div class="eval-t">Historique de fiabilité</div><div class="eval-d">Corrige-t-elle ses erreurs ? Antécédents de désinformation ?</div></div>
+    <div class="eval-card"><div class="eval-t">Transparence</div><div class="eval-d">Cite-t-elle ses sources ? Distingue-t-elle fait et opinion ?</div></div>
+    <div class="eval-card"><div class="eval-t">Nature du texte</div><div class="eval-d">Fait brut / analyse / opinion / éditorial / propagande ?</div></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     TAB : GRILLE
+══════════════════════════════════════════ -->
+<div id="tab-grille" class="panel">
+  <div class="slabel" style="margin-top:0">Grille d'analyse permanente — 8 points</div>
+  <div>
+    <div class="step-row"><div class="snum">1</div><div><div class="sname">Que s'est-il passé ?</div><div class="sdesc">Faits vérifiés, dates, acteurs, lieux, causalité immédiate. Stricte séparation établi / rapporté.</div></div></div>
+    <div class="step-row"><div class="snum">2</div><div><div class="sname">Cartographie des sources</div><div class="sdesc">Agences, presse internationale, institutions, think tanks, chercheurs, locaux, sources situées. Quels récits s'affrontent ?</div></div></div>
+    <div class="step-row"><div class="snum">3</div><div><div class="sname">Confirmé / contesté / incertain</div><div class="sdesc">Faits établis vs interprétations vs spéculations. Zones de désaccord entre sources.</div></div></div>
+    <div class="step-row"><div class="snum">4</div><div><div class="sname">Intérêts des acteurs</div><div class="sdesc">États, partis, entreprises, ONG, groupes religieux, médias. Intérêts réels, pas discours officiels.</div></div></div>
+    <div class="step-row"><div class="snum">5</div><div><div class="sname">Biais et angles morts</div><div class="sdesc">Idéologique, national, économique, militant, institutionnel. Sélection des faits, cadrage narratif.</div></div></div>
+    <div class="step-row"><div class="snum">6</div><div><div class="sname">Contexte historique</div><div class="sdesc">Précédents, dynamiques longues, ruptures et continuités.</div></div></div>
+    <div class="step-row"><div class="snum">7</div><div><div class="sname">Tendances systémiques</div><div class="sdesc">Ce que l'événement illustre : polarisation, recomposition géopolitique, crise démographique, guerre informationnelle…</div></div></div>
+    <div class="step-row"><div class="snum">8</div><div><div class="sname">Trajectoires plausibles</div><div class="sdesc">2–4 scénarios argumentés, signaux faibles, incertitudes majeures.</div></div></div>
+  </div>
+  <div class="slabel">Cadres théoriques</div>
+  <div>
+    <div class="frame-row"><div class="fpill">Géopolitique réaliste</div><div class="fq">Qui détient la puissance ? Intérêts nationaux, ressources, logiques de sécurité.</div></div>
+    <div class="frame-row"><div class="fpill">Économie politique</div><div class="fq">Qui produit, possède, dépend ? Classes, capital, dépendances structurelles.</div></div>
+    <div class="frame-row"><div class="fpill">Sociologie</div><div class="fq">Quelles institutions, quels groupes, quelles normes ? Polarisation, cohésion, légitimité.</div></div>
+    <div class="frame-row"><div class="fpill">Démographie</div><div class="fq">Rôle de l'âge, fécondité, migration, remplacement générationnel dans la dynamique ?</div></div>
+    <div class="frame-row"><div class="fpill">Théorie des jeux</div><div class="fq">Quelles incitations ? Équilibres, risques d'escalade, dilemmes des acteurs.</div></div>
+    <div class="frame-row"><div class="fpill">Théorie des systèmes</div><div class="fq">Rétroactions, seuils critiques, inertie. Effets non linéaires, points de bascule.</div></div>
+    <div class="frame-row"><div class="fpill">Histoire longue</div><div class="fq">Cycles, ruptures, continuités. Que disent les précédents de cette situation ?</div></div>
+    <div class="frame-row"><div class="fpill">Analyse médiatique</div><div class="fq">Cadrage, agenda-setting, euphémisation, dramatisation, omissions significatives.</div></div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+/* ════════════════════════════════════════════
+   CONFIGURATION — PROXY API
+   Remplace PROXY_URL par ton URL Cloudflare Worker
+   Ex : https://prisme-proxy.moncompte.workers.dev
+════════════════════════════════════════════ */
+const PROXY_URL = 'https://summer-glade-e842.elias-kabli.workers.dev';
+/* Si PROXY_URL n'est pas configuré, les analyses directes
+   (launch, runSpectre) ne fonctionneront pas hors claude.ai.
+   Les boutons "Approfondir dans le chat" ouvrent claude.ai
+   avec le prompt pré-rempli et fonctionnent toujours. */
+
+function sendToClaude(prompt) {
+  const url = 'https://claude.ai/new?q=' + encodeURIComponent(prompt);
+  window.open(url, '_blank');
+}
+
+/* ════════════════════════════════════════════
+   STATE
+════════════════════════════════════════════ */
+let mode = 's', depth = 'f', currentTopic = '';
+let srcs   = {ag:1,pr:1,in:1,tk:1,ac:1,pa:1,lo:1,da:1};
+let frames = {ge:1,ep:1,so:1,de:1,jx:1,sy:1,hi:1,me:1};
+let _tChart = null;
+let _detailChart = null;
+let _currentAnalysis = null;
+let _activeSection = null;
+
+/* ════════════════════════════════════════════
+   LABELS
+════════════════════════════════════════════ */
+const SL = {
+  ag:'agences de presse (AFP, Reuters, AP, Bloomberg, Xinhua, TASS)',
+  pr:'presse internationale (Le Monde, FT, NYT, Al Jazeera, El País, Guardian, Economist, SCMP…)',
+  in:'institutions (ONU, OCDE, FMI, BCE, Eurostat, Banque Mondiale, BRI)',
+  tk:'think tanks (IFRI, Carnegie, CSIS, Brookings, RAND, ECFR, Chatham House, ICG, SIPRI)',
+  ac:'chercheurs et articles académiques (Google Scholar, JSTOR, SSRN, Cairn)',
+  pa:'sources idéologiquement situées (Jacobin, Monde Diplo, National Review, Valeurs Actuelles, Breitbart…)',
+  lo:'médias locaux et presse de terrain en langues locales',
+  da:'données longues (Our World in Data, WB Data, SIPRI Arms, Gapminder, V-Dem, Freedom House)'
+};
+const FL = {
+  ge:'géopolitique réaliste (intérêts, puissance, ressources, sécurité)',
+  ep:'économie politique (classes, capital, production, dépendances)',
+  so:'sociologie (institutions, groupes, polarisation, normes)',
+  de:'démographie (âge, fécondité, migration, remplacement générationnel)',
+  jx:'théorie des jeux (incitations, équilibres, escalade, dilemmes)',
+  sy:'théorie des systèmes (rétroactions, seuils, effets non linéaires)',
+  hi:'histoire longue (cycles, ruptures, continuités, précédents)',
+  me:'analyse médiatique (cadrage, agenda-setting, euphémisation, dramatisation)'
+};
+
+const SECTION_TITLES = [
+  'Faits établis','Sources & récits','Certitudes & incertitudes',
+  'Intérêts des acteurs','Biais & angles morts','Contexte historique',
+  'Tendances systémiques','Trajectoires plausibles'
+];
+
+const CAMP_KEYS  = ['gauche_radicale','gauche','centre','droite','droite_radicale'];
+const CAMP_COLS  = {gauche_radicale:'#DC2626',gauche:'#F97316',centre:'#9CA3AF',droite:'#60A5FA',droite_radicale:'#2563EB'};
+const CAMP_NAMES = {gauche_radicale:'Gauche radicale',gauche:'Gauche',centre:'Centre',droite:'Droite',droite_radicale:'Droite radicale'};
+const CAMP_SHORT = {gauche_radicale:'G. rad.',gauche:'Gauche',centre:'Centre',droite:'Droite',droite_radicale:'D. rad.'};
+const CAMP_TBG   = {
+  gauche_radicale:['#FEF2F2','#7f1d1d','#FECACA'],
+  gauche:         ['#FFF7ED','#7c2d12','#FED7AA'],
+  centre:         ['#F9FAFB','#374151','#D1D5DB'],
+  droite:         ['#EFF6FF','#1e3a5f','#BFDBFE'],
+  droite_radicale:['#EFF6FF','#1e3a5f','#BFDBFE']
+};
+const SEG_MAP = ['gg','g','c','d','dd'];
+
+/* ════════════════════════════════════════════
+   TABS & UI
+════════════════════════════════════════════ */
+function showTab(t) {
+  ['analyser','spectre','sources','grille'].forEach(x => {
+    document.getElementById('tab-'+x).classList.toggle('on', x===t);
+  });
+  document.querySelectorAll('.ntab').forEach((el,i) => {
+    el.classList.toggle('on', ['analyser','spectre','sources','grille'][i]===t);
+  });
+}
+function setMode(m) {
+  mode = m;
+  ['s','v'].forEach(x => document.getElementById('m-'+x).classList.toggle('on', x===m));
+  document.getElementById('zone-s').style.display = m==='s' ? '' : 'none';
+  document.getElementById('zone-v').style.display = m==='v' ? '' : 'none';
+}
+function setD(d) {
+  depth = d;
+  ['f','a','d'].forEach(x => document.getElementById('d-'+x).classList.toggle('on', x===d));
+}
+function toggleS(k) {
+  srcs[k] = srcs[k] ? 0 : 1;
+  document.getElementById('sc-'+k).classList.toggle('on', !!srcs[k]);
+  updateCounters();
+}
+function tF(k) {
+  frames[k] = frames[k] ? 0 : 1;
+  document.getElementById('f-'+k).classList.toggle('on', !!frames[k]);
+  updateCounters();
+}
+function updateCounters() {
+  const sc = Object.values(srcs).filter(Boolean).length;
+  const fc = Object.values(frames).filter(Boolean).length;
+  const el = document.getElementById('src-counter');
+  if (el) el.innerHTML = '<span>'+sc+'</span> / 8 sources · <span id="frame-count">'+fc+'</span> / 8 cadres actifs';
+}
+function setT(t) { setMode('s'); document.getElementById('topic-in').value = t; }
+function specT(t) { document.getElementById('spec-in').value = t; }
+function setCurrentTopic(t) {
+  currentTopic = t;
+  document.getElementById('mast-topic').textContent = t;
+  document.getElementById('spec-in').value = t;
+}
+
+/* ════════════════════════════════════════════
+   ANALYSE — LOADING UI
+════════════════════════════════════════════ */
+const AN_STEPS = [
+  ['Mobilisation des sources…','Agences, presse, institutions, think tanks', 15],
+  ['Analyse factuelle…','Faits vérifiés, acteurs, causalité', 30],
+  ['Cartographie des récits…','Ce que chaque source dit (et ne dit pas)', 45],
+  ['Analyse des intérêts…','Motivations réelles derrière les discours', 60],
+  ['Cadres théoriques…','Géopolitique, économie politique, démographie…', 72],
+  ['Contextualisation historique…','Précédents, cycles, ruptures', 82],
+  ['Trajectoires & scénarios…','Ce vers quoi ça nous mène', 92],
+  ['Finalisation…','Assemblage de l\'analyse', 98]
+];
+let _anTicker = null;
+let _anStep = 0;
+
+function startLoading() {
+  _anStep = 0;
+  document.getElementById('an-loading').classList.add('on');
+  document.getElementById('an-results').classList.remove('on');
+  document.getElementById('analyser-form').style.display = 'none';
+  document.getElementById('an-err').classList.remove('on');
+  document.getElementById('go-btn').disabled = true;
+  setStep(0);
+  _anTicker = setInterval(() => {
+    _anStep = Math.min(_anStep + 1, AN_STEPS.length - 1);
+    setStep(_anStep);
+  }, 2200);
+}
+function setStep(i) {
+  const [lbl, sub, pct] = AN_STEPS[i];
+  document.getElementById('an-loading-label').textContent = lbl;
+  document.getElementById('an-loading-sub').textContent = sub;
+  document.getElementById('an-progress').style.width = pct + '%';
+}
+function stopLoading() {
+  clearInterval(_anTicker);
+  document.getElementById('an-loading').classList.remove('on');
+  document.getElementById('go-btn').disabled = false;
+}
+function showAnErr(msg) {
+  document.getElementById('an-err-msg').textContent = msg;
+  document.getElementById('an-err').classList.add('on');
+  document.getElementById('analyser-form').style.display = '';
+}
+function hideAnErr() { document.getElementById('an-err').classList.remove('on'); }
+function resetAnalyse() {
+  document.getElementById('an-results').classList.remove('on');
+  document.getElementById('analyser-form').style.display = '';
+  _currentAnalysis = null;
+  _activeSection = null;
+}
+
+/* ════════════════════════════════════════════
+   ANALYSE — JSON PARSER DÉFENSIF
+════════════════════════════════════════════ */
+function safeParseJSON(raw) {
+  let s = raw.replace(/```json/gi,'').replace(/```/g,'').trim();
+  const start = s.indexOf('{');
+  const end   = s.lastIndexOf('}');
+  if (start === -1 || end === -1) throw new Error('Pas d\'objet JSON dans la réponse');
+  return JSON.parse(s.slice(start, end+1));
+}
+
+/* ════════════════════════════════════════════
+   ANALYSE — IMAGE VIA PICSUM (fallback libre)
+  On utilise Unsplash Source (libre, pas de clé)
+  format : https://source.unsplash.com/featured/?{query}
+════════════════════════════════════════════ */
+function imgUrl(query, w, h) {
+  const q = encodeURIComponent(query);
+  return `https://source.unsplash.com/${w}x${h}/?${q}`;
+}
+
+/* ════════════════════════════════════════════
+   ANALYSE — PROMPT BUILDER
+════════════════════════════════════════════ */
+function buildAnalysisPrompt(topic) {
+  const as = Object.entries(srcs).filter(([k,v])=>v).map(([k])=>SL[k]);
+  const af = Object.entries(frames).filter(([k,v])=>v).map(([k])=>FL[k]);
+  const depthInstr = {
+    f:'Synthèse concise pour chaque point (3-4 phrases par section, 2-3 pour le résumé).',
+    a:'Analyse développée (6-8 phrases par section, paragraphe de 4-5 phrases pour le résumé).',
+    d:'Traitement approfondi (8-12 phrases par section, résumé de 5-6 phrases, données chiffrées obligatoires).'
+  }[depth];
+
+  return `Tu es un analyste géopolitique rigoureux. Analyse "${topic}".
+
+${depthInstr}
+
+Sources à mobiliser : ${as.join(' ; ')}
+Cadres d'analyse : ${af.join(' ; ')}
+
+Réponds UNIQUEMENT avec un objet JSON valide, sans texte avant ou après, sans backticks.
+
+SCHEMA STRICT :
+{
+  "topic": string,
+  "headline": string (titre percutant, max 12 mots),
+  "date_contexte": string (période couverte, ex: "2024–2025"),
+  "resume": string (résumé exécutif, faits bruts, sans jargon),
+  "image_query": string (requête anglaise pour image Unsplash illustrant le sujet, 2-4 mots),
+  "sections": [
+    {
+      "titre": string (= un des 8 titres de la grille),
+      "resume": string (2-3 phrases pour le dashboard),
+      "detail": string (développement complet pour le panneau de détail, HTML simple autorisé : <b>, <br>, <ul><li>),
+      "type_viz": "none"|"bar"|"line"|"doughnut"|"timeline",
+      "viz_label": string (titre du graphique, si type_viz != none),
+      "viz_data": {
+        "labels": [string],
+        "values": [number],
+        "colors": [string] (hex optionnel)
+      } | null,
+      "image_query": string (requête anglaise Unsplash pour cette section, 2-4 mots)
+    }
+  ] (exactement 8 sections dans l'ordre de la grille),
+  "acteurs": [
+    {
+      "nom": string,
+      "role": string,
+      "camp": "pro"|"contra"|"neutre"|"ambigu",
+      "interet": string (1 phrase sur leur intérêt réel)
+    }
+  ] (4-8 acteurs clés),
+  "scenarios": [
+    {
+      "titre": string,
+      "probabilite": number (0-100),
+      "description": string (2-3 phrases),
+      "signal": string (signal faible à surveiller)
+    }
+  ] (3-4 scénarios)
+}
+
+Sois direct, sans langue de bois. Nomme les intérêts réels. Reste factuel et nuancé.`;
+}
+
+/* ════════════════════════════════════════════
+   ANALYSE — CALL API
+════════════════════════════════════════════ */
+async function launch() {
+  const t = (document.getElementById('topic-in').value || '').trim();
+  if (!t) { document.getElementById('topic-in').focus(); return; }
+  setCurrentTopic(t);
+  startLoading();
+
+  try {
+    const res = await fetch(PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 8000,
+        messages: [{ role: 'user', content: buildAnalysisPrompt(t) }]
+      })
+    });
+    if (!res.ok) throw new Error('Erreur HTTP ' + res.status);
+    const data = await res.json();
+    const raw = (data.content || []).map(x => x.text || '').join('');
+    const d = safeParseJSON(raw);
+    _currentAnalysis = d;
+    stopLoading();
+    renderAnalysis(d);
+  } catch(err) {
+    stopLoading();
+    showAnErr('Erreur : ' + err.message + ' — Vérifie ta connexion ou réessaie.');
+    console.error('[Prisme] launch error:', err);
+  }
+}
+
+/* ════════════════════════════════════════════
+   ANALYSE — RENDER DASHBOARD
+════════════════════════════════════════════ */
+function renderAnalysis(d) {
+  /* Header */
+  document.getElementById('an-headline').textContent = d.headline || d.topic;
+  document.getElementById('an-meta').innerHTML =
+    `<span>📅 ${d.date_contexte || ''}</span>` +
+    `<span>🔍 ${Object.values(srcs).filter(Boolean).length} catégories de sources</span>` +
+    `<span>⚙️ ${Object.values(frames).filter(Boolean).length} cadres d'analyse</span>`;
+
+  /* Hero image */
+  if (d.image_query) {
+    const heroEl = document.getElementById('an-hero');
+    const heroImg = document.getElementById('an-hero-img');
+    heroImg.src = imgUrl(d.image_query, 680, 220);
+    heroImg.alt = d.topic;
+    document.getElementById('an-hero-caption').textContent = 'Illustration : ' + d.image_query;
+    heroEl.style.display = '';
+  }
+
+  /* Résumé */
+  document.getElementById('an-resume').textContent = d.resume || '';
+
+  /* Section cards */
+  const secCol = document.getElementById('an-sections');
+  secCol.innerHTML = '';
+  (d.sections || []).forEach((sec, i) => {
+    const card = document.createElement('div');
+    card.className = 'section-card';
+    card.id = 'sec-card-' + i;
+    card.innerHTML = `
+      <div class="section-card-head" onclick="toggleSection(${i})">
+        <div class="section-num">${i+1}</div>
+        <div class="section-title">${sec.titre || SECTION_TITLES[i]}</div>
+        <div class="section-arrow">›</div>
+      </div>
+      <div class="section-summary" id="sec-summary-${i}" style="display:none">
+        ${sec.resume || ''}
+        ${sec.image_query ? `<img class="section-img" src="${imgUrl(sec.image_query, 400, 120)}" alt="${sec.titre}" loading="lazy" onerror="this.style.display='none'">` : ''}
+      </div>`;
+    secCol.appendChild(card);
+  });
+
+  /* Acteurs */
+  const campColors = {pro:'#27500A',contra:'#7f1d1d',neutre:'#374151',ambigu:'#633806'};
+  const campBg = {pro:'#EAF3DE',contra:'#FEF2F2',neutre:'#F9FAFB',ambigu:'#FAEEDA'};
+  const campLabel = {pro:'Favorable',contra:'Opposé',neutre:'Neutre',ambigu:'Ambigu'};
+  const actEl = document.getElementById('an-acteurs');
+  actEl.innerHTML = '';
+  (d.acteurs || []).forEach(a => {
+    const c = a.camp || 'neutre';
+    actEl.innerHTML += `<div class="acteur-card">
+      <span class="acteur-badge" style="background:${campBg[c]};color:${campColors[c]}">${campLabel[c]||c}</span>
+      <div class="acteur-name">${a.nom}</div>
+      <div class="acteur-role">${a.role}</div>
+      <div class="acteur-interet">${a.interet}</div>
+    </div>`;
+  });
+
+  /* Scénarios */
+  const scEl = document.getElementById('an-scenarios');
+  scEl.innerHTML = '';
+  (d.scenarios || []).forEach(sc => {
+    const p = Math.round(sc.probabilite || 0);
+    const col = p >= 60 ? '#27500A' : p >= 35 ? '#633806' : '#7f1d1d';
+    scEl.innerHTML += `<div class="scenario-item">
+      <div class="scenario-prob">
+        <div class="scenario-prob-val" style="color:${col}">${p}%</div>
+        <div class="scenario-prob-lbl">prob.</div>
+      </div>
+      <div class="scenario-content">
+        <div class="scenario-title">${sc.titre}</div>
+        <div class="scenario-desc">${sc.description}</div>
+        ${sc.signal ? `<div style="font-size:10px;color:var(--txt3);margin-top:3px">⚠ Signal : ${sc.signal}</div>` : ''}
+      </div>
+    </div>`;
+  });
+
+  /* Show results */
+  document.getElementById('an-results').classList.add('on');
+  document.getElementById('an-results').scrollIntoView({behavior:'smooth', block:'start'});
+
+  /* Auto-open section 1 */
+  setTimeout(() => toggleSection(0), 400);
+}
+
+/* ════════════════════════════════════════════
+   SECTION TOGGLE + DETAIL PANEL
+════════════════════════════════════════════ */
+function toggleSection(i) {
+  if (!_currentAnalysis) return;
+  const sec = _currentAnalysis.sections[i];
+  const wasActive = _activeSection === i;
+
+  /* Reset all cards */
+  (_currentAnalysis.sections || []).forEach((_,j) => {
+    const card = document.getElementById('sec-card-'+j);
+    const summary = document.getElementById('sec-summary-'+j);
+    if (card) card.classList.remove('active');
+    if (summary) summary.style.display = 'none';
+  });
+
+  if (wasActive) {
+    _activeSection = null;
+    document.getElementById('an-detail').innerHTML = `
+      <div class="detail-empty">
+        <div class="detail-empty-icon">↖</div>
+        <div class="detail-empty-txt">Cliquez sur une section pour voir le détail</div>
+      </div>`;
+    return;
+  }
+
+  /* Activate */
+  _activeSection = i;
+  const card = document.getElementById('sec-card-'+i);
+  const summary = document.getElementById('sec-summary-'+i);
+  if (card) card.classList.add('active');
+  if (summary) summary.style.display = '';
+
+  /* Render detail panel */
+  renderDetailPanel(sec, i);
+}
+
+function renderDetailPanel(sec, i) {
+  if (_detailChart) { _detailChart.destroy(); _detailChart = null; }
+
+  let html = `<div class="detail-title">${i+1}. ${sec.titre || SECTION_TITLES[i]}</div>`;
+
+  /* Image */
+  if (sec.image_query) {
+    html += `<img class="detail-img" src="${imgUrl(sec.image_query, 340, 140)}" alt="${sec.titre}" loading="lazy" onerror="this.style.display='none'">`;
+    html += `<div class="detail-img-caption">Illustration : ${sec.image_query}</div>`;
+  }
+
+  /* Detail text */
+  html += `<div class="detail-body">${(sec.detail || sec.resume || '').replace(/\n/g,'<br>')}</div>`;
+
+  /* Chart placeholder if needed */
+  if (sec.type_viz && sec.type_viz !== 'none' && sec.viz_data) {
+    html += `<div class="detail-chart-wrap"><canvas id="detail-chart" role="img" aria-label="${sec.viz_label||'Graphique'}"></canvas></div>`;
+  }
+
+  document.getElementById('an-detail').innerHTML = html;
+
+  /* Render chart after DOM update */
+  if (sec.type_viz && sec.type_viz !== 'none' && sec.viz_data) {
+    requestAnimationFrame(() => {
+      const ctx = document.getElementById('detail-chart');
+      if (!ctx) return;
+      const vd = sec.viz_data;
+      const defaultColors = ['#DC2626','#F97316','#D1D5DB','#60A5FA','#2563EB','#639922','#888780','#1D9E75'];
+      const colors = vd.colors || defaultColors;
+
+      _detailChart = new Chart(ctx, {
+        type: sec.type_viz === 'timeline' ? 'line' : sec.type_viz,
+        data: {
+          labels: vd.labels || [],
+          datasets: [{
+            label: sec.viz_label || '',
+            data: vd.values || [],
+            backgroundColor: sec.type_viz === 'line' ? 'transparent' : colors,
+            borderColor: sec.type_viz === 'line' ? (colors[0]||'#1a1a1a') : colors,
+            borderWidth: 1.5,
+            tension: .3,
+            pointRadius: sec.type_viz === 'line' ? 3 : 0
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false }, title: { display: !!sec.viz_label, text: sec.viz_label||'', font:{size:11} } },
+          scales: sec.type_viz === 'doughnut' ? {} : {
+            x: { grid:{color:'rgba(128,128,128,.08)'}, ticks:{font:{size:9},color:'#888'} },
+            y: { grid:{color:'rgba(128,128,128,.08)'}, ticks:{font:{size:9},color:'#888'} }
+          }
+        }
+      });
+    });
+  }
+}
+
+/* ════════════════════════════════════════════
+   VEILLE AUTO
+════════════════════════════════════════════ */
+function launchVeille() {
+  const as = Object.entries(srcs).filter(([k,v])=>v).map(([k])=>SL[k]);
+  const prompt = `Lance une veille systémique. Identifie les 5 sujets géopolitiques et internationaux les plus importants du moment. Pour chacun : titre, 1-2 phrases sur les faits, et pourquoi c'est systémiquement important. Puis demande lequel analyser. Sources : ${as.join(' ; ')}`;
+  sendToClaude(prompt);
+}
+
+/* ════════════════════════════════════════════
+   ACTIONS BOTTOM
+════════════════════════════════════════════ */
+function deepenInChat() {
+  if (!currentTopic) return;
+  const prompt = `Approfondis l'analyse de "${currentTopic}" : développe chaque point de la grille en détail, cite des sources précises, inclus des données chiffrées et des précédents historiques. Format dossier approfondi (~20 min de lecture).`;
+  sendToClaude(prompt);
+}
+function doSpectre() {
+  if (currentTopic) document.getElementById('spec-in').value = currentTopic;
+  showTab('spectre');
+}
+function doBiasChat() {
+  if (!currentTopic) return;
+  const prompt = `Déconstruis en détail les biais, omissions et angles morts de chaque camp médiatique sur : "${currentTopic}". Nomme des médias précis.`;
+  sendToClaude(prompt);
+}
+
+/* ════════════════════════════════════════════
+   SPECTRE — LOADING & ERROR
+════════════════════════════════════════════ */
+function showSpecLoading(on) {
+  document.getElementById('spec-loading').classList.toggle('on', on);
+  document.getElementById('spec-btn').disabled = on;
+  if (on) document.getElementById('spec-results').style.display = 'none';
+}
+function hideSpecErr() { document.getElementById('spec-err').classList.remove('on'); }
+function showSpecErr(msg) {
+  document.getElementById('spec-err-msg').textContent = msg;
+  document.getElementById('spec-err').classList.add('on');
+}
+
+/* ════════════════════════════════════════════
+   SPECTRE — API CALL
+════════════════════════════════════════════ */
+function runSpectre() {
+  const t = (document.getElementById('spec-in').value || '').trim();
+  if (!t) { document.getElementById('spec-in').focus(); return; }
+  setCurrentTopic(t);
+  hideSpecErr();
+  showSpecLoading(true);
+
+  const msgs = ['Cartographie des sources…','Calibrage du spectre politique…','Analyse des cadrages par camp…','Calcul des jauges…'];
+  let mi = 0;
+  const ticker = setInterval(() => { document.getElementById('spec-loading-label').textContent = msgs[++mi % msgs.length]; }, 1800);
+
+  const prompt = `Analyse médiatique comparée de : "${t}". Réponds UNIQUEMENT en JSON strict sans texte ni backtick :
+{"topic":"${t}","spectrum":{"gauche_radicale":0,"gauche":0,"centre":0,"droite":0,"droite_radicale":0},"stats":{"sources":0,"consensus":0,"polarisation":"Modérée","tonalite":"neutre"},"camps":{"gauche_radicale":{"angle":"","elements_langage":["","",""],"angle_mort":""},"gauche":{"angle":"","elements_langage":["","",""],"angle_mort":""},"centre":{"angle":"","elements_langage":["","",""],"angle_mort":""},"droite":{"angle":"","elements_langage":["","",""],"angle_mort":""},"droite_radicale":{"angle":"","elements_langage":["","",""],"angle_mort":""}},"jauges":{"dramatisation":0,"euphemisation":0,"consensus_factuel":0,"charge_emotionnelle":0,"donnees_chiffrees":0,"voix_terrain":0},"cadrage":{"gauche_radicale":{"met_en_avant":"","omet":"","recit":""},"gauche":{"met_en_avant":"","omet":"","recit":""},"centre":{"met_en_avant":"","omet":"","recit":""},"droite":{"met_en_avant":"","omet":"","recit":""},"droite_radicale":{"met_en_avant":"","omet":"","recit":""}},"timeline":{"labels":["J-6","J-5","J-4","J-3","J-2","J-1","Auj."],"gauche_radicale":[0,0,0,0,0,0,0],"gauche":[0,0,0,0,0,0,0],"centre":[0,0,0,0,0,0,0],"droite":[0,0,0,0,0,0,0],"droite_radicale":[0,0,0,0,0,0,0]}}
+Remplis avec de vraies valeurs. spectrum doit sommer à 100. Jauges entre 0-100. Timeline entre 0-100.`;
+
+  fetch(PROXY_URL, {
+    method: 'POST',
+    headers: {'Content-Type':'application/json'},
+    body: JSON.stringify({model:'claude-sonnet-4-6',max_tokens:8000,messages:[{role:'user',content:prompt}]})
+  })
+  .then(r => { if (!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
+  .then(data => {
+    clearInterval(ticker);
+    showSpecLoading(false);
+    const raw = (data.content||[]).map(x=>x.text||'').join('');
+    const d = safeParseJSON(raw);
+    renderSpectre(d);
+  })
+  .catch(err => {
+    clearInterval(ticker);
+    showSpecLoading(false);
+    showSpecErr('Erreur : ' + err.message);
+    console.error('[Prisme] runSpectre error:', err);
+  });
+}
+
+/* ════════════════════════════════════════════
+   SPECTRE — RENDER
+════════════════════════════════════════════ */
+function renderSpectre(d) {
+  CAMP_KEYS.forEach((k,i) => {
+    const v = Math.round(d.spectrum[k]||0);
+    const el = document.getElementById('s-'+SEG_MAP[i]);
+    if (el) { el.style.width=v+'%'; el.textContent=v>5?v+'%':''; }
+  });
+  document.getElementById('spec-title-label').textContent = d.topic || currentTopic;
+  document.getElementById('st-src').textContent = d.stats.sources||'—';
+  document.getElementById('st-con').textContent = (d.stats.consensus||'—')+'%';
+  document.getElementById('st-pol').textContent = d.stats.polarisation||'—';
+  document.getElementById('st-ton').textContent = d.stats.tonalite||'—';
+
+  const cg = document.getElementById('camps-g');
+  cg.innerHTML = '';
+  CAMP_KEYS.forEach(k => {
+    const c = d.camps[k]||{};
+    const [bg,fg,bd] = CAMP_TBG[k];
+    const pct = Math.round(d.spectrum[k]||0);
+    const tags = (c.elements_langage||[]).map(t=>`<span class="tag-m" style="background:${bg};color:${fg};border-color:${bd}">${t}</span>`).join('');
+    cg.innerHTML += `<div class="ccard"><div class="ch"><div class="cdot" style="background:${CAMP_COLS[k]}"></div><div class="cn">${CAMP_NAMES[k]}</div><div class="cpct">${pct}%</div></div><div class="cst">Angle</div><div class="ctxt">${c.angle||''}</div><div class="cst">Langage</div><div>${tags}</div><div class="cst">Angle mort</div><div class="ctxt">${c.angle_mort||''}</div></div>`;
+  });
+
+  const gg = document.getElementById('gauge-g');
+  gg.innerHTML = '';
+  [{l:'Dramatisation',k:'dramatisation',c:'#DC2626'},{l:'Euphémisation',k:'euphemisation',c:'#60A5FA'},{l:'Consensus factuel',k:'consensus_factuel',c:'#639922'},{l:'Charge émotionnelle',k:'charge_emotionnelle',c:'#F97316'},{l:'Données chiffrées',k:'donnees_chiffrees',c:'#888780'},{l:'Voix du terrain',k:'voix_terrain',c:'#1D9E75'}].forEach(gi => {
+    const v = Math.round(d.jauges[gi.k]||0);
+    gg.innerHTML += `<div class="gcard"><div class="gl">${gi.l}</div><div class="gtrack"><div class="gfill" style="width:${v}%;background:${gi.c}"></div></div><div class="gvals"><span>faible</span><span style="font-weight:500">${v}%</span><span>forte</span></div></div>`;
+  });
+
+  const tb = document.getElementById('at-body');
+  tb.innerHTML = '';
+  CAMP_KEYS.forEach(k => {
+    const cd = d.cadrage[k]||{};
+    tb.innerHTML += `<tr><td style="color:${CAMP_COLS[k]}">${CAMP_SHORT[k]}</td><td>${cd.met_en_avant||''}</td><td>${cd.omet||''}</td><td>${cd.recit||''}</td></tr>`;
+  });
+
+  if (_tChart) { _tChart.destroy(); _tChart = null; }
+  const tl = d.timeline||{};
+  _tChart = new Chart(document.getElementById('tChart'), {
+    type:'line',
+    data:{labels:tl.labels||['J-6','J-5','J-4','J-3','J-2','J-1','Auj.'],datasets:[
+      {label:'G. rad.',data:tl.gauche_radicale||[],borderColor:'#DC2626',backgroundColor:'transparent',pointRadius:3,borderWidth:1.5,tension:.3},
+      {label:'Gauche', data:tl.gauche||[],borderColor:'#F97316',backgroundColor:'transparent',pointRadius:3,borderWidth:1.5,tension:.3},
+      {label:'Centre', data:tl.centre||[],borderColor:'#9CA3AF',backgroundColor:'transparent',pointRadius:3,borderWidth:1.5,tension:.3,borderDash:[4,3]},
+      {label:'Droite', data:tl.droite||[],borderColor:'#60A5FA',backgroundColor:'transparent',pointRadius:3,borderWidth:1.5,tension:.3},
+      {label:'D. rad.',data:tl.droite_radicale||[],borderColor:'#2563EB',backgroundColor:'transparent',pointRadius:3,borderWidth:1.5,tension:.3,borderDash:[2,2]}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(128,128,128,.1)'},ticks:{font:{size:9},color:'#888',autoSkip:false}},y:{grid:{color:'rgba(128,128,128,.1)'},ticks:{font:{size:9},color:'#888'},min:0,max:100}}}
+  });
+
+  document.getElementById('spec-results').style.display = '';
+  document.getElementById('spec-results').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+/* ════════════════════════════════════════════
+   SPECTRE DEEP ACTIONS
+════════════════════════════════════════════ */
+function doDeepSpec() {
+  const t = currentTopic||document.getElementById('spec-in').value.trim();
+  if (!t) return;
+  sendToClaude(`Analyse systémique complète (dossier, 8 points, tous cadres) sur : "${t}"`);
+}
+function doBiasSpec() {
+  const t = currentTopic||document.getElementById('spec-in').value.trim();
+  if (!t) return;
+  sendToClaude(`Déconstruis les biais et angles morts de chaque camp médiatique sur : "${t}". Nomme des médias précis.`);
+}
+function doHistoSpec() {
+  const t = currentTopic||document.getElementById('spec-in').value.trim();
+  if (!t) return;
+  sendToClaude(`Contexte historique long de "${t}" : précédents, cycles, ruptures comparables.`);
+}
+
+/* ════════════════════════════════════════════
+   KEYBOARD SHORTCUTS
+════════════════════════════════════════════ */
+document.getElementById('topic-in').addEventListener('keydown', e => {
+  if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); launch(); }
+});
+document.getElementById('spec-in').addEventListener('keydown', e => {
+  if (e.key==='Enter') runSpectre();
+});
+</script>
+</body>
+</html>
