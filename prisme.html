@@ -13,9 +13,10 @@
   --accent:#ececec;--accent2:#888888;
   --r:8px;--rl:12px;
 }
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--txt);background:var(--bg);padding:1.25rem;max-width:100%;margin:0}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:var(--txt);background:var(--bg);padding:0;max-width:100%;margin:0}
 
 /* ── NAV ── */
+.page-wrap{max-width:900px;margin:0 auto;padding:1.5rem 2rem}
 .mast{display:flex;align-items:center;justify-content:space-between;padding-bottom:.75rem;border-bottom:0.5px solid var(--brd);margin-bottom:0}
 .brand{font-size:16px;font-weight:500;letter-spacing:-.02em}
 .brand span{font-weight:400;color:var(--txt2)}
@@ -24,7 +25,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 .ntab{padding:7px 14px;font-size:12px;color:var(--txt2);cursor:pointer;border:none;background:none;font-family:inherit;border-bottom:1.5px solid transparent;margin-bottom:-0.5px;transition:all .15s;white-space:nowrap}
 .ntab.on{color:var(--accent);font-weight:500;border-bottom-color:var(--accent)}
 .panel{display:none}.panel.on{display:block}
-.slabel{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:var(--txt3);margin-bottom:.5rem;margin-top:1rem}
+.slabel{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--txt3);margin-bottom:.6rem;margin-top:1.25rem}
 .slabel:first-child{margin-top:0}
 .sep{border:none;border-top:0.5px solid var(--brd);margin:.85rem 0}
 
@@ -77,19 +78,20 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 .results-wrap{display:none}
 .results-wrap.on{display:block}
 .results-header{margin-bottom:1rem;padding-bottom:.75rem;border-bottom:0.5px solid var(--brd)}
-.results-headline{font-size:16px;font-weight:500;margin-bottom:4px;line-height:1.4}
+.results-headline{font-size:26px;font-weight:600;margin-bottom:8px;line-height:1.3;letter-spacing:-.02em}
+.results-dateline{font-size:12px;color:var(--txt3);margin-bottom:1.25rem;display:flex;align-items:center;gap:10px}
 .results-meta{font-size:11px;color:var(--txt3);display:flex;gap:12px;flex-wrap:wrap}
 .results-meta span{display:flex;align-items:center;gap:4px}
-.results-resume{font-size:13px;color:var(--txt2);line-height:1.6;margin-bottom:1rem;padding:10px 14px;background:var(--bg2);border-left:3px solid var(--accent2);border-radius:0 var(--r) var(--r) 0}
+.results-resume{font-size:15px;color:var(--txt2);line-height:1.75;margin-bottom:1.5rem;padding:16px 20px;background:var(--bg2);border-left:3px solid var(--accent2);border-radius:0 var(--r) var(--r) 0;max-width:720px}
 
 /* Hero image */
 .hero-img{width:100%;height:180px;object-fit:cover;border-radius:var(--r);margin-bottom:1rem;display:block}
 .hero-img-wrap{position:relative;margin-bottom:1rem}
-.hero-img-wrap img{width:100%;height:180px;object-fit:cover;border-radius:var(--r);display:block}
+.hero-img-wrap img{width:100%;height:220px;object-fit:cover;border-radius:var(--r);display:block;max-width:900px}
 .hero-img-caption{font-size:10px;color:var(--txt3);margin-top:4px;font-style:italic}
 
 /* Split layout */
-.split{display:grid;grid-template-columns:1fr;gap:1rem}
+.split{display:grid;grid-template-columns:1fr;gap:1rem;max-width:900px}
 @media(min-width:700px){.split{grid-template-columns:3fr 2fr}}
 
 /* ── SECTION CARDS (left column) ── */
@@ -98,23 +100,23 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 .section-card:hover{border-color:var(--brd2);background:var(--bg2)}
 .section-card.active{border-color:var(--txt);background:var(--bg)}
 .section-card-head{display:flex;align-items:center;gap:10px;padding:10px 14px}
-.section-num{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;border-radius:50%;background:var(--bg2);border:0.5px solid var(--brd);font-size:10px;font-weight:500;color:var(--txt2);flex-shrink:0}
+.section-num{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;border-radius:50%;background:var(--bg2);border:0.5px solid var(--brd);font-size:11px;font-weight:500;color:var(--txt2);flex-shrink:0}
 .section-card.active .section-num{background:var(--accent);color:#FAF8F5;border-color:var(--accent)}
-.section-title{font-size:12px;font-weight:500;flex:1}
+.section-title{font-size:13px;font-weight:500;flex:1}
 .section-arrow{font-size:11px;color:var(--txt3);transition:transform .15s}
 .section-card.active .section-arrow{transform:rotate(90deg)}
-.section-summary{font-size:11px;color:var(--txt2);line-height:1.6;padding:0 14px 10px 44px}
+.section-summary{font-size:12px;color:var(--txt2);line-height:1.7;padding:0 14px 12px 46px}
 .section-viz{padding:0 14px 10px 14px}
 .section-img{width:100%;height:100px;object-fit:cover;border-radius:var(--r);margin-bottom:6px;display:block}
 
 /* ── DETAIL PANEL (right column) ── */
 .detail-col{position:relative}
-.detail-panel{border:0.5px solid var(--brd);border-radius:var(--rl);padding:14px;background:var(--bg);min-height:200px}
+.detail-panel{border:0.5px solid var(--brd);border-radius:var(--rl);padding:18px;background:var(--bg);min-height:220px}
 .detail-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2rem 1rem;text-align:center;min-height:200px;color:var(--txt3)}
 .detail-empty-icon{font-size:28px;margin-bottom:8px;opacity:.3}
 .detail-empty-txt{font-size:12px}
 .detail-title{font-size:13px;font-weight:500;margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:0.5px solid var(--brd)}
-.detail-body{font-size:12px;color:var(--txt2);line-height:1.7}
+.detail-body{font-size:13px;color:var(--txt2);line-height:1.8}
 .detail-body p{margin-bottom:.6rem}
 .detail-body p:last-child{margin-bottom:0}
 .detail-img{width:100%;height:120px;object-fit:cover;border-radius:var(--r);margin-bottom:.6rem;display:block}
@@ -203,7 +205,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
 </style>
 </head>
 <body>
-
+<div class="page-wrap">
 <div class="mast">
   <div class="brand">Prisme <span>· analyse systémique</span></div>
   <div class="topic-pill" id="mast-topic">Aucun sujet sélectionné</div>
@@ -325,12 +327,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
     </div>
 
     <!-- Acteurs -->
-    <div class="slabel">Acteurs & intérêts — <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px">cliquez sur une fiche pour les détails</span></div>
-    <div class="acteurs-grid" id="an-acteurs"></div>
+    <div class="slabel" style="max-width:900px">Acteurs & intérêts — <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px">cliquez sur une fiche pour les détails</span></div>
+    <div class="acteurs-grid" id="an-acteurs" style="max-width:900px"></div>
 
     <!-- Scénarios -->
-    <div class="slabel">Trajectoires plausibles — <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px">cliquez pour les détails</span></div>
-    <div id="an-scenarios"></div>
+    <div class="slabel" style="max-width:900px">Trajectoires plausibles — <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px">cliquez pour les détails</span></div>
+    <div id="an-scenarios" style="max-width:900px"></div>
 
     <!-- Actions -->
     <div class="bottom-actions">
@@ -1338,5 +1340,6 @@ document.getElementById('topic-in').addEventListener('keydown', e => {  if (e.ke
 document.getElementById('spec-in').addEventListener('keydown', e => {  if (e.key==='Enter') runSpectre();
 });
 </script>
+</div>
 </body>
 </html>
