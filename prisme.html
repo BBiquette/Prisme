@@ -593,15 +593,13 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;color:va
    Remplace PROXY_URL par ton URL Cloudflare Worker
    Ex : https://prisme-proxy.moncompte.workers.dev
 ════════════════════════════════════════════ */
-const PROXY_URL = 'https://summer-glade-e842.elias-kabli.workers.dev';
-/* Si PROXY_URL n'est pas configuré, les analyses directes
+const PROXY_URL = 'https://summer-glade-e842.elias-kabli.workers.dev';/* Si PROXY_URL n'est pas configuré, les analyses directes
    (launch, runSpectre) ne fonctionneront pas hors claude.ai.
    Les boutons "Approfondir dans le chat" ouvrent claude.ai
    avec le prompt pré-rempli et fonctionnent toujours. */
 
 function sendToClaude(prompt) {
-  const url = 'https://claude.ai/new?q=' + encodeURIComponent(prompt);
-  window.open(url, '_blank');
+  const url = 'https://claude.ai/new?q=' + encodeURIComponent(prompt);  window.open(url, '_blank');
 }
 
 /* ════════════════════════════════════════════
@@ -619,42 +617,19 @@ let _activeSection = null;
    LABELS
 ════════════════════════════════════════════ */
 const SL = {
-  ag:'agences de presse (AFP, Reuters, AP, Bloomberg, Xinhua, TASS)',
-  pr:'presse internationale (Le Monde, FT, NYT, Al Jazeera, El País, Guardian, Economist, SCMP…)',
-  in:'institutions (ONU, OCDE, FMI, BCE, Eurostat, Banque Mondiale, BRI)',
-  tk:'think tanks (IFRI, Carnegie, CSIS, Brookings, RAND, ECFR, Chatham House, ICG, SIPRI)',
-  ac:'chercheurs et articles académiques (Google Scholar, JSTOR, SSRN, Cairn)',
-  pa:'sources idéologiquement situées (Jacobin, Monde Diplo, National Review, Valeurs Actuelles, Breitbart…)',
-  lo:'médias locaux et presse de terrain en langues locales',
-  da:'données longues (Our World in Data, WB Data, SIPRI Arms, Gapminder, V-Dem, Freedom House)'
+  ag:'agences de presse (AFP, Reuters, AP, Bloomberg, Xinhua, TASS)',  pr:'presse internationale (Le Monde, FT, NYT, Al Jazeera, El País, Guardian, Economist, SCMP…)',  in:'institutions (ONU, OCDE, FMI, BCE, Eurostat, Banque Mondiale, BRI)',  tk:'think tanks (IFRI, Carnegie, CSIS, Brookings, RAND, ECFR, Chatham House, ICG, SIPRI)',  ac:'chercheurs et articles académiques (Google Scholar, JSTOR, SSRN, Cairn)',  pa:'sources idéologiquement situées (Jacobin, Monde Diplo, National Review, Valeurs Actuelles, Breitbart…)',  lo:'médias locaux et presse de terrain en langues locales',  da:'données longues (Our World in Data, WB Data, SIPRI Arms, Gapminder, V-Dem, Freedom House)'
 };
 const FL = {
-  ge:'géopolitique réaliste (intérêts, puissance, ressources, sécurité)',
-  ep:'économie politique (classes, capital, production, dépendances)',
-  so:'sociologie (institutions, groupes, polarisation, normes)',
-  de:'démographie (âge, fécondité, migration, remplacement générationnel)',
-  jx:'théorie des jeux (incitations, équilibres, escalade, dilemmes)',
-  sy:'théorie des systèmes (rétroactions, seuils, effets non linéaires)',
-  hi:'histoire longue (cycles, ruptures, continuités, précédents)',
-  me:'analyse médiatique (cadrage, agenda-setting, euphémisation, dramatisation)'
+  ge:'géopolitique réaliste (intérêts, puissance, ressources, sécurité)',  ep:'économie politique (classes, capital, production, dépendances)',  so:'sociologie (institutions, groupes, polarisation, normes)',  de:'démographie (âge, fécondité, migration, remplacement générationnel)',  jx:'théorie des jeux (incitations, équilibres, escalade, dilemmes)',  sy:'théorie des systèmes (rétroactions, seuils, effets non linéaires)',  hi:'histoire longue (cycles, ruptures, continuités, précédents)',  me:'analyse médiatique (cadrage, agenda-setting, euphémisation, dramatisation)'
 };
 
 const SECTION_TITLES = [
-  'Faits établis','Sources & récits','Certitudes & incertitudes',
-  'Intérêts des acteurs','Biais & angles morts','Contexte historique',
-  'Tendances systémiques','Trajectoires plausibles'
+  'Faits établis','Sources & récits','Certitudes & incertitudes',  'Intérêts des acteurs','Biais & angles morts','Contexte historique',  'Tendances systémiques','Trajectoires plausibles'
 ];
 
-const CAMP_KEYS  = ['gauche_radicale','gauche','centre','droite','droite_radicale'];
-const CAMP_COLS  = {gauche_radicale:'#DC2626',gauche:'#F97316',centre:'#9CA3AF',droite:'#60A5FA',droite_radicale:'#2563EB'};
-const CAMP_NAMES = {gauche_radicale:'Gauche radicale',gauche:'Gauche',centre:'Centre',droite:'Droite',droite_radicale:'Droite radicale'};
-const CAMP_SHORT = {gauche_radicale:'G. rad.',gauche:'Gauche',centre:'Centre',droite:'Droite',droite_radicale:'D. rad.'};
+const CAMP_KEYS  = ['gauche_radicale','gauche','centre','droite','droite_radicale'];const CAMP_COLS  = {gauche_radicale:'#DC2626',gauche:'#F97316',centre:'#9CA3AF',droite:'#60A5FA',droite_radicale:'#2563EB'};const CAMP_NAMES = {gauche_radicale:'Gauche radicale',gauche:'Gauche',centre:'Centre',droite:'Droite',droite_radicale:'Droite radicale'};const CAMP_SHORT = {gauche_radicale:'G. rad.',gauche:'Gauche',centre:'Centre',droite:'Droite',droite_radicale:'D. rad.'};
 const CAMP_TBG   = {
-  gauche_radicale:['#FEF2F2','#7f1d1d','#FECACA'],
-  gauche:         ['#FFF7ED','#7c2d12','#FED7AA'],
-  centre:         ['#F9FAFB','#374151','#D1D5DB'],
-  droite:         ['#EFF6FF','#1e3a5f','#BFDBFE'],
-  droite_radicale:['#EFF6FF','#1e3a5f','#BFDBFE']
+  gauche_radicale:['#FEF2F2','#7f1d1d','#FECACA'],  gauche:         ['#FFF7ED','#7c2d12','#FED7AA'],  centre:         ['#F9FAFB','#374151','#D1D5DB'],  droite:         ['#EFF6FF','#1e3a5f','#BFDBFE'],  droite_radicale:['#EFF6FF','#1e3a5f','#BFDBFE']
 };
 const SEG_MAP = ['gg','g','c','d','dd'];
 
@@ -662,18 +637,14 @@ const SEG_MAP = ['gg','g','c','d','dd'];
    TABS & UI
 ════════════════════════════════════════════ */
 function showTab(t) {
-  ['analyser','spectre','sources','grille'].forEach(x => {
-    document.getElementById('tab-'+x).classList.toggle('on', x===t);
+  ['analyser','spectre','sources','grille'].forEach(x => {    document.getElementById('tab-'+x).classList.toggle('on', x===t);
   });
-  document.querySelectorAll('.ntab').forEach((el,i) => {
-    el.classList.toggle('on', ['analyser','spectre','sources','grille'][i]===t);
+  document.querySelectorAll('.ntab').forEach((el,i) => {    el.classList.toggle('on', ['analyser','spectre','sources','grille'][i]===t);
   });
 }
 function setMode(m) {
   mode = m;
-  ['s','v'].forEach(x => document.getElementById('m-'+x).classList.toggle('on', x===m));
-  document.getElementById('zone-s').style.display = m==='s' ? '' : 'none';
-  document.getElementById('zone-v').style.display = m==='v' ? '' : 'none';
+  ['s','v'].forEach(x => document.getElementById('m-'+x).classList.toggle('on', x===m));  document.getElementById('zone-s').style.display = m==='s' ? '' : 'none';  document.getElementById('zone-v').style.display = m==='v' ? '' : 'none';
 }
 function setD(d) {
   depth = d;
@@ -692,40 +663,26 @@ function tF(k) {
 function updateCounters() {
   const sc = Object.values(srcs).filter(Boolean).length;
   const fc = Object.values(frames).filter(Boolean).length;
-  const el = document.getElementById('src-counter');
-  if (el) el.innerHTML = '<span>'+sc+'</span> / 8 sources · <span id="frame-count">'+fc+'</span> / 8 cadres actifs';
+  const el = document.getElementById('src-counter');  if (el) el.innerHTML = '<span>'+sc+'</span> / 8 sources · <span id="frame-count">'+fc+'</span> / 8 cadres actifs';
 }
-function setT(t) { setMode('s'); document.getElementById('topic-in').value = t; }
-function specT(t) { document.getElementById('spec-in').value = t; }
+function setT(t) { setMode('s'); document.getElementById('topic-in').value = t; }function specT(t) { document.getElementById('spec-in').value = t; }
 function setCurrentTopic(t) {
   currentTopic = t;
-  document.getElementById('mast-topic').textContent = t;
-  document.getElementById('spec-in').value = t;
+  document.getElementById('mast-topic').textContent = t;  document.getElementById('spec-in').value = t;
 }
 
 /* ════════════════════════════════════════════
    ANALYSE — LOADING UI
 ════════════════════════════════════════════ */
 const AN_STEPS = [
-  ['Mobilisation des sources…','Agences, presse, institutions, think tanks', 15],
-  ['Analyse factuelle…','Faits vérifiés, acteurs, causalité', 30],
-  ['Cartographie des récits…','Ce que chaque source dit (et ne dit pas)', 45],
-  ['Analyse des intérêts…','Motivations réelles derrière les discours', 60],
-  ['Cadres théoriques…','Géopolitique, économie politique, démographie…', 72],
-  ['Contextualisation historique…','Précédents, cycles, ruptures', 82],
-  ['Trajectoires & scénarios…','Ce vers quoi ça nous mène', 92],
-  ['Finalisation…','Assemblage de l\'analyse', 98]
+  ['Mobilisation des sources…','Agences, presse, institutions, think tanks', 15],  ['Analyse factuelle…','Faits vérifiés, acteurs, causalité', 30],  ['Cartographie des récits…','Ce que chaque source dit (et ne dit pas)', 45],  ['Analyse des intérêts…','Motivations réelles derrière les discours', 60],  ['Cadres théoriques…','Géopolitique, économie politique, démographie…', 72],  ['Contextualisation historique…','Précédents, cycles, ruptures', 82],  ['Trajectoires & scénarios…','Ce vers quoi ça nous mène', 92],  ['Finalisation…','Assemblage de l\'analyse', 98]
 ];
 let _anTicker = null;
 let _anStep = 0;
 
 function startLoading() {
   _anStep = 0;
-  document.getElementById('an-loading').classList.add('on');
-  document.getElementById('an-results').classList.remove('on');
-  document.getElementById('analyser-form').style.display = 'none';
-  document.getElementById('an-err').classList.remove('on');
-  document.getElementById('go-btn').disabled = true;
+  document.getElementById('an-loading').classList.add('on');  document.getElementById('an-results').classList.remove('on');  document.getElementById('analyser-form').style.display = 'none';  document.getElementById('an-err').classList.remove('on');  document.getElementById('go-btn').disabled = true;
   setStep(0);
   _anTicker = setInterval(() => {
     _anStep = Math.min(_anStep + 1, AN_STEPS.length - 1);
@@ -734,24 +691,18 @@ function startLoading() {
 }
 function setStep(i) {
   const [lbl, sub, pct] = AN_STEPS[i];
-  document.getElementById('an-loading-label').textContent = lbl;
-  document.getElementById('an-loading-sub').textContent = sub;
-  document.getElementById('an-progress').style.width = pct + '%';
+  document.getElementById('an-loading-label').textContent = lbl;  document.getElementById('an-loading-sub').textContent = sub;  document.getElementById('an-progress').style.width = pct + '%';
 }
 function stopLoading() {
   clearInterval(_anTicker);
-  document.getElementById('an-loading').classList.remove('on');
-  document.getElementById('go-btn').disabled = false;
+  document.getElementById('an-loading').classList.remove('on');  document.getElementById('go-btn').disabled = false;
 }
 function showAnErr(msg) {
-  document.getElementById('an-err-msg').textContent = msg;
-  document.getElementById('an-err').classList.add('on');
-  document.getElementById('analyser-form').style.display = '';
+  document.getElementById('an-err-msg').textContent = msg;  document.getElementById('an-err').classList.add('on');  document.getElementById('analyser-form').style.display = '';
 }
 function hideAnErr() { document.getElementById('an-err').classList.remove('on'); }
 function resetAnalyse() {
-  document.getElementById('an-results').classList.remove('on');
-  document.getElementById('analyser-form').style.display = '';
+  document.getElementById('an-results').classList.remove('on');  document.getElementById('analyser-form').style.display = '';
   _currentAnalysis = null;
   _activeSection = null;
 }
@@ -760,10 +711,7 @@ function resetAnalyse() {
    ANALYSE — JSON PARSER DÉFENSIF
 ════════════════════════════════════════════ */
 function safeParseJSON(raw) {
-  let s = raw.replace(/```json/gi,'').replace(/```/g,'').trim();
-  const start = s.indexOf('{');
-  const end   = s.lastIndexOf('}');
-  if (start === -1 || end === -1) throw new Error('Pas d\'objet JSON dans la réponse');
+  let s = raw.replace(/```json/gi,'').replace(/```/g,'').trim();  const start = s.indexOf('{');  const end   = s.lastIndexOf('}');  if (start === -1 || end === -1) throw new Error('Pas d\'objet JSON dans la réponse');
   return JSON.parse(s.slice(start, end+1));
 }
 
@@ -811,16 +759,13 @@ function getSourcesAndFrames() {
 
 function depthLabel() {
   return {
-    f:'2 phrases max par point, très synthétique',
-    a:'3-4 phrases par point, bien développé',
-    d:'5-6 phrases par point, exhaustif avec données chiffrées'
+    f:'2 phrases max par point, très synthétique',    a:'3-4 phrases par point, bien développé',    d:'5-6 phrases par point, exhaustif avec données chiffrées'
   }[depth];
 }
 
 async function callProxy(messages, maxTokens) {
   const res = await fetch(PROXY_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: 'POST',    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       model: 'claude-sonnet-4-6',
       max_tokens: maxTokens || 4000,
@@ -836,8 +781,7 @@ async function callProxy(messages, maxTokens) {
   if (contentType.includes('text/event-stream')) {
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
-    let text = '';
-    let buffer = '';
+    let text = '';    let buffer = '';
 
     while (true) {
       const { done, value } = await reader.read();
@@ -872,7 +816,17 @@ async function callProxy(messages, maxTokens) {
       } catch(e) {}
     }
 
-    if (!text) throw new Error('Stream vide reçu');
+    if (!text) {
+      // Fallback : essayer de parser le buffer accumulé comme JSON direct
+      try {
+        const s = buffer.indexOf('{'), e = buffer.lastIndexOf('}');
+        if (s !== -1 && e !== -1) {
+          const data = JSON.parse(buffer.slice(s, e+1));
+          if (data.content) return data.content.map(x => x.text || '').join('');
+        }
+      } catch(e) {}
+      throw new Error('Stream SSE vide et pas de JSON fallback');
+    }
     return text;
   }
 
@@ -903,15 +857,13 @@ async function callProxy(messages, maxTokens) {
 }
 
 async function launch() {
-  const t = (document.getElementById('topic-in').value || '').trim();
-  if (!t) { document.getElementById('topic-in').focus(); return; }
+  const t = (document.getElementById('topic-in').value || '').trim();  if (!t) { document.getElementById('topic-in').focus(); return; }
   setCurrentTopic(t);
   startLoading();
 
   const { as, af } = getSourcesAndFrames();
   const dl = depthLabel();
-  const srcStr = as.join(' ; ');
-  const frmStr = af.join(' ; ');
+  const srcStr = as.join(' ; ');  const frmStr = af.join(' ; ');
 
   // Résultat global assemblé progressivement
   const analysis = { topic: t, sections: new Array(8).fill(null), acteurs: [], scenarios: [] };
@@ -1014,8 +966,17 @@ Réponds UNIQUEMENT en JSON valide sans backticks :
       updateLoadingStep('Acteurs & scénarios reçus…', 'Finalisation', 90);
     });
 
-    // Attendre les 3 appels parallèles
-    await Promise.all([p2, p3, p4]);
+    // Attendre les 3 appels parallèles — allSettled : affiche ce qui arrive même si un échoue
+    const results = await Promise.allSettled([p2, p3, p4]);
+    const failed = results.filter(r => r.status === 'rejected');
+    if (failed.length === 3) {
+      // Tous ont échoué
+      throw new Error(failed[0].reason?.message || 'Tous les appels parallèles ont échoué');
+    }
+    if (failed.length > 0) {
+      // Certains ont échoué — afficher un avertissement non bloquant
+      console.warn('[Prisme] ' + failed.length + ' appel(s) parallèle(s) échoué(s):', failed.map(f => f.reason?.message));
+    }
 
     _currentAnalysis = analysis;
     stopLoading();
@@ -1023,15 +984,12 @@ Réponds UNIQUEMENT en JSON valide sans backticks :
 
   } catch(err) {
     stopLoading();
-    showAnErr('Erreur : ' + err.message + ' — Vérifie ta connexion ou réessaie.');
-    console.error('[Prisme] launch error:', err);
+    showAnErr('Erreur : ' + err.message + ' — Vérifie ta connexion ou réessaie.');    console.error('[Prisme] launch error:', err);
   }
 }
 
 function updateLoadingStep(label, sub, pct) {
-  document.getElementById('an-loading-label').textContent = label;
-  document.getElementById('an-loading-sub').textContent = sub;
-  document.getElementById('an-progress').style.width = pct + '%';
+  document.getElementById('an-loading-label').textContent = label;  document.getElementById('an-loading-sub').textContent = sub;  document.getElementById('an-progress').style.width = pct + '%';
 }
 
 /* ════════════════════════════════════════════
@@ -1043,23 +1001,17 @@ function updateLoadingStep(label, sub, pct) {
 
 // Appelé dès que le header arrive
 function renderHeader(d) {
-  document.getElementById('an-headline').textContent = d.headline || d.topic || '';
-  document.getElementById('an-meta').innerHTML =
-    `<span>📅 ${d.date_contexte || ''}</span>` +
+  document.getElementById('an-headline').textContent = d.headline || d.topic || '';  document.getElementById('an-meta').innerHTML =    `<span>📅 ${d.date_contexte || ''}</span>` +
     `<span>🔍 ${Object.values(srcs).filter(Boolean).length} catégories de sources</span>` +
-    `<span>⚙️ ${Object.values(frames).filter(Boolean).length} cadres d'analyse</span>`;
-  if (d.resume) document.getElementById('an-resume').textContent = d.resume;
+    `<span>⚙️ ${Object.values(frames).filter(Boolean).length} cadres d'analyse</span>`;  if (d.resume) document.getElementById('an-resume').textContent = d.resume;
   if (d.image_query) {
-    const heroEl = document.getElementById('an-hero');
-    const heroImg = document.getElementById('an-hero-img');
+    const heroEl = document.getElementById('an-hero');    const heroImg = document.getElementById('an-hero-img');
     heroImg.src = imgUrl(d.image_query, 680, 220);
     heroImg.alt = d.topic;
-    document.getElementById('an-hero-caption').textContent = 'Illustration : ' + d.image_query;
-    heroEl.style.display = '';
+    document.getElementById('an-hero-caption').textContent = 'Illustration : ' + d.image_query;    heroEl.style.display = '';
   }
   // Afficher les résultats dès le premier bloc
-  document.getElementById('an-results').classList.add('on');
-  document.getElementById('an-results').scrollIntoView({behavior:'smooth', block:'start'});
+  document.getElementById('an-results').classList.add('on');  document.getElementById('an-results').scrollIntoView({behavior:'smooth', block:'start'});
 }
 
 // Appelé quand un lot de sections arrive (from=0,to=4 ou from=4,to=8)
@@ -1068,9 +1020,7 @@ function renderSectionsPartial(d, from, to) {
   // Initialiser les 8 placeholders si pas encore fait
   if (secCol.children.length === 0) {
     for (let i = 0; i < 8; i++) {
-      const card = document.createElement('div');
-      card.className = 'section-card loading-card';
-      card.id = 'sec-card-' + i;
+      const card = document.createElement('div');      card.className = 'section-card loading-card';      card.id = 'sec-card-' + i;
       card.innerHTML = `
         <div class="section-card-head">
           <div class="section-num">${i+1}</div>
@@ -1094,8 +1044,7 @@ function renderSectionsPartial(d, from, to) {
         <div class="section-arrow">›</div>
       </div>
       <div class="section-summary" id="sec-summary-${i}" style="display:none">
-        ${sec.resume || ''}
-        ${sec.image_query ? `<img class="section-img" src="${imgUrl(sec.image_query, 400, 120)}" alt="${sec.titre}" loading="lazy" onerror="this.style.display='none'">` : ''}
+        ${sec.resume || ''}        ${sec.image_query ? `<img class="section-img" src="${imgUrl(sec.image_query, 400, 120)}" alt="${sec.titre}" loading="lazy" onerror="this.style.display='none'">` : ''}
       </div>`;
   }
   // Auto-ouvrir section 1 quand elle est prête
@@ -1104,11 +1053,7 @@ function renderSectionsPartial(d, from, to) {
 
 // Appelé quand acteurs + scénarios arrivent
 function renderActeursScenarios(d) {
-  const campColors = {pro:'#27500A',contra:'#7f1d1d',neutre:'#374151',ambigu:'#633806'};
-  const campBg = {pro:'#EAF3DE',contra:'#FEF2F2',neutre:'#F9FAFB',ambigu:'#FAEEDA'};
-  const campLabel = {pro:'Favorable',contra:'Opposé',neutre:'Neutre',ambigu:'Ambigu'};
-  const actEl = document.getElementById('an-acteurs');
-  actEl.innerHTML = '';
+  const campColors = {pro:'#27500A',contra:'#7f1d1d',neutre:'#374151',ambigu:'#633806'};  const campBg = {pro:'#EAF3DE',contra:'#FEF2F2',neutre:'#F9FAFB',ambigu:'#FAEEDA'};  const campLabel = {pro:'Favorable',contra:'Opposé',neutre:'Neutre',ambigu:'Ambigu'};  const actEl = document.getElementById('an-acteurs');  actEl.innerHTML = '';
   (d.acteurs || []).forEach(a => {
     const c = a.camp || 'neutre';
     actEl.innerHTML += `<div class="acteur-card">
@@ -1118,8 +1063,7 @@ function renderActeursScenarios(d) {
       <div class="acteur-interet">${a.interet}</div>
     </div>`;
   });
-  const scEl = document.getElementById('an-scenarios');
-  scEl.innerHTML = '';
+  const scEl = document.getElementById('an-scenarios');  scEl.innerHTML = '';
   (d.scenarios || []).forEach(sc => {
     const p = Math.round(sc.probabilite || 0);
     const col = p >= 60 ? '#27500A' : p >= 35 ? '#633806' : '#7f1d1d';
@@ -1140,8 +1084,7 @@ function renderActeursScenarios(d) {
 // Appelé une fois tous les appels terminés
 function finalizeResults(d) {
   _currentAnalysis = d;
-  // S'assurer que les résultats sont visibles
-  document.getElementById('an-results').classList.add('on');
+  // S'assurer que les résultats sont visibles  document.getElementById('an-results').classList.add('on');
 }
 
 // Compatibilité — garde renderAnalysis pour usage éventuel
@@ -1162,10 +1105,7 @@ function toggleSection(i) {
 
   /* Reset all cards */
   (_currentAnalysis.sections || []).forEach((_,j) => {
-    const card = document.getElementById('sec-card-'+j);
-    const summary = document.getElementById('sec-summary-'+j);
-    if (card) card.classList.remove('active');
-    if (summary) summary.style.display = 'none';
+    const card = document.getElementById('sec-card-'+j);    const summary = document.getElementById('sec-summary-'+j);    if (card) card.classList.remove('active');    if (summary) summary.style.display = 'none';
   });
 
   if (wasActive) {
@@ -1180,10 +1120,7 @@ function toggleSection(i) {
 
   /* Activate */
   _activeSection = i;
-  const card = document.getElementById('sec-card-'+i);
-  const summary = document.getElementById('sec-summary-'+i);
-  if (card) card.classList.add('active');
-  if (summary) summary.style.display = '';
+  const card = document.getElementById('sec-card-'+i);  const summary = document.getElementById('sec-summary-'+i);  if (card) card.classList.add('active');  if (summary) summary.style.display = '';
 
   /* Render detail panel */
   renderDetailPanel(sec, i);
@@ -1204,8 +1141,7 @@ function renderDetailPanel(sec, i) {
   html += `<div class="detail-body">${(sec.detail || sec.resume || '').replace(/\n/g,'<br>')}</div>`;
 
   /* Chart placeholder if needed */
-  if (sec.type_viz && sec.type_viz !== 'none' && sec.viz_data) {
-    html += `<div class="detail-chart-wrap"><canvas id="detail-chart" role="img" aria-label="${sec.viz_label||'Graphique'}"></canvas></div>`;
+  if (sec.type_viz && sec.type_viz !== 'none' && sec.viz_data) {    html += `<div class="detail-chart-wrap"><canvas id="detail-chart" role="img" aria-label="${sec.viz_label||'Graphique'}"></canvas></div>`;
   }
 
   document.getElementById('an-detail').innerHTML = html;
@@ -1226,8 +1162,7 @@ function renderDetailPanel(sec, i) {
           datasets: [{
             label: sec.viz_label || '',
             data: vd.values || [],
-            backgroundColor: sec.type_viz === 'line' ? 'transparent' : colors,
-            borderColor: sec.type_viz === 'line' ? (colors[0]||'#1a1a1a') : colors,
+            backgroundColor: sec.type_viz === 'line' ? 'transparent' : colors,            borderColor: sec.type_viz === 'line' ? (colors[0]||'#1a1a1a') : colors,
             borderWidth: 1.5,
             tension: .3,
             pointRadius: sec.type_viz === 'line' ? 3 : 0
@@ -1235,10 +1170,7 @@ function renderDetailPanel(sec, i) {
         },
         options: {
           responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: false }, title: { display: !!sec.viz_label, text: sec.viz_label||'', font:{size:11} } },
-          scales: sec.type_viz === 'doughnut' ? {} : {
-            x: { grid:{color:'rgba(128,128,128,.08)'}, ticks:{font:{size:9},color:'#888'} },
-            y: { grid:{color:'rgba(128,128,128,.08)'}, ticks:{font:{size:9},color:'#888'} }
+          plugins: { legend: { display: false }, title: { display: !!sec.viz_label, text: sec.viz_label||'', font:{size:11} } },          scales: sec.type_viz === 'doughnut' ? {} : {            x: { grid:{color:'rgba(128,128,128,.08)'}, ticks:{font:{size:9},color:'#888'} },            y: { grid:{color:'rgba(128,128,128,.08)'}, ticks:{font:{size:9},color:'#888'} }
           }
         }
       });
@@ -1264,8 +1196,7 @@ function deepenInChat() {
   sendToClaude(prompt);
 }
 function doSpectre() {
-  if (currentTopic) document.getElementById('spec-in').value = currentTopic;
-  showTab('spectre');
+  if (currentTopic) document.getElementById('spec-in').value = currentTopic;  showTab('spectre');
 }
 function doBiasChat() {
   if (!currentTopic) return;
@@ -1277,22 +1208,18 @@ function doBiasChat() {
    SPECTRE — LOADING & ERROR
 ════════════════════════════════════════════ */
 function showSpecLoading(on) {
-  document.getElementById('spec-loading').classList.toggle('on', on);
-  document.getElementById('spec-btn').disabled = on;
-  if (on) document.getElementById('spec-results').style.display = 'none';
+  document.getElementById('spec-loading').classList.toggle('on', on);  document.getElementById('spec-btn').disabled = on;  if (on) document.getElementById('spec-results').style.display = 'none';
 }
 function hideSpecErr() { document.getElementById('spec-err').classList.remove('on'); }
 function showSpecErr(msg) {
-  document.getElementById('spec-err-msg').textContent = msg;
-  document.getElementById('spec-err').classList.add('on');
+  document.getElementById('spec-err-msg').textContent = msg;  document.getElementById('spec-err').classList.add('on');
 }
 
 /* ════════════════════════════════════════════
    SPECTRE — API CALL
 ════════════════════════════════════════════ */
 function runSpectre() {
-  const t = (document.getElementById('spec-in').value || '').trim();
-  if (!t) { document.getElementById('spec-in').focus(); return; }
+  const t = (document.getElementById('spec-in').value || '').trim();  if (!t) { document.getElementById('spec-in').focus(); return; }
   setCurrentTopic(t);
   hideSpecErr();
   showSpecLoading(true);
@@ -1305,24 +1232,17 @@ function runSpectre() {
 {"topic":"${t}","spectrum":{"gauche_radicale":0,"gauche":0,"centre":0,"droite":0,"droite_radicale":0},"stats":{"sources":0,"consensus":0,"polarisation":"Modérée","tonalite":"neutre"},"camps":{"gauche_radicale":{"angle":"","elements_langage":["","",""],"angle_mort":""},"gauche":{"angle":"","elements_langage":["","",""],"angle_mort":""},"centre":{"angle":"","elements_langage":["","",""],"angle_mort":""},"droite":{"angle":"","elements_langage":["","",""],"angle_mort":""},"droite_radicale":{"angle":"","elements_langage":["","",""],"angle_mort":""}},"jauges":{"dramatisation":0,"euphemisation":0,"consensus_factuel":0,"charge_emotionnelle":0,"donnees_chiffrees":0,"voix_terrain":0},"cadrage":{"gauche_radicale":{"met_en_avant":"","omet":"","recit":""},"gauche":{"met_en_avant":"","omet":"","recit":""},"centre":{"met_en_avant":"","omet":"","recit":""},"droite":{"met_en_avant":"","omet":"","recit":""},"droite_radicale":{"met_en_avant":"","omet":"","recit":""}},"timeline":{"labels":["J-6","J-5","J-4","J-3","J-2","J-1","Auj."],"gauche_radicale":[0,0,0,0,0,0,0],"gauche":[0,0,0,0,0,0,0],"centre":[0,0,0,0,0,0,0],"droite":[0,0,0,0,0,0,0],"droite_radicale":[0,0,0,0,0,0,0]}}
 Remplis avec de vraies valeurs. spectrum doit sommer à 100. Jauges entre 0-100. Timeline entre 0-100.`;
 
-  fetch(PROXY_URL, {
-    method: 'POST',
-    headers: {'Content-Type':'application/json'},
-    body: JSON.stringify({model:'claude-sonnet-4-6',max_tokens:4000,messages:[{role:'user',content:prompt}]})
-  })
-  .then(r => { if (!r.ok) throw new Error('HTTP '+r.status); return r.json(); })
-  .then(data => {
+  callProxy([{role:'user',content:prompt}], 4000)
+  .then(raw => {
     clearInterval(ticker);
     showSpecLoading(false);
-    const raw = (data.content||[]).map(x=>x.text||'').join('');
     const d = safeParseJSON(raw);
     renderSpectre(d);
   })
   .catch(err => {
     clearInterval(ticker);
     showSpecLoading(false);
-    showSpecErr('Erreur : ' + err.message);
-    console.error('[Prisme] runSpectre error:', err);
+    showSpecErr('Erreur : ' + err.message);    console.error('[Prisme] runSpectre error:', err);
   });
 }
 
@@ -1332,34 +1252,24 @@ Remplis avec de vraies valeurs. spectrum doit sommer à 100. Jauges entre 0-100.
 function renderSpectre(d) {
   CAMP_KEYS.forEach((k,i) => {
     const v = Math.round(d.spectrum[k]||0);
-    const el = document.getElementById('s-'+SEG_MAP[i]);
-    if (el) { el.style.width=v+'%'; el.textContent=v>5?v+'%':''; }
+    const el = document.getElementById('s-'+SEG_MAP[i]);    if (el) { el.style.width=v+'%'; el.textContent=v>5?v+'%':''; }
   });
-  document.getElementById('spec-title-label').textContent = d.topic || currentTopic;
-  document.getElementById('st-src').textContent = d.stats.sources||'—';
-  document.getElementById('st-con').textContent = (d.stats.consensus||'—')+'%';
-  document.getElementById('st-pol').textContent = d.stats.polarisation||'—';
-  document.getElementById('st-ton').textContent = d.stats.tonalite||'—';
+  document.getElementById('spec-title-label').textContent = d.topic || currentTopic;  document.getElementById('st-src').textContent = d.stats.sources||'—';  document.getElementById('st-con').textContent = (d.stats.consensus||'—')+'%';  document.getElementById('st-pol').textContent = d.stats.polarisation||'—';  document.getElementById('st-ton').textContent = d.stats.tonalite||'—';
 
-  const cg = document.getElementById('camps-g');
-  cg.innerHTML = '';
+  const cg = document.getElementById('camps-g');  cg.innerHTML = '';
   CAMP_KEYS.forEach(k => {
     const c = d.camps[k]||{};
     const [bg,fg,bd] = CAMP_TBG[k];
     const pct = Math.round(d.spectrum[k]||0);
-    const tags = (c.elements_langage||[]).map(t=>`<span class="tag-m" style="background:${bg};color:${fg};border-color:${bd}">${t}</span>`).join('');
-    cg.innerHTML += `<div class="ccard"><div class="ch"><div class="cdot" style="background:${CAMP_COLS[k]}"></div><div class="cn">${CAMP_NAMES[k]}</div><div class="cpct">${pct}%</div></div><div class="cst">Angle</div><div class="ctxt">${c.angle||''}</div><div class="cst">Langage</div><div>${tags}</div><div class="cst">Angle mort</div><div class="ctxt">${c.angle_mort||''}</div></div>`;
+    const tags = (c.elements_langage||[]).map(t=>`<span class="tag-m" style="background:${bg};color:${fg};border-color:${bd}">${t}</span>`).join('');    cg.innerHTML += `<div class="ccard"><div class="ch"><div class="cdot" style="background:${CAMP_COLS[k]}"></div><div class="cn">${CAMP_NAMES[k]}</div><div class="cpct">${pct}%</div></div><div class="cst">Angle</div><div class="ctxt">${c.angle||''}</div><div class="cst">Langage</div><div>${tags}</div><div class="cst">Angle mort</div><div class="ctxt">${c.angle_mort||''}</div></div>`;
   });
 
-  const gg = document.getElementById('gauge-g');
-  gg.innerHTML = '';
-  [{l:'Dramatisation',k:'dramatisation',c:'#DC2626'},{l:'Euphémisation',k:'euphemisation',c:'#60A5FA'},{l:'Consensus factuel',k:'consensus_factuel',c:'#639922'},{l:'Charge émotionnelle',k:'charge_emotionnelle',c:'#F97316'},{l:'Données chiffrées',k:'donnees_chiffrees',c:'#888780'},{l:'Voix du terrain',k:'voix_terrain',c:'#1D9E75'}].forEach(gi => {
+  const gg = document.getElementById('gauge-g');  gg.innerHTML = '';  [{l:'Dramatisation',k:'dramatisation',c:'#DC2626'},{l:'Euphémisation',k:'euphemisation',c:'#60A5FA'},{l:'Consensus factuel',k:'consensus_factuel',c:'#639922'},{l:'Charge émotionnelle',k:'charge_emotionnelle',c:'#F97316'},{l:'Données chiffrées',k:'donnees_chiffrees',c:'#888780'},{l:'Voix du terrain',k:'voix_terrain',c:'#1D9E75'}].forEach(gi => {
     const v = Math.round(d.jauges[gi.k]||0);
     gg.innerHTML += `<div class="gcard"><div class="gl">${gi.l}</div><div class="gtrack"><div class="gfill" style="width:${v}%;background:${gi.c}"></div></div><div class="gvals"><span>faible</span><span style="font-weight:500">${v}%</span><span>forte</span></div></div>`;
   });
 
-  const tb = document.getElementById('at-body');
-  tb.innerHTML = '';
+  const tb = document.getElementById('at-body');  tb.innerHTML = '';
   CAMP_KEYS.forEach(k => {
     const cd = d.cadrage[k]||{};
     tb.innerHTML += `<tr><td style="color:${CAMP_COLS[k]}">${CAMP_SHORT[k]}</td><td>${cd.met_en_avant||''}</td><td>${cd.omet||''}</td><td>${cd.recit||''}</td></tr>`;
@@ -1367,20 +1277,12 @@ function renderSpectre(d) {
 
   if (_tChart) { _tChart.destroy(); _tChart = null; }
   const tl = d.timeline||{};
-  _tChart = new Chart(document.getElementById('tChart'), {
-    type:'line',
-    data:{labels:tl.labels||['J-6','J-5','J-4','J-3','J-2','J-1','Auj.'],datasets:[
-      {label:'G. rad.',data:tl.gauche_radicale||[],borderColor:'#DC2626',backgroundColor:'transparent',pointRadius:3,borderWidth:1.5,tension:.3},
-      {label:'Gauche', data:tl.gauche||[],borderColor:'#F97316',backgroundColor:'transparent',pointRadius:3,borderWidth:1.5,tension:.3},
-      {label:'Centre', data:tl.centre||[],borderColor:'#9CA3AF',backgroundColor:'transparent',pointRadius:3,borderWidth:1.5,tension:.3,borderDash:[4,3]},
-      {label:'Droite', data:tl.droite||[],borderColor:'#60A5FA',backgroundColor:'transparent',pointRadius:3,borderWidth:1.5,tension:.3},
-      {label:'D. rad.',data:tl.droite_radicale||[],borderColor:'#2563EB',backgroundColor:'transparent',pointRadius:3,borderWidth:1.5,tension:.3,borderDash:[2,2]}
+  _tChart = new Chart(document.getElementById('tChart'), {    type:'line',    data:{labels:tl.labels||['J-6','J-5','J-4','J-3','J-2','J-1','Auj.'],datasets:[      {label:'G. rad.',data:tl.gauche_radicale||[],borderColor:'#DC2626',backgroundColor:'transparent',pointRadius:3,borderWidth:1.5,tension:.3},      {label:'Gauche', data:tl.gauche||[],borderColor:'#F97316',backgroundColor:'transparent',pointRadius:3,borderWidth:1.5,tension:.3},      {label:'Centre', data:tl.centre||[],borderColor:'#9CA3AF',backgroundColor:'transparent',pointRadius:3,borderWidth:1.5,tension:.3,borderDash:[4,3]},      {label:'Droite', data:tl.droite||[],borderColor:'#60A5FA',backgroundColor:'transparent',pointRadius:3,borderWidth:1.5,tension:.3},      {label:'D. rad.',data:tl.droite_radicale||[],borderColor:'#2563EB',backgroundColor:'transparent',pointRadius:3,borderWidth:1.5,tension:.3,borderDash:[2,2]}
     ]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(128,128,128,.1)'},ticks:{font:{size:9},color:'#888',autoSkip:false}},y:{grid:{color:'rgba(128,128,128,.1)'},ticks:{font:{size:9},color:'#888'},min:0,max:100}}}
   });
 
-  document.getElementById('spec-results').style.display = '';
-  document.getElementById('spec-results').scrollIntoView({behavior:'smooth',block:'start'});
+  document.getElementById('spec-results').style.display = '';  document.getElementById('spec-results').scrollIntoView({behavior:'smooth',block:'start'});
 }
 
 /* ════════════════════════════════════════════
@@ -1405,11 +1307,9 @@ function doHistoSpec() {
 /* ════════════════════════════════════════════
    KEYBOARD SHORTCUTS
 ════════════════════════════════════════════ */
-document.getElementById('topic-in').addEventListener('keydown', e => {
-  if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); launch(); }
+document.getElementById('topic-in').addEventListener('keydown', e => {  if (e.key==='Enter' && !e.shiftKey) { e.preventDefault(); launch(); }
 });
-document.getElementById('spec-in').addEventListener('keydown', e => {
-  if (e.key==='Enter') runSpectre();
+document.getElementById('spec-in').addEventListener('keydown', e => {  if (e.key==='Enter') runSpectre();
 });
 </script>
 </body>
