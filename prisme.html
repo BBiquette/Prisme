@@ -138,12 +138,8 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .abtn.pri{background:var(--txt);color:var(--bg);border-color:var(--txt)}
 
 /* ACTEURS */
-.actors-layout{display:grid;grid-template-columns:1fr 180px 1fr;gap:0;margin-bottom:.75rem;align-items:start}
-.actor-col{display:flex;flex-direction:column;gap:8px;padding:0 10px}
-.actor-center-col{display:flex;flex-direction:column;align-items:center;gap:4px}
-.actor-vs{font-size:11px;font-weight:500;color:var(--txt3);letter-spacing:.1em;padding:4px 0}
-.actor-vline{width:1px;background:var(--brd);flex:1;min-height:10px}
-.actor-card{border:0.5px solid var(--brd);border-radius:var(--rl);overflow:hidden;background:var(--bg2);cursor:pointer;transition:border-color .15s;width:100%;max-width:240px}
+.actors-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:.75rem}
+.actor-card{border:0.5px solid var(--brd);border-radius:var(--rl);overflow:hidden;background:var(--bg2);cursor:pointer;transition:border-color .15s;width:100%}
 .actor-card:hover{border-color:var(--brd2)}
 .actor-card.active{border-color:var(--txt)}
 .actor-card.actor-ambigu{border-style:dashed}
@@ -507,7 +503,7 @@ function safeJSON(raw) {
   return JSON.parse(s.slice(a,b+1));
 }
 
-function imgUrl(q,w,h){return `https://source.unsplash.com/${w}x${h}/?${encodeURIComponent((q||'world').toLowerCase())}`;}
+function imgUrl(q,w,h){let seed=0;const s=(q||'world').toLowerCase();for(let i=0;i<s.length;i++)seed=(seed*31+s.charCodeAt(i))&0xffff;return 'https://picsum.photos/seed/'+seed+'/'+w+'/'+h;}
 
 /* LOADING */
 const STEPS=[['Synthèse…','Header et contexte',15],['Sections 1-4…','Faits, sources, certitudes',35],['Sections 5-8…','Biais, histoire, tendances',60],['Acteurs…','Motivations réelles',75],['Scénarios…','Trajectoires plausibles',88],['Finalisation…','Assemblage',95]];
@@ -593,66 +589,75 @@ function renderHeader(d) {
 
 /* RENDER ACTEURS */
 function renderActeurs(d) {
-  _lastActeurs=d.acteurs||[];
-  const acteurs=_lastActeurs;
-  const pros=acteurs.map((a,i)=>({a,i})).filter(({a})=>a.camp==='pro'||a.camp==='ambigu');
-  const contras=acteurs.map((a,i)=>({a,i})).filter(({a})=>a.camp==='contra');
-  const neutres=acteurs.map((a,i)=>({a,i})).filter(({a})=>a.camp!=='pro'&&a.camp!=='contra'&&a.camp!=='ambigu');
+  _lastActeurs = d.acteurs || [];
+  const acteurs = _lastActeurs;
 
-  function makeCard(a,i){
-    const c=a.camp||'neutre';
-    const [bg,fg,lbl]=BADGE[c]||BADGE.neutre;
-    const card=document.createElement('div');
-    card.className='actor-card'+(c==='ambigu'?' actor-ambigu':'');
-    card.onclick=()=>openActeur(i);
+  // Séparer par camp — les neutres/ambigus vont au centre
+  const leftActors  = acteurs.filter(a => a.camp === 'pro');
+  const centerActors = acteurs.filter(a => a.camp === 'neutre' || a.camp === 'ambigu');
+  const rightActors = acteurs.filter(a => a.camp === 'contra');
 
-    const wrap=document.createElement('div');
-    wrap.className='actor-imgwrap';
+  // Nombre de lignes = max des 3 colonnes
+  const nRows = Math.max(leftActors.length, centerActors.length, rightActors.length, 1);
 
-    // Initiale en fond (toujours visible)
-    const init=document.createElement('div');
-    init.className='actor-init';
-    init.textContent=a.nom.slice(0,2).toUpperCase();
+  function makeCard(a, i) {
+    const c = a.camp || 'neutre';
+    const [bg, fg, lbl] = BADGE[c] || BADGE.neutre;
+    const card = document.createElement('div');
+    card.className = 'actor-card' + (c === 'ambigu' ? ' actor-ambigu' : '');
+    card.onclick = () => openActeur(i);
+
+    const wrap = document.createElement('div');
+    wrap.className = 'actor-imgwrap';
+    const init = document.createElement('div');
+    init.className = 'actor-init';
+    init.textContent = a.nom.slice(0, 2).toUpperCase();
     wrap.appendChild(init);
-
-    // Image par-dessus (se charge en eager)
-    const q=encodeURIComponent((a.image_query||a.nom||'politics').toLowerCase().replace(/[()]/g,''));
-    const img=document.createElement('img');
-    img.src=`https://source.unsplash.com/260x80/?${q}`;
-    img.alt=a.nom;
-    img.setAttribute('loading','eager');
-    img.onerror=function(){this.style.display='none';};
+    const img = document.createElement('img');
+    img.src = imgUrl(a.image_query || a.nom, 260, 80);
+    img.alt = a.nom;
+    img.setAttribute('loading', 'eager');
+    img.onerror = function() { this.style.display = 'none'; };
     wrap.appendChild(img);
     card.appendChild(wrap);
 
-    const body=document.createElement('div');
-    body.className='actor-body';
-    body.innerHTML=`<span class="actor-badge" style="background:${bg};color:${fg}">${lbl}</span><div class="actor-name">${a.nom}</div><div class="actor-role">${a.role}</div><div class="actor-interet">${a.interet}</div>`;
+    const body = document.createElement('div');
+    body.className = 'actor-body';
+    body.innerHTML =
+      `<span class="actor-badge" style="background:${bg};color:${fg}">${lbl}</span>` +
+      `<div class="actor-name">${a.nom}</div>` +
+      `<div class="actor-role">${a.role}</div>` +
+      `<div class="actor-interet">${a.interet}</div>`;
     card.appendChild(body);
     return card;
   }
 
-  const el=document.getElementById('an-acteurs');
-  el.innerHTML='';
-  const layout=document.createElement('div');
-  layout.className='actors-layout';
+  const el = document.getElementById('an-acteurs');
+  el.innerHTML = '';
+  const grid = document.createElement('div');
+  grid.className = 'actors-grid';
 
-  const left=document.createElement('div');left.className='actor-col';
-  pros.forEach(({a,i})=>left.appendChild(makeCard(a,i)));
+  // Remplir ligne par ligne
+  for (let row = 0; row < nRows; row++) {
+    // Colonne gauche (pro)
+    const leftCell = document.createElement('div');
+    if (leftActors[row]) leftCell.appendChild(makeCard(leftActors[row], acteurs.indexOf(leftActors[row])));
+    grid.appendChild(leftCell);
 
-  const center=document.createElement('div');center.className='actor-center-col';
-  const vl1=document.createElement('div');vl1.className='actor-vline';
-  const vs=document.createElement('div');vs.className='actor-vs';vs.textContent='VS';
-  const vl2=document.createElement('div');vl2.className='actor-vline';
-  center.appendChild(vl1);center.appendChild(vs);center.appendChild(vl2);
-  neutres.forEach(({a,i})=>{center.appendChild(makeCard(a,i));const vl=document.createElement('div');vl.className='actor-vline';center.appendChild(vl);});
+    // Colonne centre (neutre/ambigu)
+    const centerCell = document.createElement('div');
+    if (centerActors[row]) centerCell.appendChild(makeCard(centerActors[row], acteurs.indexOf(centerActors[row])));
+    grid.appendChild(centerCell);
 
-  const right=document.createElement('div');right.className='actor-col';
-  contras.forEach(({a,i})=>right.appendChild(makeCard(a,i)));
+    // Colonne droite (contra)
+    const rightCell = document.createElement('div');
+    if (rightActors[row]) rightCell.appendChild(makeCard(rightActors[row], acteurs.indexOf(rightActors[row])));
+    grid.appendChild(rightCell);
+  }
 
-  layout.appendChild(left);layout.appendChild(center);layout.appendChild(right);
-  el.appendChild(layout);
+  el.appendChild(grid);
 }
+
 
 function openActeur(idx) {
   const a=_lastActeurs[idx]; if(!a) return;
@@ -663,7 +668,7 @@ function openActeur(idx) {
     `<div class="detail-title">${a.nom}</div>`,
     `<div style="position:relative;width:100%;height:140px;background:var(--bg3);border-radius:var(--r);margin-bottom:.5rem;overflow:hidden">`,
     `<div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:40px;font-weight:500;color:var(--txt3)">${a.nom.slice(0,2).toUpperCase()}</div>`,
-    `<img src="https://source.unsplash.com/340x140/?${q}" loading="eager" style="width:100%;height:140px;object-fit:cover;position:absolute;top:0;left:0;display:block" onerror="this.style.display='none'">`,
+    `<img src="${imgUrl(a.image_query||a.nom,340,140)}" loading="eager" style="width:100%;height:140px;object-fit:cover;position:absolute;top:0;left:0;display:block" onerror="this.style.display='none'">`,
     `</div>`,
     `<div class="detail-caption">Illustration : ${a.image_query||a.nom}</div>`,
     `<div style="margin-bottom:.6rem"><span class="actor-badge" style="background:${bg};color:${fg};padding:3px 10px;border-radius:999px;font-size:11px;font-weight:500">${lbl}</span><span style="font-size:12px;color:var(--txt2);margin-left:8px">${a.role}</span></div>`,
