@@ -28,11 +28,12 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .tbtn.pri{background:var(--txt);color:var(--bg)}
 
 /* WORKBENCH */
-.workbench{display:flex;height:calc(100vh - 44px);overflow:hidden;position:relative}
+.workbench{display:flex;height:calc(100vh - 44px);width:100vw;overflow:hidden;position:relative}
 
 /* PANNEAU */
 .pane{display:flex;flex-direction:column;overflow:hidden;min-width:0;position:relative;transition:flex-basis .2s}
-.pane.hidden{flex:0 0 0!important;overflow:hidden}
+.pane.hidden{flex:0 0 0!important;overflow:hidden;min-width:0}
+.pane:not(.hidden){min-width:200px}
 .pane-header{height:36px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;border-bottom:0.5px solid var(--brd);flex-shrink:0;background:var(--bg2)}
 .pane-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--txt3)}
 .pane-actions{display:flex;gap:4px;align-items:center}
@@ -50,10 +51,10 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .divider:hover::after,.divider.dragging::after{opacity:1}
 
 /* PANNEAU MASQUÉ — tab vertical */
-.pane-tab{writing-mode:vertical-rl;text-orientation:mixed;padding:12px 8px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--txt3);cursor:pointer;border-right:0.5px solid var(--brd);background:var(--bg2);display:none;align-items:center;gap:8px;transition:all .15s;white-space:nowrap}
+.pane-tab{writing-mode:vertical-rl;text-orientation:mixed;padding:12px 8px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--txt3);cursor:pointer;border-right:0.5px solid var(--brd);background:var(--bg2);display:none;align-items:center;gap:8px;transition:all .15s;white-space:nowrap;flex-shrink:0}
 .pane-tab:hover{color:var(--txt);background:var(--bg3)}
 .pane.hidden .pane-tab{display:flex}
-.pane.hidden .pane-header,.pane.hidden .pane-body,.pane.hidden .divider-after{display:none}
+.pane.hidden .pane-header,.pane.hidden .pane-body{display:none}
 
 /* ── COMPOSANTS COMMUNS ── */
 .slabel{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--txt3);margin-bottom:.6rem;margin-top:1.25rem}
@@ -84,7 +85,8 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .stc-v{font-size:16px;font-weight:500}
 .stc-s{font-size:9px;color:var(--txt3);margin-top:1px}
 .camps-g{display:flex;flex-direction:column;gap:6px;margin-bottom:.75rem}
-.ccard{border:0.5px solid var(--brd);border-radius:var(--r);padding:8px 10px;background:var(--bg2)}
+.ccard{border:0.5px solid var(--brd);border-radius:var(--r);padding:8px 10px;background:var(--bg2);transition:border-color .15s}
+.ccard:hover{border-color:var(--brd2)}
 .ch{display:flex;align-items:center;gap:6px;margin-bottom:6px}
 .cdot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
 .cn{font-size:11px;font-weight:500}
@@ -300,8 +302,14 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
         </div>
         <div class="slabel">Par camp</div>
         <div class="camps-g" id="camps-g"></div>
-        <div class="slabel">Jauges</div>
-        <div class="gauge-g" id="gauge-g"></div>
+        <div class="slabel">Consensus factuel</div>
+        <div id="spec-consensus" style="margin-bottom:.75rem"></div>
+        <div class="slabel">Points de divergence</div>
+        <div id="spec-divergence" style="margin-bottom:.75rem"></div>
+        <div class="slabel">Angles morts communs</div>
+        <div id="spec-angles" style="margin-bottom:.75rem"></div>
+        <div class="slabel">Sources par camp</div>
+        <div id="spec-sources-camps" style="margin-bottom:.75rem"></div>
         <div class="slabel">Cadrage comparé</div>
         <table class="at"><thead><tr><th>Camp</th><th>Met en avant</th><th>Omet</th><th>Récit</th></tr></thead><tbody id="at-body"></tbody></table>
         <div class="slabel">Couverture 7 jours</div>
@@ -479,50 +487,34 @@ let frames = {ge:1,ep:1,so:1,de:1,jx:1,sy:1,hi:1,me:1};
 let _tChart = null, _detailChart = null;
 let _currentAnalysis = null, _activeSection = null;
 let _scCurrentIdx = -1;
+let _lastActeurs = [];
 
 const SL = {
-  ag:'agences de presse (AFP, Reuters, AP, Bloomberg, Xinhua, TASS)',
-  pr:'presse internationale (Le Monde, FT, NYT, Al Jazeera, El País, Guardian, Economist)',
-  in:'institutions (ONU, OCDE, FMI, BCE, Eurostat, Banque Mondiale)',
-  tk:'think tanks (IFRI, Carnegie, CSIS, Brookings, RAND, ECFR, Chatham House, ICG, SIPRI)',
-  ac:'chercheurs et articles académiques (Google Scholar, JSTOR, SSRN, Cairn)',
-  pa:'sources idéologiquement situées (Jacobin, Monde Diplo, National Review, Valeurs Actuelles)',
-  lo:'médias locaux et presse terrain en langues locales',
-  da:'données longues (Our World in Data, WB Data, SIPRI, Gapminder, V-Dem)'
+  ag:'agences de presse (AFP, Reuters, AP, Bloomberg, Xinhua, TASS)',  pr:'presse internationale (Le Monde, FT, NYT, Al Jazeera, El País, Guardian, Economist)',  in:'institutions (ONU, OCDE, FMI, BCE, Eurostat, Banque Mondiale)',  tk:'think tanks (IFRI, Carnegie, CSIS, Brookings, RAND, ECFR, Chatham House, ICG, SIPRI)',  ac:'chercheurs et articles académiques (Google Scholar, JSTOR, SSRN, Cairn)',  pa:'sources idéologiquement situées (Jacobin, Monde Diplo, National Review, Valeurs Actuelles)',  lo:'médias locaux et presse terrain en langues locales',  da:'données longues (Our World in Data, WB Data, SIPRI, Gapminder, V-Dem)'
 };
 const FL = {
-  ge:'géopolitique réaliste',ep:'économie politique',so:'sociologie',de:'démographie',
-  jx:'théorie des jeux',sy:'théorie des systèmes',hi:'histoire longue',me:'analyse médiatique'
+  ge:'géopolitique réaliste',ep:'économie politique',so:'sociologie',de:'démographie',  jx:'théorie des jeux',sy:'théorie des systèmes',hi:'histoire longue',me:'analyse médiatique'
 };
-const CAMP_COLS  = {gauche_radicale:'#DC2626',gauche:'#F97316',centre:'#9CA3AF',droite:'#60A5FA',droite_radicale:'#2563EB'};
-const CAMP_NAMES = {gauche_radicale:'Gauche radicale',gauche:'Gauche',centre:'Centre',droite:'Droite',droite_radicale:'Droite radicale'};
-const CAMP_SHORT = {gauche_radicale:'G. rad.',gauche:'Gauche',centre:'Centre',droite:'Droite',droite_radicale:'D. rad.'};
+const CAMP_COLS  = {gauche_radicale:'#DC2626',gauche:'#F97316',centre:'#9CA3AF',droite:'#60A5FA',droite_radicale:'#2563EB'};const CAMP_NAMES = {gauche_radicale:'Gauche radicale',gauche:'Gauche',centre:'Centre',droite:'Droite',droite_radicale:'Droite radicale'};const CAMP_SHORT = {gauche_radicale:'G. rad.',gauche:'Gauche',centre:'Centre',droite:'Droite',droite_radicale:'D. rad.'};
 const CAMP_TBG   = {
-  gauche_radicale:['#3a1010','#f87171','#7f1d1d'],
-  gauche:         ['#3a1f0a','#fb923c','#7c2d12'],
-  centre:         ['#2a2a2a','#9ca3af','#374151'],
-  droite:         ['#0a1a2e','#93c5fd','#1e3a5f'],
-  droite_radicale:['#0a1230','#60a5fa','#1e3a8a']
+  gauche_radicale:['#3a1010','#f87171','#7f1d1d'],  gauche:         ['#3a1f0a','#fb923c','#7c2d12'],  centre:         ['#2a2a2a','#9ca3af','#374151'],  droite:         ['#0a1a2e','#93c5fd','#1e3a5f'],  droite_radicale:['#0a1230','#60a5fa','#1e3a8a']
 };
-const SEG_MAP = ['gg','g','c','d','dd'];
-const CAMP_KEYS = ['gauche_radicale','gauche','centre','droite','droite_radicale'];
-const SECTION_TITLES = ['Faits établis','Sources & récits','Certitudes & incertitudes','Intérêts des acteurs','Biais & angles morts','Contexte historique','Tendances systémiques','Trajectoires plausibles'];
+const SEG_MAP = ['gg','g','c','d','dd'];const CAMP_KEYS = ['gauche_radicale','gauche','centre','droite','droite_radicale'];const SECTION_TITLES = ['Faits établis','Sources & récits','Certitudes & incertitudes','Intérêts des acteurs','Biais & angles morts','Contexte historique','Tendances systémiques','Trajectoires plausibles'];
 
 /* ════════════════════════════════════════════
    PANNEAU TOGGLE + RESIZE
 ════════════════════════════════════════════ */
 function togglePane(side) {
-  const id = side === 'left' ? 'pane-left' : 'pane-right';
+  const id = side === 'left' ? 'pane-left' : 'pane-right';  const divId = side === 'left' ? 'div-lc' : 'div-cr';
   const el = document.getElementById(id);
-  const btn = document.getElementById('btn-' + side);
+  const div = document.getElementById(divId);
   const isHidden = el.classList.contains('hidden');
   if (isHidden) {
-    el.classList.remove('hidden');
-    el.style.flex = side === 'left' ? '0 0 320px' : '0 0 340px';
+    el.classList.remove('hidden');    el.style.flex = side === 'left' ? '0 0 320px' : '0 0 340px';    if (div) div.style.display = '';
   } else {
-    el.classList.add('hidden');
-    el.style.flex = '0 0 0';
+    el.classList.add('hidden');    el.style.flex = '0 0 0';    if (div) div.style.display = 'none';
   }
+  // Le panneau centre prend tout l'espace restant automatiquement (flex:1)
 }
 
 /* Resize par drag */
@@ -545,12 +537,9 @@ document.querySelectorAll('.divider').forEach(div => {
       rightPane.style.flex = `0 0 ${newRight}px`;
     };
     const onUp = () => {
-      div.classList.remove('dragging');
-      document.removeEventListener('mousemove', onMove);
-      document.removeEventListener('mouseup', onUp);
+      div.classList.remove('dragging');      document.removeEventListener('mousemove', onMove);      document.removeEventListener('mouseup', onUp);
     };
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onUp);
+    document.addEventListener('mousemove', onMove);    document.addEventListener('mouseup', onUp);
     e.preventDefault();
   });
 });
@@ -560,9 +549,7 @@ document.querySelectorAll('.divider').forEach(div => {
 ════════════════════════════════════════════ */
 function setMode(m) {
   mode = m;
-  ['s','v'].forEach(x => document.getElementById('m-'+x).classList.toggle('on', x===m));
-  document.getElementById('zone-s').style.display = m==='s' ? '' : 'none';
-  document.getElementById('zone-v').style.display = m==='v' ? '' : 'none';
+  ['s','v'].forEach(x => document.getElementById('m-'+x).classList.toggle('on', x===m));  document.getElementById('zone-s').style.display = m==='s' ? '' : 'none';  document.getElementById('zone-v').style.display = m==='v' ? '' : 'none';
 }
 function setD(d) {
   depth = d;
@@ -583,34 +570,26 @@ function updateCounters() {
   const fc = Object.values(frames).filter(Boolean).length;
   document.getElementById('src-counter').innerHTML = '<span>'+sc+'</span>/8 sources · <span id="frame-count">'+fc+'</span>/8 cadres';
 }
-function setT(t) { setMode('s'); document.getElementById('topic-in').value = t; }
-function specT(t) { document.getElementById('spec-in').value = t; }
+function setT(t) { setMode('s'); document.getElementById('topic-in').value = t; }function specT(t) { document.getElementById('spec-in').value = t; }
 function setCurrentTopic(t) {
   currentTopic = t;
-  document.getElementById('mast-topic').textContent = t;
-  document.getElementById('spec-in').value = t;
+  document.getElementById('mast-topic').textContent = t;  document.getElementById('spec-in').value = t;
 }
 function hideAnErr() { document.getElementById('an-err').classList.remove('on'); }
 function resetAnalyse() {
-  document.getElementById('an-results').style.display = 'none';
-  document.getElementById('analyser-form').style.display = '';
+  document.getElementById('an-results').style.display = 'none';  document.getElementById('analyser-form').style.display = '';
   _currentAnalysis = null; _activeSection = null;
 }
-function showSources() { alert('Onglet Sources — disponible dans la version Claude.'); }
-function showGrille()  { alert('Onglet Grille — disponible dans la version Claude.'); }
+function showSources() { alert('Onglet Sources — disponible dans la version Claude.'); }function showGrille()  { alert('Onglet Grille — disponible dans la version Claude.'); }
 
 /* ════════════════════════════════════════════
    API CALL (SSE streaming)
 ════════════════════════════════════════════ */
 async function callProxy(messages, maxTokens) {
   const res = await fetch(PROXY_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens: maxTokens||4000, system: SYSTEM, messages })
+    method: 'POST',    headers: { 'Content-Type': 'application/json' },    body: JSON.stringify({ model:'claude-sonnet-4-6', max_tokens: maxTokens||4000, system: SYSTEM, messages })
   });
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  const contentType = res.headers.get('content-type') || '';
-  if (contentType.includes('text/event-stream')) {
+  if (!res.ok) throw new Error('HTTP ' + res.status);  const contentType = res.headers.get('content-type') || '';  if (contentType.includes('text/event-stream')) {
     const reader = res.body.getReader();
     const decoder = new TextDecoder();
     let text = '', buffer = '';
@@ -656,9 +635,7 @@ async function callProxy(messages, maxTokens) {
 }
 
 function safeParseJSON(raw) {
-  let s = raw.replace(/```json/gi,'').replace(/```/g,'').trim();
-  const start = s.indexOf('{'), end = s.lastIndexOf('}');
-  if (start === -1 || end === -1) throw new Error('Pas de JSON dans la réponse');
+  let s = raw.replace(/```json/gi,'').replace(/```/g,'').trim();  const start = s.indexOf('{'), end = s.lastIndexOf('}');  if (start === -1 || end === -1) throw new Error('Pas de JSON dans la réponse');
   return JSON.parse(s.slice(start, end+1));
 }
 
@@ -668,55 +645,39 @@ function imgUrl(q, w, h) { return `https://source.unsplash.com/${w}x${h}/?${enco
    DETAIL PANEL (panneau droit)
 ════════════════════════════════════════════ */
 function showDetail(html) {
-  document.getElementById('detail-empty').style.display = 'none';
-  const dc = document.getElementById('detail-content');
-  dc.style.display = '';
+  document.getElementById('detail-empty').style.display = 'none';  const dc = document.getElementById('detail-content');  dc.style.display = '';
   dc.innerHTML = html;
   if (document.getElementById('pane-right').classList.contains('hidden')) togglePane('right');
   if (_detailChart) { _detailChart.destroy(); _detailChart = null; }
 }
 function clearDetail() {
-  document.getElementById('detail-empty').style.display = '';
-  document.getElementById('detail-content').style.display = 'none';
+  document.getElementById('detail-empty').style.display = '';  document.getElementById('detail-content').style.display = 'none';
 }
 
 /* ════════════════════════════════════════════
    ANALYSE — LOADING
 ════════════════════════════════════════════ */
 const AN_STEPS = [
-  ['Synthèse générale…','Headline, résumé, contexte', 15],
-  ['Sections 1–4…','Faits, sources, certitudes, acteurs', 35],
-  ['Sections 5–8…','Biais, histoire, tendances, scénarios', 60],
-  ['Acteurs & scénarios…','Motivations, trajectoires', 80],
-  ['Finalisation…','Assemblage du tableau de bord', 95]
+  ['Synthèse générale…','Headline, résumé, contexte', 15],  ['Sections 1–4…','Faits, sources, certitudes, acteurs', 35],  ['Sections 5–8…','Biais, histoire, tendances, scénarios', 60],  ['Acteurs & scénarios…','Motivations, trajectoires', 80],  ['Finalisation…','Assemblage du tableau de bord', 95]
 ];
 let _anTicker = null, _anStep = 0;
 
 function startLoading() {
   _anStep = 0;
-  document.getElementById('an-loading').classList.add('on');
-  document.getElementById('an-results').style.display = 'none';
-  document.getElementById('analyser-form').style.display = 'none';
-  document.getElementById('an-err').classList.remove('on');
-  document.getElementById('go-btn').disabled = true;
+  document.getElementById('an-loading').classList.add('on');  document.getElementById('an-results').style.display = 'none';  document.getElementById('analyser-form').style.display = 'none';  document.getElementById('an-err').classList.remove('on');  document.getElementById('go-btn').disabled = true;
   setAnStep(0);
   _anTicker = setInterval(() => { _anStep = Math.min(_anStep+1, AN_STEPS.length-1); setAnStep(_anStep); }, 3000);
 }
 function setAnStep(i) {
   const [lbl, sub, pct] = AN_STEPS[i];
-  document.getElementById('an-loading-label').textContent = lbl;
-  document.getElementById('an-loading-sub').textContent = sub;
-  document.getElementById('an-progress').style.width = pct + '%';
+  document.getElementById('an-loading-label').textContent = lbl;  document.getElementById('an-loading-sub').textContent = sub;  document.getElementById('an-progress').style.width = pct + '%';
 }
 function stopLoading() {
   clearInterval(_anTicker);
-  document.getElementById('an-loading').classList.remove('on');
-  document.getElementById('go-btn').disabled = false;
+  document.getElementById('an-loading').classList.remove('on');  document.getElementById('go-btn').disabled = false;
 }
 function showAnErr(msg) {
-  document.getElementById('an-err-msg').textContent = msg;
-  document.getElementById('an-err').classList.add('on');
-  document.getElementById('analyser-form').style.display = '';
+  document.getElementById('an-err-msg').textContent = msg;  document.getElementById('an-err').classList.add('on');  document.getElementById('analyser-form').style.display = '';
 }
 
 /* ════════════════════════════════════════════
@@ -733,14 +694,12 @@ function getCtx() {
 }
 
 async function launch() {
-  const t = (document.getElementById('topic-in').value||'').trim();
-  if (!t) { document.getElementById('topic-in').focus(); return; }
+  const t = (document.getElementById('topic-in').value||'').trim();  if (!t) { document.getElementById('topic-in').focus(); return; }
   setCurrentTopic(t);
   startLoading();
   const {as,af} = getCtx();
   const dl = depthLabel();
-  const srcStr = as.join(' ; ');
-  const frmStr = af.join(' ; ');
+  const srcStr = as.join(' ; ');  const frmStr = af.join(' ; ');
   const analysis = { topic:t, sections:new Array(8).fill(null), acteurs:[], scenarios:[] };
 
   try {
@@ -780,8 +739,7 @@ async function launch() {
     });
 
     const results = await Promise.allSettled([p2, p3, p4]);
-    const failed = results.filter(r => r.status === 'rejected');
-    if (failed.length === 3) throw new Error(failed[0].reason?.message||'Tous les appels ont échoué');
+    const failed = results.filter(r => r.status === 'rejected');    if (failed.length === 3) throw new Error(failed[0].reason?.message||'Tous les appels ont échoué');
 
     _currentAnalysis = analysis;
     stopLoading();
@@ -792,8 +750,7 @@ async function launch() {
 
   } catch(err) {
     stopLoading();
-    showAnErr('Erreur : ' + err.message);
-    console.error('[Prisme]', err);
+    showAnErr('Erreur : ' + err.message);    console.error('[Prisme]', err);
   }
 }
 
@@ -801,17 +758,12 @@ async function launch() {
    RENDER — HEADER
 ════════════════════════════════════════════ */
 function renderHeader(d) {
-  document.getElementById('an-headline').textContent = d.headline||d.topic||'';
-  document.getElementById('an-meta').innerHTML =
-    `<span>📅 ${d.date_contexte||''}</span>` +
+  document.getElementById('an-headline').textContent = d.headline||d.topic||'';  document.getElementById('an-meta').innerHTML =    `<span>📅 ${d.date_contexte||''}</span>` +
     `<span>· ${Object.values(srcs).filter(Boolean).length} sources</span>` +
     `<span>· ${Object.values(frames).filter(Boolean).length} cadres</span>`;
   document.getElementById('an-resume').textContent = d.resume||'';
   if (d.image_query) {
-    const hw = document.getElementById('an-hero');
-    document.getElementById('an-hero-img').src = imgUrl(d.image_query,680,180);
-    document.getElementById('an-hero-caption').textContent = 'Illustration : ' + d.image_query;
-    hw.style.display = '';
+    const hw = document.getElementById('an-hero');    document.getElementById('an-hero-img').src = imgUrl(d.image_query,680,180);    document.getElementById('an-hero-caption').textContent = 'Illustration : ' + d.image_query;    hw.style.display = '';
   }
   document.getElementById('an-results').style.display = '';
 }
@@ -823,9 +775,7 @@ function renderSectionsPartial(d, from, to) {
   const secCol = document.getElementById('an-sections');
   if (secCol.children.length === 0) {
     for (let i=0; i<8; i++) {
-      const card = document.createElement('div');
-      card.className = 'section-card';
-      card.id = 'sec-card-'+i;
+      const card = document.createElement('div');      card.className = 'section-card';      card.id = 'sec-card-'+i;
       card.innerHTML = `<div class="section-card-head"><div class="section-num">${i+1}</div><div class="section-title" style="color:var(--txt3)">${SECTION_TITLES[i]}</div><div class="section-arrow">›</div></div>`;
       secCol.appendChild(card);
     }
@@ -840,8 +790,7 @@ function renderSectionsPartial(d, from, to) {
       <div class="section-arrow">›</div>
     </div>
     <div class="section-summary" id="sec-sum-${i}" style="display:none">
-      ${sec.resume||''}
-      ${sec.image_query ? `<img class="section-img" src="${imgUrl(sec.image_query,360,80)}" loading="lazy" onerror="this.style.display='none'">` : ''}
+      ${sec.resume||''}      ${sec.image_query ? `<img class="section-img" src="${imgUrl(sec.image_query,360,80)}" loading="lazy" onerror="this.style.display='none'">` : ''}
     </div>`;
   }
   if (from===0 && d.sections[0]) setTimeout(()=>toggleSection(0), 300);
@@ -852,17 +801,11 @@ function toggleSection(i) {
   const sec = _currentAnalysis.sections[i];
   const wasActive = _activeSection === i;
   _currentAnalysis.sections.forEach((_,j) => {
-    const c = document.getElementById('sec-card-'+j);
-    const s = document.getElementById('sec-sum-'+j);
-    if (c) c.classList.remove('active');
-    if (s) s.style.display = 'none';
+    const c = document.getElementById('sec-card-'+j);    const s = document.getElementById('sec-sum-'+j);    if (c) c.classList.remove('active');    if (s) s.style.display = 'none';
   });
   if (wasActive) { _activeSection = null; clearDetail(); return; }
   _activeSection = i;
-  const card = document.getElementById('sec-card-'+i);
-  const sum = document.getElementById('sec-sum-'+i);
-  if (card) card.classList.add('active');
-  if (sum) sum.style.display = '';
+  const card = document.getElementById('sec-card-'+i);  const sum = document.getElementById('sec-sum-'+i);  if (card) card.classList.add('active');  if (sum) sum.style.display = '';
   renderDetailSection(sec, i);
 }
 
@@ -872,9 +815,7 @@ function renderDetailSection(sec, i) {
     html += `<img class="detail-img" src="${imgUrl(sec.image_query,340,140)}" loading="lazy" onerror="this.style.display='none'">`;
     html += `<div class="detail-caption">Illustration : ${sec.image_query}</div>`;
   }
-  html += `<div class="detail-body">${(sec.detail||sec.resume||'').replace(/\n/g,'<br>')}</div>`;
-  if (sec.type_viz && sec.type_viz!=='none' && sec.viz_data) {
-    html += `<div class="detail-chart-wrap"><canvas id="detail-chart" role="img" aria-label="${sec.viz_label||'Graphique'}"></canvas></div>`;
+  html += `<div class="detail-body">${(sec.detail||sec.resume||'').replace(/\n/g,'<br>')}</div>`;  if (sec.type_viz && sec.type_viz!=='none' && sec.viz_data) {    html += `<div class="detail-chart-wrap"><canvas id="detail-chart" role="img" aria-label="${sec.viz_label||'Graphique'}"></canvas></div>`;
   }
   showDetail(html);
   if (sec.type_viz && sec.type_viz!=='none' && sec.viz_data) {
@@ -899,58 +840,55 @@ function renderDetailSection(sec, i) {
    RENDER — ACTEURS
 ════════════════════════════════════════════ */
 const BADGE = {
-  pro:  ['#EAF3DE','#27500A','✓ Favorable'],
-  contra:['#FEF2F2','#7f1d1d','✕ Opposé'],
-  neutre:['var(--bg3)','var(--txt2)','− Neutre'],
-  ambigu:['#FAEEDA','#633806','? Ambigu']
+  pro:  ['#EAF3DE','#27500A','✓ Favorable'],  contra:['#FEF2F2','#7f1d1d','✕ Opposé'],  neutre:['var(--bg3)','var(--txt2)','− Neutre'],  ambigu:['#FAEEDA','#633806','? Ambigu']
 };
-function acteurCard(a, compact=false) {
-  const c = a.camp||'neutre';
-  const [bg,fg,lbl] = BADGE[c]||BADGE.neutre;
-  const iq = a.image_query ? encodeURIComponent(a.image_query) : encodeURIComponent(a.nom);
-  return `<div class="actor-card ${c==='ambigu'?'actor-card ambigu':''}" onclick="openActeur(this, '${encodeURIComponent(JSON.stringify(a))}')">
-    <img class="actor-img" src="${imgUrl(a.image_query||a.nom, 260, 70)}" alt="${a.nom}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-    <div class="actor-init" style="display:none">${a.nom.slice(0,2).toUpperCase()}</div>
-    <div class="actor-body">
-      <span class="actor-badge" style="background:${bg};color:${fg}">${lbl}</span>
-      <div class="actor-name">${a.nom}</div>
-      <div class="actor-role">${a.role}</div>
-      <div class="actor-interet">${a.interet}</div>
-    </div>
-  </div>`;
+function acteurCard(a, idx) {
+  const c = a.camp || 'neutre';
+  const [bg, fg, lbl] = BADGE[c] || BADGE.neutre;
+  const src = imgUrl(a.image_query || a.nom, 260, 70);
+  const initials = a.nom.slice(0, 2).toUpperCase();
+  const ambigu = c === 'ambigu' ? ' actor-ambigu' : '';
+  return [
+    `<div class="actor-card${ambigu}" onclick="openActeur(${idx})">`,
+    `<img class="actor-img" src="${src}" alt="${a.nom}" onerror="this.style.display=&quot;none&quot;;this.nextElementSibling.style.display=&quot;flex&quot;">`,
+    `<div class="actor-init" style="display:none">${initials}</div>`,
+    `<div class="actor-body">`,
+    `<span class="actor-badge" style="background:${bg};color:${fg}">${lbl}</span>`,
+    `<div class="actor-name">${a.nom}</div>`,
+    `<div class="actor-role">${a.role}</div>`,
+    `<div class="actor-interet">${a.interet}</div>`,
+    `</div></div>`
+  ].join('');
 }
 
-function openActeur(el, encoded) {
-  document.querySelectorAll('.actor-card').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-  const a = JSON.parse(decodeURIComponent(encoded));
-  const [bg,fg,lbl] = BADGE[a.camp||'neutre']||BADGE.neutre;
-  let html = `<div class="detail-title">${a.nom}</div>`;
-  if (a.image_query) html += `<img class="detail-img" src="${imgUrl(a.image_query,340,140)}" loading="lazy" onerror="this.style.display='none'"><div class="detail-caption">Illustration : ${a.image_query}</div>`;
-  html += `<div style="margin-bottom:.75rem"><span class="actor-badge" style="background:${bg};color:${fg};padding:3px 10px;border-radius:999px;font-size:11px;font-weight:500">${lbl}</span><span style="font-size:12px;color:var(--txt2);margin-left:8px">${a.role}</span></div>`;
-  html += `<div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:.75rem;padding:10px 12px;background:var(--bg3);border-radius:var(--r);font-style:italic">${a.interet}</div>`;
-  if (a.detail) html += `<div class="detail-body">${a.detail.replace(/\n/g,'<br>')}</div>`;
-  showDetail(html);
+
+function openActeur(idx) {
+  const acteurs = (_currentAnalysis && _currentAnalysis.acteurs) || _lastActeurs || [];
+  const a = acteurs[idx];
+  if (!a) return;
+  document.querySelectorAll('.actor-card').forEach((c, i) => c.classList.toggle('active', i === idx));
+  const [bg, fg, lbl] = BADGE[a.camp || 'neutre'] || BADGE.neutre;
+  const parts = [`<div class="detail-title">${a.nom}</div>`];
+  if (a.image_query) {
+    parts.push(`<img class="detail-img" src="${imgUrl(a.image_query, 340, 140)}" loading="lazy" onerror="this.style.display=&quot;none&quot;">`);
+    parts.push(`<div class="detail-caption">Illustration : ${a.image_query}</div>`);
+  }
+  parts.push(`<div style="margin-bottom:.75rem">
+    <span class="actor-badge" style="background:${bg};color:${fg};padding:3px 10px;border-radius:999px;font-size:11px;font-weight:500">${lbl}</span>
+    <span style="font-size:12px;color:var(--txt2);margin-left:8px">${a.role}</span>
+  </div>`);
+  parts.push(`<div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:.75rem;padding:10px 12px;background:var(--bg3);border-radius:var(--r);font-style:italic">${a.interet}</div>`);
+  if (a.detail) parts.push(`<div class="detail-body">${a.detail.replace(/\n/g, '<br>')}</div>`);
+  showDetail(parts.join(''));
 }
+
 
 function renderActeurs(d) {
-  const acteurs = d.acteurs||[];
-  const pros    = acteurs.filter(a => a.camp==='pro'||a.camp==='ambigu');
-  const contras = acteurs.filter(a => a.camp==='contra');
-  const neutres = acteurs.filter(a => a.camp!=='pro'&&a.camp!=='contra'&&a.camp!=='ambigu');
-  document.getElementById('an-acteurs').innerHTML =
-    `<div class="actors-layout">
-      <div class="actor-col">${pros.map(a=>acteurCard(a)).join('')}</div>
-      <div class="actor-center-col">
-        <div class="actor-vline"></div>
-        <div class="actor-vs">VS</div>
-        <div class="actor-vline"></div>
-        ${neutres.map(a=>acteurCard(a)).join('')}
-        <div class="actor-vline"></div>
-      </div>
-      <div class="actor-col">${contras.map(a=>acteurCard(a)).join('')}</div>
-    </div>`;
+  _lastActeurs = d.acteurs || [];
+  const acteurs = _lastActeurs;
+  const pros    = acteurs.map((a,i)=>({a,i})).filter(({a}) => a.camp==='pro'||a.camp==='ambigu');  const contras = acteurs.map((a,i)=>({a,i})).filter(({a}) => a.camp==='contra');  const neutres = acteurs.map((a,i)=>({a,i})).filter(({a}) => a.camp!=='pro'&&a.camp!=='contra'&&a.camp!=='ambigu');  document.getElementById('an-acteurs').innerHTML =    '<div class="actors-layout">' +      '<div class="actor-col">' + pros.map(({a,i})=>acteurCard(a,i)).join('') + '</div>' +      '<div class="actor-center-col">' +        '<div class="actor-vline"></div>' +        '<div class="actor-vs">VS</div>' +        '<div class="actor-vline"></div>' +        neutres.map(({a,i})=>acteurCard(a,i)).join('') +        '<div class="actor-vline"></div>' +      '</div>' +      '<div class="actor-col">' + contras.map(({a,i})=>acteurCard(a,i)).join('') + '</div>' +    '</div>';
 }
+
 
 /* ════════════════════════════════════════════
    RENDER — SCÉNARIOS
@@ -970,8 +908,7 @@ function renderScenarios(d) {
       ${sc.signal?`<div class="sc-signal">⚠ ${sc.signal}</div>`:''}
       <div class="sc-hint">▾ Voir le détail</div>
     </div>`;
-  }).join('');
-  document.getElementById('an-scenarios').innerHTML =
+  }).join('');  document.getElementById('an-scenarios').innerHTML =
     `<div class="scenarios-grid" style="grid-template-columns:repeat(${cols},minmax(0,1fr))">${cards}</div>
      <div class="sc-panel" id="sc-panel">
        <div class="sc-panel-title"><span id="sc-panel-ttl"></span><button class="sc-close" onclick="closeScenario()">✕</button></div>
@@ -985,16 +922,11 @@ function renderScenarios(d) {
     _scCurrentIdx = i;
     document.querySelectorAll('.sc-box').forEach((b,j) => b.classList.toggle('active', j===i));
     const p = Math.round(sc.probabilite||0);
-    const col = p>=60?'#27500A':p>=35?'#633806':'#7f1d1d';
-    document.getElementById('sc-panel-ttl').textContent = p+'% — '+sc.titre;
-    document.getElementById('sc-panel-ttl').style.color = col;
-    document.getElementById('sc-panel-body').innerHTML = sc.detail||sc.description||'';
-    document.getElementById('sc-panel').classList.add('on');
+    const col = p>=60?'#27500A':p>=35?'#633806':'#7f1d1d';    document.getElementById('sc-panel-ttl').textContent = p+'% — '+sc.titre;    document.getElementById('sc-panel-ttl').style.color = col;    document.getElementById('sc-panel-body').innerHTML = sc.detail||sc.description||'';    document.getElementById('sc-panel').classList.add('on');
   };
   window.closeScenario = function() {
     _scCurrentIdx = -1;
-    document.querySelectorAll('.sc-box').forEach(b=>b.classList.remove('active'));
-    document.getElementById('sc-panel').classList.remove('on');
+    document.querySelectorAll('.sc-box').forEach(b=>b.classList.remove('active'));    document.getElementById('sc-panel').classList.remove('on');
   };
 }
 
@@ -1034,31 +966,19 @@ function drawMap(d) {
   const campById = {};
   (d.acteurs||[]).forEach(a => {
     const idMap = {
-      'états-unis':840,'usa':840,'etats-unis':840,'iran':364,'russie':643,'chine':156,
-      'israël':376,'israel':376,'arabie saoudite':682,'turquie':792,'france':250,'allemagne':276
+      'états-unis':840,'usa':840,'etats-unis':840,'iran':364,'russie':643,'chine':156,      'israël':376,'israel':376,'arabie saoudite':682,'turquie':792,'france':250,'allemagne':276
     };
     const key = (a.nom||'').toLowerCase();
     Object.keys(idMap).forEach(k => {
       if (key.includes(k)) campById[idMap[k]] = a.camp;
     });
   });
-  d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(world => {
-    const colMap = {pro:'#27500A',contra:'#7f1d1d',neutre:'#888780',ambigu:'#633806'};
-    svg.selectAll('path').data(topojson.feature(world,world.objects.countries).features).join('path')
-      .attr('d',path)
-      .attr('fill',dd => { const c=campById[+dd.id]; return c?colMap[c]:'#2d2d2d'; })
-      .attr('stroke','#1a1a1a').attr('stroke-width',0.4);
-    const labelsMap = {840:'USA',364:'Iran',643:'Russie',156:'Chine',376:'Israël'};
+  d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(world => {    const colMap = {pro:'#27500A',contra:'#7f1d1d',neutre:'#888780',ambigu:'#633806'};    svg.selectAll('path').data(topojson.feature(world,world.objects.countries).features).join('path')      .attr('d',path)      .attr('fill',dd => { const c=campById[+dd.id]; return c?colMap[c]:'#2d2d2d'; })      .attr('stroke','#1a1a1a').attr('stroke-width',0.4);    const labelsMap = {840:'USA',364:'Iran',643:'Russie',156:'Chine',376:'Israël'};
     const coordsMap = {840:[-100,38],364:[53,33],643:[105,62],156:[104,35],376:[35,31]};
     Object.entries(coordsMap).forEach(([id,[lng,lat]]) => {
       const [px,py] = proj([lng,lat]);
       if (!px) return;
-      svg.append('circle').attr('cx',px).attr('cy',py).attr('r',4)
-        .attr('fill',campById[+id]?({pro:'#27500A',contra:'#7f1d1d',neutre:'#888780',ambigu:'#633806'}[campById[+id]]):'#555')
-        .attr('stroke','#1a1a1a').attr('stroke-width',1.5);
-      svg.append('text').attr('x',px).attr('y',py-7).attr('text-anchor','middle')
-        .attr('font-size',9).attr('font-weight','500').attr('font-family','system-ui,sans-serif')
-        .attr('fill','#ececec').text(labelsMap[+id]||'');
+      svg.append('circle').attr('cx',px).attr('cy',py).attr('r',4)        .attr('fill',campById[+id]?({pro:'#27500A',contra:'#7f1d1d',neutre:'#888780',ambigu:'#633806'}[campById[+id]]):'#555')        .attr('stroke','#1a1a1a').attr('stroke-width',1.5);      svg.append('text').attr('x',px).attr('y',py-7).attr('text-anchor','middle')        .attr('font-size',9).attr('font-weight','500').attr('font-family','system-ui,sans-serif')        .attr('fill','#ececec').text(labelsMap[+id]||'');
     });
   });
 }
@@ -1067,45 +987,38 @@ function drawMap(d) {
    VEILLE + ACTIONS
 ════════════════════════════════════════════ */
 function launchVeille() {
-  const prompt = `Lance une veille systémique. Identifie les 5 sujets géopolitiques les plus importants du moment. Pour chacun : titre, 1-2 phrases sur les faits, pourquoi c'est important systémiquement. Puis demande lequel analyser.`;
-  if (typeof sendPrompt==='function') sendPrompt(prompt);
-  else alert('Fonctionnalité disponible dans Claude (claude.ai).');
+  const prompt = `Lance une veille systémique. Identifie les 5 sujets géopolitiques les plus importants du moment. Pour chacun : titre, 1-2 phrases sur les faits, pourquoi c'est important systémiquement. Puis demande lequel analyser.`;  if (typeof sendPrompt==='function') sendPrompt(prompt);  else alert('Fonctionnalité disponible dans Claude (claude.ai).');
 }
 function deepenInChat() {
   if (!currentTopic) return;
-  const p = `Approfondis l'analyse de "${currentTopic}" : développe chaque point de la grille en détail, cite des sources précises, inclus des données chiffrées.`;
-  if (typeof sendPrompt==='function') sendPrompt(p);
-  else window.open('https://claude.ai/new?q='+encodeURIComponent(p),'_blank');
+  const p = `Approfondis l'analyse de "${currentTopic}" : développe chaque point de la grille en détail, cite des sources précises, inclus des données chiffrées.`;  if (typeof sendPrompt==='function') sendPrompt(p);  else window.open('https://claude.ai/new?q='+encodeURIComponent(p),'_blank');
 }
 function doBiasChat() {
   if (!currentTopic) return;
   const p = `Déconstruis les biais et angles morts de chaque camp médiatique sur : "${currentTopic}".`;
-  if (typeof sendPrompt==='function') sendPrompt(p);
-  else window.open('https://claude.ai/new?q='+encodeURIComponent(p),'_blank');
+  if (typeof sendPrompt==='function') sendPrompt(p);  else window.open('https://claude.ai/new?q='+encodeURIComponent(p),'_blank');
 }
 function syncSpectre() {
-  if (currentTopic) document.getElementById('spec-in').value = currentTopic;
-  if (document.getElementById('pane-left').classList.contains('hidden')) togglePane('left');
+  if (currentTopic) document.getElementById('spec-in').value = currentTopic;  if (document.getElementById('pane-left').classList.contains('hidden')) togglePane('left');
 }
 
 /* ════════════════════════════════════════════
    SPECTRE — CALL + RENDER
 ════════════════════════════════════════════ */
 function showSpecLoading(on) {
-  document.getElementById('spec-loading').classList.toggle('on', on);
-  document.getElementById('spec-btn').disabled = on;
-  if (on) document.getElementById('spec-results').style.display='none';
+  document.getElementById('spec-loading').classList.toggle('on', on);  document.getElementById('spec-btn').disabled = on;  if (on) document.getElementById('spec-results').style.display='none';
 }
 function runSpectre() {
-  const t = (document.getElementById('spec-in').value||'').trim();
-  if (!t) { document.getElementById('spec-in').focus(); return; }
+  const t = (document.getElementById('spec-in').value||'').trim();  if (!t) { document.getElementById('spec-in').focus(); return; }
   setCurrentTopic(t);
   document.getElementById('spec-err').classList.remove('on');
   showSpecLoading(true);
   const msgs = ['Cartographie…','Calibrage du spectre…','Analyse par camp…','Calcul des jauges…'];
   let mi = 0;
   const ticker = setInterval(() => { document.getElementById('spec-loading-lbl').textContent = msgs[++mi%msgs.length]; }, 1800);
-  const prompt = `Analyse médiatique comparée de : "${t}". JSON strict uniquement :\n{"topic":"${t}","spectrum":{"gauche_radicale":8,"gauche":22,"centre":18,"droite":30,"droite_radicale":22},"stats":{"sources":47,"consensus":62,"polarisation":"Forte","tonalite":"Alarmiste"},"camps":{"gauche_radicale":{"angle":"<angle>","elements_langage":["<m1>","<m2>","<m3>"],"angle_mort":"<angle mort>"},"gauche":{"angle":"<angle>","elements_langage":["<m1>","<m2>","<m3>"],"angle_mort":"<angle mort>"},"centre":{"angle":"<angle>","elements_langage":["<m1>","<m2>","<m3>"],"angle_mort":"<angle mort>"},"droite":{"angle":"<angle>","elements_langage":["<m1>","<m2>","<m3>"],"angle_mort":"<angle mort>"},"droite_radicale":{"angle":"<angle>","elements_langage":["<m1>","<m2>","<m3>"],"angle_mort":"<angle mort>"}},"jauges":{"dramatisation":78,"euphemisation":42,"consensus_factuel":62,"charge_emotionnelle":85,"donnees_chiffrees":35,"voix_terrain":28},"cadrage":{"gauche_radicale":{"met_en_avant":"<...>","omet":"<...>","recit":"<...>"},"gauche":{"met_en_avant":"<...>","omet":"<...>","recit":"<...>"},"centre":{"met_en_avant":"<...>","omet":"<...>","recit":"<...>"},"droite":{"met_en_avant":"<...>","omet":"<...>","recit":"<...>"},"droite_radicale":{"met_en_avant":"<...>","omet":"<...>","recit":"<...>"}},"timeline":{"labels":["J-6","J-5","J-4","J-3","J-2","J-1","Auj."],"gauche_radicale":[20,25,18,30,35,28,32],"gauche":[30,35,28,40,45,38,42],"centre":[20,18,22,19,20,18,21],"droite":[40,45,50,55,48,52,58],"droite_radicale":[35,40,42,50,55,60,62]}}\nRemplace toutes les valeurs <...> par du vrai contenu. spectrum doit sommer à 100.`;
+  const prompt = `Analyse médiatique comparée de : "${t}". JSON strict uniquement, remplace tous les <...> par du vrai contenu :
+{"topic":"${t}","spectrum":{"gauche_radicale":0,"gauche":0,"centre":0,"droite":0,"droite_radicale":0},"stats":{"sources":0,"consensus":0,"polarisation":"<Faible|Modérée|Forte|Très forte>","tonalite":"<mot>"},"camps":{"gauche_radicale":{"angle":"<angle éditorial>","elements_langage":["<mot1>","<mot2>","<mot3>"],"angle_mort":"<ce qu'ils omettent>","nb_sources":0},"gauche":{"angle":"<angle>","elements_langage":["<m1>","<m2>","<m3>"],"angle_mort":"<omission>","nb_sources":0},"centre":{"angle":"<angle>","elements_langage":["<m1>","<m2>","<m3>"],"angle_mort":"<omission>","nb_sources":0},"droite":{"angle":"<angle>","elements_langage":["<m1>","<m2>","<m3>"],"angle_mort":"<omission>","nb_sources":0},"droite_radicale":{"angle":"<angle>","elements_langage":["<m1>","<m2>","<m3>"],"angle_mort":"<omission>","nb_sources":0}},"consensus":["<fait factuel partagé par tous les camps>","<fait partagé 2>","<fait partagé 3>"],"divergences":["<point de désaccord majeur entre camps>","<désaccord 2>","<désaccord 3>"],"angles_morts":["<angle mort commun à tous les camps>","<angle mort 2>","<angle mort 3>"],"cadrage":{"gauche_radicale":{"met_en_avant":"<...>","omet":"<...>","recit":"<...>"},"gauche":{"met_en_avant":"<...>","omet":"<...>","recit":"<...>"},"centre":{"met_en_avant":"<...>","omet":"<...>","recit":"<...>"},"droite":{"met_en_avant":"<...>","omet":"<...>","recit":"<...>"},"droite_radicale":{"met_en_avant":"<...>","omet":"<...>","recit":"<...>"}},"timeline":{"labels":["J-6","J-5","J-4","J-3","J-2","J-1","Auj."],"gauche_radicale":[0,0,0,0,0,0,0],"gauche":[0,0,0,0,0,0,0],"centre":[0,0,0,0,0,0,0],"droite":[0,0,0,0,0,0,0],"droite_radicale":[0,0,0,0,0,0,0]}}
+spectrum doit sommer à 100. nb_sources = nombre estimé de sources mobilisées par ce camp. timeline entre 0-100.`;
   callProxy([{role:'user',content:prompt}], 4000)
   .then(raw => {
     clearInterval(ticker);
@@ -1115,67 +1028,121 @@ function runSpectre() {
   .catch(err => {
     clearInterval(ticker);
     showSpecLoading(false);
-    const eb = document.getElementById('spec-err');
-    eb.textContent = 'Erreur : ' + err.message;
-    eb.classList.add('on');
+    const eb = document.getElementById('spec-err');    eb.textContent = 'Erreur : ' + err.message;    eb.classList.add('on');
   });
 }
 
 function renderSpectre(d) {
   CAMP_KEYS.forEach((k,i) => {
     const v = Math.round(d.spectrum[k]||0);
-    const el = document.getElementById('s-'+SEG_MAP[i]);
-    if (el) { el.style.width=v+'%'; el.textContent=v>6?v+'%':''; }
+    const el = document.getElementById('s-'+SEG_MAP[i]);    if (el) { el.style.width=v+'%'; el.textContent=v>6?v+'%':''; }
   });
-  document.getElementById('st-src').textContent = d.stats.sources||'—';
-  document.getElementById('st-con').textContent = (d.stats.consensus||'—')+'%';
-  document.getElementById('st-pol').textContent = d.stats.polarisation||'—';
-  document.getElementById('st-ton').textContent = d.stats.tonalite||'—';
+  document.getElementById('st-src').textContent = d.stats.sources||'—';  document.getElementById('st-con').textContent = (d.stats.consensus||'—')+'%';  document.getElementById('st-pol').textContent = d.stats.polarisation||'—';  document.getElementById('st-ton').textContent = d.stats.tonalite||'—';  
+  /* Stocker les données camps pour le détail */
+  window._spectreData = d;
+
   const cg = document.getElementById('camps-g');
   cg.innerHTML = '';
-  CAMP_KEYS.forEach(k => {
-    const c = d.camps[k]||{};
-    const [tbg,tfg] = CAMP_TBG[k];
-    const pct = Math.round(d.spectrum[k]||0);
-    const tags = (c.elements_langage||[]).map(t=>`<span class="tag-m" style="background:${tbg};color:${tfg};border-color:${tfg}">${t}</span>`).join('');
-    cg.innerHTML += `<div class="ccard"><div class="ch"><div class="cdot" style="background:${CAMP_COLS[k]}"></div><div class="cn">${CAMP_NAMES[k]}</div><div class="cpct">${pct}%</div></div><div class="cst">Angle</div><div class="ctxt">${c.angle||''}</div><div class="cst">Langage</div><div>${tags}</div><div class="cst">Angle mort</div><div class="ctxt">${c.angle_mort||''}</div></div>`;
+  CAMP_KEYS.forEach((k) => {
+    const c = d.camps[k] || {};
+    const [tbg, tfg] = CAMP_TBG[k];
+    const pct = Math.round(d.spectrum[k] || 0);
+    const tags = (c.elements_langage||[]).map(t =>
+      `<span class="tag-m" style="background:${tbg};color:${tfg};border-color:${tfg}">${t}</span>`
+    ).join('');
+    const card = document.createElement('div');
+    card.className = 'ccard';
+    card.id = 'ccard-' + k;
+    card.style.cursor = 'pointer';
+    card.innerHTML =
+      `<div class="ch"><div class="cdot" style="background:${CAMP_COLS[k]}"></div><div class="cn">${CAMP_NAMES[k]}</div><div class="cpct">${pct}%</div><div style="font-size:10px;color:var(--txt3);margin-left:4px">▾</div></div>` +
+      `<div class="cst">Angle</div><div class="ctxt">${c.angle||''}</div>` +
+      `<div class="cst">Langage</div><div style="margin-top:3px">${tags}</div>`;
+    card.addEventListener('click', () => openCampDetail(k));
+    cg.appendChild(card);
   });
-  const gg = document.getElementById('gauge-g');
-  gg.innerHTML = '';
-  [{l:'Dramatisation',k:'dramatisation',c:'#DC2626'},{l:'Euphémisation',k:'euphemisation',c:'#60A5FA'},{l:'Consensus',k:'consensus_factuel',c:'#27500A'},{l:'Émotion',k:'charge_emotionnelle',c:'#F97316'},{l:'Données',k:'donnees_chiffrees',c:'#888780'},{l:'Terrain',k:'voix_terrain',c:'#1D9E75'}].forEach(gi => {
-    const v = Math.round(d.jauges[gi.k]||0);
-    gg.innerHTML += `<div class="gcard"><div class="gl">${gi.l}</div><div class="gtrack"><div class="gfill" style="width:${v}%;background:${gi.c}"></div></div><div class="gvals"><span>0</span><span style="font-weight:500">${v}%</span><span>100</span></div></div>`;
-  });
+
   const tb = document.getElementById('at-body');
   tb.innerHTML = '';
   CAMP_KEYS.forEach(k => {
     const cd = d.cadrage[k]||{};
     tb.innerHTML += `<tr><td style="color:${CAMP_COLS[k]}">${CAMP_SHORT[k]}</td><td>${cd.met_en_avant||''}</td><td>${cd.omet||''}</td><td>${cd.recit||''}</td></tr>`;
   });
-  if (_tChart) { _tChart.destroy(); _tChart=null; }
-  const tl = d.timeline||{};
-  _tChart = new Chart(document.getElementById('tChart'),{
-    type:'line',
-    data:{labels:tl.labels||[],datasets:[
+
+
+  if (_tChart) { _tChart.destroy(); _tChart = null; }
+  const tl = d.timeline || {};
+  _tChart = new Chart(document.getElementById('tChart'), {
+    type: 'line',
+    data: { labels: tl.labels || [], datasets: [
       {label:'G.rad.',data:tl.gauche_radicale||[],borderColor:'#DC2626',backgroundColor:'transparent',pointRadius:2,borderWidth:1.5,tension:.3},
       {label:'Gauche',data:tl.gauche||[],borderColor:'#F97316',backgroundColor:'transparent',pointRadius:2,borderWidth:1.5,tension:.3},
       {label:'Centre',data:tl.centre||[],borderColor:'#9CA3AF',backgroundColor:'transparent',pointRadius:2,borderWidth:1.5,tension:.3,borderDash:[4,3]},
       {label:'Droite',data:tl.droite||[],borderColor:'#60A5FA',backgroundColor:'transparent',pointRadius:2,borderWidth:1.5,tension:.3},
       {label:'D.rad.',data:tl.droite_radicale||[],borderColor:'#2563EB',backgroundColor:'transparent',pointRadius:2,borderWidth:1.5,tension:.3,borderDash:[2,2]}
     ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(255,255,255,.06)'},ticks:{font:{size:9},color:'#555',autoSkip:false}},y:{grid:{color:'rgba(255,255,255,.06)'},ticks:{font:{size:9},color:'#555'},min:0,max:100}}}
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,.06)' }, ticks: { font: { size: 9 }, color: '#555', autoSkip: false } },
+        y: { grid: { color: 'rgba(255,255,255,.06)' }, ticks: { font: { size: 9 }, color: '#555' }, min: 0, max: 100 }
+      }
+    }
   });
-  document.getElementById('spec-results').style.display='';
+  document.getElementById('spec-results').style.display = '';
+}
+
+/* ════════════════════════════════════════════
+   SPECTRE — DÉTAIL PAR CAMP
+════════════════════════════════════════════ */
+function openCampDetail(k) {
+  const d = window._spectreData;
+  if (!d) return;
+  const c = d.camps[k] || {};
+  const cd = d.cadrage[k] || {};
+  const [tbg, tfg] = CAMP_TBG[k];
+  const col = CAMP_COLS[k];
+  const pct = Math.round(d.spectrum[k] || 0);
+  const nb = c.nb_sources || 0;
+
+  CAMP_KEYS.forEach(kk => {
+    const el = document.getElementById('ccard-' + kk);
+    if (el) el.style.borderColor = kk === k ? col : '';
+  });
+
+  const tags = (c.elements_langage || []).map(t =>
+    `<span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;margin:2px;background:${tbg};color:${tfg};border:0.5px solid ${tfg}">${t}</span>`
+  ).join('');
+
+  const parts = [
+    `<div style="display:flex;align-items:center;gap:10px;margin-bottom:1rem;padding-bottom:.75rem;border-bottom:0.5px solid var(--brd)">
+      <div style="width:10px;height:10px;border-radius:50%;background:${col};flex-shrink:0"></div>
+      <div style="font-size:14px;font-weight:500;flex:1">${CAMP_NAMES[k]}</div>
+      <div style="font-size:20px;font-weight:500;color:${col}">${pct}%</div>
+    </div>`,
+    `<div class="slabel" style="margin-top:0">Angle éditorial</div>
+    <div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:.75rem;padding:10px 12px;background:var(--bg3);border-radius:var(--r);border-left:2px solid ${col}">${c.angle || '—'}</div>`,
+    `<div class="slabel">Éléments de langage</div>
+    <div style="margin-bottom:.75rem">${tags || '—'}</div>`,
+    `<div class="slabel">Angle mort</div>
+    <div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:.75rem;padding:8px 10px;background:var(--bg3);border-radius:var(--r)"><span style="color:#633806;font-weight:600">○ </span>${c.angle_mort || '—'}</div>`,
+    cd.met_en_avant ? `<div class="slabel">Met en avant</div><div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:.75rem">${cd.met_en_avant}</div>` : '',
+    cd.omet ? `<div class="slabel">Minimise / omet</div><div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:.75rem">${cd.omet}</div>` : '',
+    cd.recit ? `<div class="slabel">Récit dominant</div><div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:.75rem;padding:10px 12px;background:var(--bg3);border-radius:var(--r);font-style:italic">"${cd.recit}"</div>` : '',
+    nb ? `<div class="slabel">Volume estimé</div><div style="font-size:12px;color:var(--txt2);margin-bottom:.75rem"><span style="font-size:18px;font-weight:500;color:${col}">${nb}</span><span style="margin-left:6px">sources sur 7 jours</span></div>` : '',
+  ];
+  showDetail(parts.join(''));
 }
 
 /* ════════════════════════════════════════════
    KEYBOARD
 ════════════════════════════════════════════ */
 document.getElementById('topic-in').addEventListener('keydown', e => {
-  if (e.key==='Enter'&&!e.shiftKey){e.preventDefault();launch();}
+  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); launch(); }
 });
 document.getElementById('spec-in').addEventListener('keydown', e => {
-  if (e.key==='Enter') runSpectre();
+  if (e.key === 'Enter') runSpectre();
 });
 </script>
 </body>
