@@ -422,8 +422,6 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
           <img id="an-hero-img" src="" alt="" style="width:100%;height:160px;object-fit:cover;border-radius:var(--r);display:block" loading="lazy">
           <div id="an-hero-caption" style="font-size:10px;color:var(--txt3);margin-top:4px;font-style:italic"></div>
         </div>
-        <div class="slabel">Sections — <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px">cliquez pour le détail →</span></div>
-        <div id="an-sections"></div>
         <div class="slabel">Acteurs & intérêts — <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px">cliquez pour les détails →</span></div>
         <div id="an-acteurs"></div>
         <div class="slabel">Trajectoires plausibles — <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px">cliquez pour les détails</span></div>
@@ -717,7 +715,6 @@ async function launch() {
     .then(raw => {
       const d = safeParseJSON(raw);
       (d.sections||[]).forEach((s,i) => { analysis.sections[i]=s; });
-      renderSectionsPartial(analysis, 0, 4);
       setAnStep(2);
     });
 
@@ -725,7 +722,6 @@ async function launch() {
     .then(raw => {
       const d = safeParseJSON(raw);
       (d.sections||[]).forEach((s,i) => { analysis.sections[i+4]=s; });
-      renderSectionsPartial(analysis, 4, 8);
       setAnStep(3);
     });
 
@@ -771,70 +767,8 @@ function renderHeader(d) {
 /* ════════════════════════════════════════════
    RENDER — SECTIONS
 ════════════════════════════════════════════ */
-function renderSectionsPartial(d, from, to) {
-  const secCol = document.getElementById('an-sections');
-  if (secCol.children.length === 0) {
-    for (let i=0; i<8; i++) {
-      const card = document.createElement('div');      card.className = 'section-card';      card.id = 'sec-card-'+i;
-      card.innerHTML = `<div class="section-card-head"><div class="section-num">${i+1}</div><div class="section-title" style="color:var(--txt3)">${SECTION_TITLES[i]}</div><div class="section-arrow">›</div></div>`;
-      secCol.appendChild(card);
-    }
-  }
-  for (let i=from; i<to; i++) {
-    const sec = d.sections[i]; if (!sec) continue;
-    const card = document.getElementById('sec-card-'+i);
-    if (!card) continue;
-    card.innerHTML = `<div class="section-card-head" onclick="toggleSection(${i})">
-      <div class="section-num">${i+1}</div>
-      <div class="section-title">${sec.titre||SECTION_TITLES[i]}</div>
-      <div class="section-arrow">›</div>
-    </div>
-    <div class="section-summary" id="sec-sum-${i}" style="display:none">
-      ${sec.resume||''}      ${sec.image_query ? `<img class="section-img" src="${imgUrl(sec.image_query,360,80)}" loading="lazy" onerror="this.style.display='none'">` : ''}
-    </div>`;
-  }
-  if (from===0 && d.sections[0]) setTimeout(()=>toggleSection(0), 300);
-}
 
-function toggleSection(i) {
-  if (!_currentAnalysis) return;
-  const sec = _currentAnalysis.sections[i];
-  const wasActive = _activeSection === i;
-  _currentAnalysis.sections.forEach((_,j) => {
-    const c = document.getElementById('sec-card-'+j);    const s = document.getElementById('sec-sum-'+j);    if (c) c.classList.remove('active');    if (s) s.style.display = 'none';
-  });
-  if (wasActive) { _activeSection = null; clearDetail(); return; }
-  _activeSection = i;
-  const card = document.getElementById('sec-card-'+i);  const sum = document.getElementById('sec-sum-'+i);  if (card) card.classList.add('active');  if (sum) sum.style.display = '';
-  renderDetailSection(sec, i);
-}
 
-function renderDetailSection(sec, i) {
-  let html = `<div class="detail-title">${i+1}. ${sec.titre||SECTION_TITLES[i]}</div>`;
-  if (sec.image_query) {
-    html += `<img class="detail-img" src="${imgUrl(sec.image_query,340,140)}" loading="lazy" onerror="this.style.display='none'">`;
-    html += `<div class="detail-caption">Illustration : ${sec.image_query}</div>`;
-  }
-  html += `<div class="detail-body">${(sec.detail||sec.resume||'').replace(/\n/g,'<br>')}</div>`;  if (sec.type_viz && sec.type_viz!=='none' && sec.viz_data) {    html += `<div class="detail-chart-wrap"><canvas id="detail-chart" role="img" aria-label="${sec.viz_label||'Graphique'}"></canvas></div>`;
-  }
-  showDetail(html);
-  if (sec.type_viz && sec.type_viz!=='none' && sec.viz_data) {
-    requestAnimationFrame(() => {
-      const ctx = document.getElementById('detail-chart');
-      if (!ctx) return;
-      const vd = sec.viz_data;
-      const cols = ['#DC2626','#F97316','#9CA3AF','#60A5FA','#2563EB','#27500A','#888780','#1D9E75'];
-      _detailChart = new Chart(ctx, {
-        type: sec.type_viz==='timeline'?'line':sec.type_viz,
-        data: {
-          labels: vd.labels||[],
-          datasets:[{label:sec.viz_label||'',data:vd.values||[],backgroundColor:sec.type_viz==='line'?'transparent':cols,borderColor:sec.type_viz==='line'?(cols[0]):cols,borderWidth:1.5,tension:.3,pointRadius:sec.type_viz==='line'?3:0}]
-        },
-        options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:sec.type_viz==='doughnut'?{}:{x:{grid:{color:'rgba(255,255,255,.06)'},ticks:{font:{size:9},color:'#666'}},y:{grid:{color:'rgba(255,255,255,.06)'},ticks:{font:{size:9},color:'#666'}}}}
-      });
-    });
-  }
-}
 
 /* ════════════════════════════════════════════
    RENDER — ACTEURS
@@ -886,49 +820,130 @@ function openActeur(idx) {
 function renderActeurs(d) {
   _lastActeurs = d.acteurs || [];
   const acteurs = _lastActeurs;
-  const pros    = acteurs.map((a,i)=>({a,i})).filter(({a}) => a.camp==='pro'||a.camp==='ambigu');  const contras = acteurs.map((a,i)=>({a,i})).filter(({a}) => a.camp==='contra');  const neutres = acteurs.map((a,i)=>({a,i})).filter(({a}) => a.camp!=='pro'&&a.camp!=='contra'&&a.camp!=='ambigu');  document.getElementById('an-acteurs').innerHTML =    '<div class="actors-layout">' +      '<div class="actor-col">' + pros.map(({a,i})=>acteurCard(a,i)).join('') + '</div>' +      '<div class="actor-center-col">' +        '<div class="actor-vline"></div>' +        '<div class="actor-vs">VS</div>' +        '<div class="actor-vline"></div>' +        neutres.map(({a,i})=>acteurCard(a,i)).join('') +        '<div class="actor-vline"></div>' +      '</div>' +      '<div class="actor-col">' + contras.map(({a,i})=>acteurCard(a,i)).join('') + '</div>' +    '</div>';
+  const pros    = acteurs.map((a,i) => ({a,i})).filter(({a}) => a.camp==='pro'||a.camp==='ambigu');
+  const contras = acteurs.map((a,i) => ({a,i})).filter(({a}) => a.camp==='contra');
+  const neutres = acteurs.map((a,i) => ({a,i})).filter(({a}) => a.camp!=='pro'&&a.camp!=='contra'&&a.camp!=='ambigu');
+
+  function makeCard(a, i) {
+    const c = a.camp || 'neutre';
+    const [bg, fg, lbl] = BADGE[c] || BADGE.neutre;
+    const div = document.createElement('div');
+    div.className = 'actor-card' + (c==='ambigu'?' actor-ambigu':'');
+    div.onclick = () => openActeur(i);
+
+    const img = document.createElement('img');
+    img.className = 'actor-img';
+    img.src = imgUrl(a.image_query || a.nom, 260, 70);
+    img.alt = a.nom;
+    img.onerror = function() {
+      this.style.display = 'none';
+      this.nextElementSibling.style.display = 'flex';
+    };
+    div.appendChild(img);
+
+    const init = document.createElement('div');
+    init.className = 'actor-init';
+    init.style.display = 'none';
+    init.textContent = a.nom.slice(0,2).toUpperCase();
+    div.appendChild(init);
+
+    const body = document.createElement('div');
+    body.className = 'actor-body';
+    body.innerHTML =
+      `<span class="actor-badge" style="background:${bg};color:${fg}">${lbl}</span>` +
+      `<div class="actor-name">${a.nom}</div>` +
+      `<div class="actor-role">${a.role}</div>` +
+      `<div class="actor-interet">${a.interet}</div>`;
+    div.appendChild(body);
+    return div;
+  }
+
+  const el = document.getElementById('an-acteurs');
+  el.innerHTML = '';
+
+  const layout = document.createElement('div');
+  layout.className = 'actors-layout';
+
+  const leftCol = document.createElement('div');
+  leftCol.className = 'actor-col';
+  pros.forEach(({a,i}) => leftCol.appendChild(makeCard(a,i)));
+
+  const centerCol = document.createElement('div');
+  centerCol.className = 'actor-center-col';
+  centerCol.innerHTML = '<div class="actor-vline"></div><div class="actor-vs">VS</div><div class="actor-vline"></div>';
+  neutres.forEach(({a,i}) => { centerCol.appendChild(makeCard(a,i)); });
+  centerCol.innerHTML += '<div class="actor-vline"></div>';
+
+  const rightCol = document.createElement('div');
+  rightCol.className = 'actor-col';
+  contras.forEach(({a,i}) => rightCol.appendChild(makeCard(a,i)));
+
+  layout.appendChild(leftCol);
+  layout.appendChild(centerCol);
+  layout.appendChild(rightCol);
+  el.appendChild(layout);
 }
+
 
 
 /* ════════════════════════════════════════════
    RENDER — SCÉNARIOS
 ════════════════════════════════════════════ */
 function renderScenarios(d) {
-  const scenarios = d.scenarios||[];
-  const cols = Math.min(scenarios.length, 3);
-  const cards = scenarios.map((sc,i) => {
-    const p = Math.round(sc.probabilite||0);
-    const col = p>=60?'#27500A':p>=35?'#633806':'#7f1d1d';
-    return `<div class="sc-box" id="scbox-${i}" onclick="openScenario(${i})">
-      <div class="sc-top">
-        <div class="sc-prob" style="color:${col}">${p}%</div>
-        <div class="sc-title">${sc.titre}</div>
-      </div>
-      <div class="sc-desc">${sc.description}</div>
-      ${sc.signal?`<div class="sc-signal">⚠ ${sc.signal}</div>`:''}
-      <div class="sc-hint">▾ Voir le détail</div>
-    </div>`;
-  }).join('');  document.getElementById('an-scenarios').innerHTML =
-    `<div class="scenarios-grid" style="grid-template-columns:repeat(${cols},minmax(0,1fr))">${cards}</div>
-     <div class="sc-panel" id="sc-panel">
-       <div class="sc-panel-title"><span id="sc-panel-ttl"></span><button class="sc-close" onclick="closeScenario()">✕</button></div>
-       <div id="sc-panel-body"></div>
-     </div>`;
+  const scenarios = d.scenarios || [];
+  const el = document.getElementById('an-scenarios');
+  el.innerHTML = '';
 
-  window.openScenario = function(i) {
-    const sc = (_currentAnalysis&&_currentAnalysis.scenarios||scenarios)[i];
+  const grid = document.createElement('div');
+  grid.className = 'scenarios-grid';
+  grid.style.gridTemplateColumns = `repeat(${Math.min(scenarios.length,3)},minmax(0,1fr))`;
+
+  scenarios.forEach((sc, i) => {
+    const p = Math.round(sc.probabilite || 0);
+    const col = p>=60?'#27500A':p>=35?'#633806':'#7f1d1d';
+    const box = document.createElement('div');
+    box.className = 'sc-box';
+    box.id = 'scbox-' + i;
+    box.onclick = () => openSc(i);
+    box.innerHTML =
+      `<div class="sc-top"><div class="sc-prob" style="color:${col}">${p}%</div><div class="sc-title">${sc.titre}</div></div>` +
+      `<div class="sc-desc">${sc.description}</div>` +
+      (sc.signal ? `<div class="sc-signal">⚠ ${sc.signal}</div>` : '') +
+      `<div class="sc-hint">▾ Voir le détail</div>`;
+    grid.appendChild(box);
+  });
+
+  const panel = document.createElement('div');
+  panel.className = 'sc-panel';
+  panel.id = 'sc-panel';
+  panel.innerHTML =
+    `<div class="sc-panel-title"><span id="sc-panel-ttl"></span><button class="sc-close" onclick="closeSc()">✕</button></div>` +
+    `<div id="sc-panel-body"></div>`;
+
+  el.appendChild(grid);
+  el.appendChild(panel);
+
+  window.openSc = function(i) {
+    const sc = scenarios[i];
     if (!sc) return;
-    if (_scCurrentIdx===i) { closeScenario(); return; }
+    if (_scCurrentIdx === i) { closeSc(); return; }
     _scCurrentIdx = i;
     document.querySelectorAll('.sc-box').forEach((b,j) => b.classList.toggle('active', j===i));
     const p = Math.round(sc.probabilite||0);
-    const col = p>=60?'#27500A':p>=35?'#633806':'#7f1d1d';    document.getElementById('sc-panel-ttl').textContent = p+'% — '+sc.titre;    document.getElementById('sc-panel-ttl').style.color = col;    document.getElementById('sc-panel-body').innerHTML = sc.detail||sc.description||'';    document.getElementById('sc-panel').classList.add('on');
+    const col = p>=60?'#27500A':p>=35?'#633806':'#7f1d1d';
+    document.getElementById('sc-panel-ttl').textContent = p + '% — ' + sc.titre;
+    document.getElementById('sc-panel-ttl').style.color = col;
+    document.getElementById('sc-panel-body').innerHTML = sc.detail || sc.description || '';
+    document.getElementById('sc-panel').classList.add('on');
   };
-  window.closeScenario = function() {
+  window.closeSc = function() {
     _scCurrentIdx = -1;
-    document.querySelectorAll('.sc-box').forEach(b=>b.classList.remove('active'));    document.getElementById('sc-panel').classList.remove('on');
+    const panel = document.getElementById('sc-panel');
+    if (panel) panel.classList.remove('on');
+    document.querySelectorAll('.sc-box').forEach(b => b.classList.remove('active'));
   };
 }
+
 
 /* ════════════════════════════════════════════
    RENDER — CARTE GÉO (panneau droit initial)
@@ -957,7 +972,7 @@ function renderGeoMap(d) {
 
 function drawMap(d) {
   const el = document.getElementById('geo-map');
-  if (!el) return;
+  if (!el || typeof d3 === 'undefined' || typeof topojson === 'undefined') return;
   const w = el.offsetWidth||300;
   const h = Math.round(w*0.48);
   const svg = d3.select(el).append('svg').attr('viewBox',`0 0 ${w} ${h}`).attr('width','100%');
@@ -1144,6 +1159,7 @@ document.getElementById('topic-in').addEventListener('keydown', e => {
 document.getElementById('spec-in').addEventListener('keydown', e => {
   if (e.key === 'Enter') runSpectre();
 });
+
 </script>
 </body>
 </html>
