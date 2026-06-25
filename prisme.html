@@ -336,10 +336,15 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
         <div class="an-headline" id="an-headline"></div>
         <div class="an-meta" id="an-meta"></div>
         <div class="an-resume" id="an-resume"></div>
-        <div id="an-hero" style="display:none;margin-bottom:.75rem">
-          <img id="an-hero-img" src="" alt="" style="width:100%;height:280px;object-fit:cover;border-radius:var(--r);display:block" loading="eager">
-          <div id="an-hero-caption" style="font-size:10px;color:var(--txt3);margin-top:4px;font-style:italic"></div>
-        </div>
+        <div id="an-map-center" style="display:none;margin-bottom:.75rem;border:0.5px solid var(--brd);border-radius:var(--r);overflow:hidden">
+            <div id="geo-map-center" style="width:100%;background:var(--bg3)"></div>
+            <div style="display:flex;gap:10px;padding:6px 10px;border-top:0.5px solid var(--brd);font-size:10px;color:var(--txt2);flex-wrap:wrap">
+              <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#1a3a1a;display:inline-block"></span>Favorable</span>
+              <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#7f1d1d;display:inline-block"></span>Opposé</span>
+              <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#888780;display:inline-block"></span>Neutre</span>
+              <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#633806;display:inline-block"></span>Ambigu</span>
+            </div>
+          </div>
         <div class="slabel">Acteurs & intérêts — <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px">cliquez pour les détails →</span></div>
         <div id="an-acteurs"></div>
         <div class="slabel">Trajectoires plausibles — <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px">cliquez pour le détail</span></div>
@@ -359,20 +364,13 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
   <!-- DROITE : DÉTAIL -->
   <div class="pane" id="pane-right" style="flex:0 0 320px">
     <div class="pane-tab" onclick="togglePane('right')">Détail contextuel ◨</div>
-    <div class="pane-header">
-      <div class="pane-title">Détail contextuel</div>
-      <button class="picon" onclick="togglePane('right')">✕</button>
+    <div clas
     </div>
-    <div class="pane-body" id="detail-pane">
-      <div class="detail-empty" id="detail-empty">
-        <div style="font-size:24px;opacity:.3">↙</div>
-        <div style="font-size:12px">Cliquez sur un acteur ou un camp pour afficher le détail contextuel ici.</div>
-      </div>
       <div id="detail-content" style="display:none"></div>
     </div>
   </div>
 
-</div>
+</div><!-- /workbench -->
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
@@ -395,6 +393,14 @@ const CAMP_SHORT={gauche_radicale:'G. rad.',gauche:'Gauche',centre:'Centre',droi
 const CAMP_TBG={gauche_radicale:['#3a1010','#f87171','#7f1d1d'],gauche:['#3a1f0a','#fb923c','#7c2d12'],centre:['#2a2a2a','#9ca3af','#374151'],droite:['#0a1a2e','#93c5fd','#1e3a5f'],droite_radicale:['#0a1230','#60a5fa','#1e3a8a']};
 const CAMP_KEYS=['gauche_radicale','gauche','centre','droite','droite_radicale'];
 const BADGE={pro:['#1a3a1a','#86efac','✓ Favorable'],contra:['#3a1010','#f87171','✕ Opposé'],neutre:['#2a2a2a','#9ca3af','− Neutre'],ambigu:['#3a2a10','#fbbf24','? Ambigu']};
+const CAMP_SOURCES = {
+  gauche_radicale: ['Jacobin','Monde Diplo',"L'Humanité",'WSWS','Mediapart'],
+  gauche: ['Le Monde','Libération','Guardian','NYT','BBC','El País'],
+  centre: ['Reuters','AFP','AP','Bloomberg','FT','Economist'],
+  droite: ['WSJ','Le Figaro','Valeurs Act.','Le Point','Fox Business'],
+  droite_radicale: ['Breitbart','RT','TASS','Sputnik','BV']
+};
+
 
 /* PANELS */
 function togglePane(side) {
@@ -638,7 +644,7 @@ JSON uniquement :
 {"nom":"<nom>","role":"<role>","camp":"<camp>","interet":"<interet>","wiki":"<titre Wikipedia anglais>"},
 {"nom":"<nom>","role":"<role>","camp":"<camp>","interet":"<interet>","wiki":"<titre Wikipedia anglais>"},
 {"nom":"<nom>","role":"<role>","camp":"<camp>","interet":"<interet>","wiki":"<titre Wikipedia anglais>"},
-{"nom":"<nom>","role":"<role>","camp":"<camp>","interet":"<interet>","wiki":"<titre Wikipedia anglais>"}
+{"nom":"<nom>","role":"<role>","camp":"<camp>","interet":"<interet>","wiki":"<titre Wikipedia anglais>","leviers":"<2-3 leviers d action concrets>","contraintes":"<2-3 contraintes majeures>"}
 ]}`}],2000).then(raw=>{try{
         const d=safeJSON(raw);
         analysis.acteurs=d.acteurs||[];
@@ -686,12 +692,9 @@ function renderHeader(d) {
   document.getElementById('an-headline').textContent=d.headline||d.topic||'';
   document.getElementById('an-meta').innerHTML=`<span>📅 ${d.date_contexte||''}</span><span>· ${Object.values(srcs).filter(Boolean).length} sources</span><span>· ${Object.values(frames).filter(Boolean).length} cadres</span>`;
   document.getElementById('an-resume').textContent=d.resume||'';
-  if(d.image_query){
-    document.getElementById('an-hero-img').src=imgUrl(d.image_query,680,280);
-    document.getElementById('an-hero-img').loading='eager';
-    document.getElementById('an-hero-caption').textContent='Illustration : '+d.image_query;
-    document.getElementById('an-hero').style.display='';
-  }
+  // Afficher le placeholder de la carte (sera remplie par renderGeoMap après les acteurs)
+  const mapCenter = document.getElementById('an-map-center');
+  if(mapCenter) mapCenter.style.display='';
   document.getElementById('an-results').style.display='';
 }
 
@@ -813,18 +816,48 @@ function openActeur(idx) {
   const a = _lastActeurs[idx]; if (!a) return;
   document.querySelectorAll('.actor-card').forEach((c,i) => c.classList.toggle('active', i===idx));
   const [bg,fg,lbl] = BADGE[a.camp||'neutre'] || BADGE.neutre;
+  const col = {pro:'#1a3a1a',contra:'#7f1d1d',neutre:'#2a2a2a',ambigu:'#633806'}[a.camp||'neutre'];
   const flagUrl = a._wikiImg || getFlagUrl(a.nom);
+
   const imgHtml = flagUrl
-    ? `<div style="position:relative;width:100%;height:120px;background:var(--bg3);border-radius:var(--r);margin-bottom:.5rem;overflow:hidden"><div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:36px;font-weight:500;color:var(--txt3)">${a.nom.slice(0,2).toUpperCase()}</div><img src="${flagUrl}" loading="eager" style="width:100%;height:120px;object-fit:cover;position:absolute;top:0;left:0" onerror="this.style.display='none'"></div>`
-    : `<div style="width:100%;height:80px;background:var(--bg3);border-radius:var(--r);margin-bottom:.5rem;display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:500;color:var(--txt3)">${a.nom.slice(0,2).toUpperCase()}</div>`;
-  const parts = [
-    `<div class="detail-title">${a.nom}</div>`,
-    imgHtml,
-    `<div style="margin-bottom:.6rem"><span class="actor-badge" style="background:${bg};color:${fg};padding:3px 10px;border-radius:999px;font-size:11px;font-weight:500">${lbl}</span><span style="font-size:12px;color:var(--txt2);margin-left:8px">${a.role}</span></div>`,
-    `<div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:.6rem;padding:9px 11px;background:var(--bg3);border-radius:var(--r);font-style:italic">${a.interet}</div>`,
-    a.detail ? '<div class="detail-body">' + a.detail.split('\n').join('<br>') + '</div>' : ''
-  ];
-  showDetail(parts.join(''));
+    ? `<div style="position:relative;width:100%;height:140px;background:var(--bg3);border-radius:var(--r);margin-bottom:.75rem;overflow:hidden">
+        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:36px;font-weight:500;color:var(--txt3)">${a.nom.slice(0,2).toUpperCase()}</div>
+        <img src="${flagUrl}" loading="eager" style="width:100%;height:140px;object-fit:cover;position:absolute;top:0;left:0" onerror="this.style.display='none'">
+      </div>`
+    : `<div style="width:100%;height:80px;background:var(--bg3);border-radius:var(--r);margin-bottom:.75rem;display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:500;color:var(--txt3)">${a.nom.slice(0,2).toUpperCase()}</div>`;
+
+  // Sections d'analyse
+  const sections = [];
+
+  // Badge + rôle
+  sections.push(`<div style="display:flex;align-items:center;gap:8px;margin-bottom:.75rem;flex-wrap:wrap">
+    <span class="actor-badge" style="background:${bg};color:${fg};padding:3px 10px;border-radius:999px;font-size:11px;font-weight:500">${lbl}</span>
+    <span style="font-size:12px;color:var(--txt2)">${a.role}</span>
+  </div>`);
+
+  // Intérêt géopolitique
+  sections.push(`<div class="slabel" style="margin-top:0">Intérêt géopolitique</div>
+  <div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:.75rem;padding:10px 12px;background:var(--bg3);border-radius:var(--r);border-left:3px solid ${col};font-style:italic">${a.interet}</div>`);
+
+  // Analyse détaillée
+  if(a.detail){
+    sections.push(`<div class="slabel">Analyse</div>
+    <div class="detail-body" style="font-size:12px">${a.detail.split('\n').join('<br>')}</div>`);
+  }
+
+  // Leviers d'action
+  if(a.leviers){
+    sections.push(`<div class="slabel">Leviers d'action</div>
+    <div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:.75rem">${a.leviers}</div>`);
+  }
+
+  // Contraintes
+  if(a.contraintes){
+    sections.push(`<div class="slabel">Contraintes</div>
+    <div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:.75rem">${a.contraintes}</div>`);
+  }
+
+  showDetail([`<div class="detail-title">${a.nom}</div>`, imgHtml, ...sections].join(''));
 }
 
 
@@ -862,10 +895,19 @@ function renderScenarios(d) {
 
   el.appendChild(grid);
   el.appendChild(panel);
+  // Fix: si scenarios est vide, afficher un message
+  if(scenarios.length===0){
+    el.innerHTML='<div style="font-size:11px;color:var(--txt3);padding:.5rem 0">Trajectoires en cours de chargement…</div>';
+  }
 }
 
 /* CARTE GÉO */
 function renderGeoMap(d) {
+  // Dessiner la carte dans le panneau centre
+  const centerEl = document.getElementById('geo-map-center');
+  if(centerEl) drawMapInEl(centerEl, d);
+
+  // Aussi dans le panneau détail droit
   const html=[
     `<div class="detail-title">Carte géopolitique</div>`,
     `<div class="map-wrap"><div id="geo-map" style="width:100%;background:var(--bg3)"></div>`,
@@ -873,11 +915,14 @@ function renderGeoMap(d) {
     `<div style="font-size:11px;color:var(--txt3);margin-top:.5rem">Cliquez sur un acteur pour afficher le détail contextuel ici.</div>`
   ];
   showDetail(html.join(''));
-  setTimeout(()=>drawMap(d),200);
+  setTimeout(()=>{
+    const el=document.getElementById('geo-map');
+    if(el) drawMapInEl(el, d);
+  },200);
 }
 
-function drawMap(d) {
-  const el=document.getElementById('geo-map');
+
+function drawMapInEl(el, d) {
   if(!el) return;
   if(typeof d3==='undefined'||typeof topojson==='undefined'){
     el.innerHTML='<div style="padding:1rem;font-size:11px;color:var(--txt3)">Carte non disponible (D3 non chargé)</div>';
@@ -1050,13 +1095,13 @@ function openCampDetail(k) {
     cd.met_en_avant?`<div class="slabel">Met en avant</div><div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:.6rem">${cd.met_en_avant}</div>`:'',
     cd.omet?`<div class="slabel">Minimise / omet</div><div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:.6rem">${cd.omet}</div>`:'',
     cd.recit?`<div class="slabel">Récit dominant</div><div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:.6rem;padding:9px 11px;background:var(--bg3);border-radius:var(--r);font-style:italic">"${cd.recit}"</div>`:'',
-    nb?`<div class="slabel">Volume estimé</div><div style="font-size:12px;color:var(--txt2);margin-bottom:.6rem"><span style="font-size:18px;font-weight:500;color:${col}">${nb}</span><span style="margin-left:6px">sources sur 7 jours</span></div>`:'',
+    nb?`<div class="slabel">Volume estimé</div><div style="font-size:12px;color:var(--txt2);margin-bottom:.75rem"><span style="font-size:18px;font-weight:500;color:${col}">${nb}</span><span style="margin-left:6px">sources mobilisées sur 7 jours</span></div>`:'',
+    `<div class="slabel">Sources typiques</div><div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:.75rem">${(CAMP_SOURCES[k]||[]).map(s=>'<span style="padding:2px 9px;border-radius:999px;font-size:11px;background:'+tbg+';color:'+tfg+';border:0.5px solid '+tfg+'">'+s+'</span>').join('')}</div>`,,
   ];
   showDetail(parts.join(''));
 }
 
 document.getElementById('topic-in').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();launch();}});
-document.getElementById('spec-in').addEventListener('keydown',e=>{if(e.key==='Enter')runSpectre();});
-</script>
+document.getElementById('spec-in').addEventListener('keydown',e=>{if(e.key==='Enter')runSpectre();});</script>
 </body>
 </html>
