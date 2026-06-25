@@ -463,11 +463,19 @@ function doBiasChat(){if(!currentTopic)return;const p=`Déconstruis les biais m�
 function launchVeille(){const p='Identifie les 5 sujets géopolitiques les plus importants du moment.';if(typeof sendPrompt==='function')sendPrompt(p);else alert('Disponible dans Claude.ai');}
 
 /* API */
-async function callProxy(messages, maxTokens) {
-  const res = await fetch(PROXY_URL, {
-    method:'POST', headers:{'Content-Type':'application/json'},
-    body:JSON.stringify({model:'claude-sonnet-4-6', max_tokens:maxTokens||4000, system:SYSTEM, messages})
-  });
+async function callProxy(messages, maxTokens, timeoutMs=90000) {
+  const ctrl = new AbortController();
+  const tid = setTimeout(() => ctrl.abort(), timeoutMs);
+  let res;
+  try {
+    res = await fetch(PROXY_URL, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-6', max_tokens:maxTokens||4000, system:SYSTEM, messages}),
+      signal: ctrl.signal
+    });
+  } finally {
+    clearTimeout(tid);
+  }
   if (!res.ok) throw new Error('HTTP '+res.status);
   const ct = res.headers.get('content-type')||'';
   if (ct.includes('text/event-stream')) {
@@ -496,13 +504,25 @@ async function callProxy(messages, maxTokens) {
 }
 
 function safeJSON(raw) {
-  let s=raw.replace(/```json/gi,'').replace(/```/g,'').trim();
-  const a=s.indexOf('{'), b=s.lastIndexOf('}');
-  if(a===-1||b===-1) throw new Error('Pas de JSON dans la réponse');
-  return JSON.parse(s.slice(a,b+1));
+  if (!raw || typeof raw !== 'string') throw new Error('Réponse vide');
+  let s = raw.replace(/```json/gi,'').replace(/```/g,'').trim();
+  const a = s.indexOf('{'), b = s.lastIndexOf('}');
+  if (a === -1 || b === -1 || b < a) throw new Error('Pas de JSON dans la réponse');
+  const candidate = s.slice(a, b+1);
+  // Vérifier que le JSON n'est pas tronqué (accolades équilibrées)
+  let depth = 0;
+  let inStr = false, esc = false;
+  for (const ch of candidate) {
+    if (esc) { esc = false; continue; }
+    if (ch === '\\') { esc = true; continue; }
+    if (ch === '"' && !esc) { inStr = !inStr; continue; }
+    if (!inStr) { if (ch==='{') depth++; else if (ch==='}') depth--; }
+  }
+  if (depth !== 0) throw new Error('JSON tronqué (accolades non fermées)');
+  return JSON.parse(candidate);
 }
 
-function imgUrl(q,w,h){return '';}
+function imgUrl(q,w,h){ return getFlagUrl(q) || ''; }
 
 // Mapping nom d'acteur -> code ISO du pays pour le drapeau
 const FLAG_MAP = {
@@ -626,7 +646,22 @@ JSON uniquement :
         const d=safeJSON(raw);
         analysis.acteurs=d.acteurs||[];
         _lastActeurs=analysis.acteurs;
-        loadActeurImages(_lastActeurs).then(()=>renderActeurs(analysis)).catch(()=>renderActeurs(analysis));
+        renderActeurs(analysis);
+        // Images en arrière-plan sans bloquer le rendu
+        loadActeurImages(_lastActeurs).then(() => {
+          _lastActeurs.forEach((a,i) => {
+            if (!a._wikiImg) return;
+            const wraps = document.querySelectorAll('.actor-imgwrap');
+            if (!wraps[i]) return;
+            const img = wraps[i].querySelector('img');
+            if (img) { img.src = a._wikiImg; return; }
+            const ni = document.createElement('img');
+            ni.src = a._wikiImg;
+            ni.style.cssText = 'width:100%;height:80px;object-fit:cover;position:absolute;top:0;left:0';
+            ni.onerror = function(){this.style.display='none';};
+            wraps[i].appendChild(ni);
+          });
+        }).catch(()=>{});
       }catch(e){console.error('[p4a]',e.message);}
       setStep(4);});
 
@@ -634,7 +669,7 @@ JSON uniquement :
 
     const results=await Promise.allSettled([p2,p3,p4a,p4b]);
     const failed=results.filter(r=>r.status==='rejected');
-    if(failed.length===4) throw new Error(failed[0].reason?.message||'Tous les appels ont échoué');
+    if(failed.length===4) throw new Error((failed[0].reason?.message)||'Tous les appels API ont échoué — vérifiez votre connexion');
     if(failed.length>0) console.warn('[Prisme] Appels échoués:',failed.map(f=>f.reason?.message));
 
     _currentAnalysis=analysis;
@@ -664,29 +699,35 @@ function renderHeader(d) {
 }
 
 /* RENDER ACTEURS */
+function withRetry(fn, retries=1, delayMs=1500) {
+  return fn().catch(err => {
+    if (retries <= 0) throw err;
+    return new Promise(r => setTimeout(r, delayMs)).then(() => withRetry(fn, retries-1, delayMs));
+  });
+}
+
 async function fetchWikiImage(title) {
   if (!title) return null;
   try {
-    const r = await fetch(
-      'https://en.wikipedia.org/api/rest_v1/page/summary/' + encodeURIComponent(title),
-      {headers: {'Accept': 'application/json'}}
-    );
+    const ctrl = new AbortController();
+    const tid = setTimeout(() => ctrl.abort(), 5000);
+    let r;
+    try { r = await fetch('https://en.wikipedia.org/api/rest_v1/page/summary/'+encodeURIComponent(title),{headers:{'Accept':'application/json'},signal:ctrl.signal}); }
+    finally { clearTimeout(tid); }
     if (!r.ok) return null;
     const d = await r.json();
-    let src = (d.thumbnail && d.thumbnail.source) ? d.thumbnail.source : null;
+    let src = d.thumbnail && d.thumbnail.source;
     if (!src) return null;
-    // Assurer le protocole https
     if (src.startsWith('//')) src = 'https:' + src;
-    // Agrandir la résolution (remplacer la taille dans l'URL)
-    src = src.replace(/\/\d+px-/, '/240px-');
-    return src;
+    return src.replace(/\/\d+px-/, '/240px-');
   } catch(e) { return null; }
 }
 
 async function loadActeurImages(acteurs) {
-  // Charger toutes les images Wikipedia en parallèle
-  const urls = await Promise.all(acteurs.map(a => fetchWikiImage(a.wiki)));
-  urls.forEach((url, i) => { acteurs[i]._wikiImg = url; });
+  // Charger en parallèle avec timeout global de 8s
+  const race = (p, ms) => Promise.race([p, new Promise(r => setTimeout(() => r(null), ms))]);
+  const urls = await Promise.all(acteurs.map(a => race(fetchWikiImage(a.wiki), 5000)));
+  urls.forEach((url, i) => { acteurs[i]._wikiImg = url || null; });
 }
 
 function renderActeurs(d) {
@@ -790,6 +831,7 @@ function openActeur(idx) {
 function renderScenarios(d) {
   const scenarios=d.scenarios||[];
   const el=document.getElementById('an-scenarios');
+  if (!el) return;
   el.innerHTML='';
   const grid=document.createElement('div');
   grid.className='sc-grid';
@@ -836,7 +878,11 @@ function renderGeoMap(d) {
 
 function drawMap(d) {
   const el=document.getElementById('geo-map');
-  if(!el||typeof d3==='undefined'||typeof topojson==='undefined') return;
+  if(!el) return;
+  if(typeof d3==='undefined'||typeof topojson==='undefined'){
+    el.innerHTML='<div style="padding:1rem;font-size:11px;color:var(--txt3)">Carte non disponible (D3 non chargé)</div>';
+    return;
+  }
   const w=el.offsetWidth||300, h=Math.round(w*0.48);
   const svg=d3.select(el).append('svg').attr('viewBox',`0 0 ${w} ${h}`).attr('width','100%');
   const proj=d3.geoNaturalEarth1().scale(w/6.5).translate([w/2,h/2]);
