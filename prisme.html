@@ -845,8 +845,7 @@ async function callProxy(messages, maxTokens) {
       buffer += decoder.decode(value, { stream: true });
 
       // Traiter les lignes SSE complètes
-      const lines = buffer.split('
-');
+      const lines = buffer.split('\n');
       buffer = lines.pop(); // Garder la ligne incomplète pour le prochain chunk
 
       for (const line of lines) {
