@@ -379,10 +379,9 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 
 </div><!-- /workbench -->
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
-<script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7.8.5/dist/d3.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.
 
 const PROXY_URL = 'https://summer-glade-e842.elias-kabli.workers.dev/';
 const SYSTEM = "Tu es un analyste geopolitique expert. JSON valide complet uniquement, aucun texte avant/apres, aucun backtick. Regles absolues : 1. Ne jamais deformer l'analyse pour coller a un format. 2. Realite prime sur symetrie : 4 acteurs dans un camp et 0 dans un autre est correct. 3. Ambigu/neutre uniquement si analytiquement justifie. 4. Probabilites refletent la realite, pas une distribution equilibree. 5. JSON toujours complet.";
@@ -575,7 +574,73 @@ const FLAG_MAP = {
   'bresil':'BR','brazil':'BR','brasilia':'BR',
   'mexique':'MX','mexico':'MX',
   'venezuela':'VE','caracas':'VE',
-  'iran':'IR','corée du nord':'KP','north korea':'KP'
+  'iran':'IR','corée du nord':'KP','north korea':'KP',
+  'libye':'LY','libya':'LY','tripoli':'LY',
+  'soudan':'SD','sudan':'SD','khartoum':'SD',
+  'ethiopie':'ET','ethiopia':'ET','addis-abeba':'ET',
+  'afghanistan':'AF','kaboul':'AF','taliban':'AF',
+  'myanmar':'MM','birmanie':'MM','rangoon':'MM',
+  'vietnam':'VN','hanoi':'VN','ho chi minh':'VN',
+  'taiwan':'TW','taipei':'TW',
+  'philippines':'PH','manille':'PH',
+  'indonesia':'ID','indonesie':'ID','jakarta':'ID',
+  'malaisie':'MY','malaysia':'MY','kuala lumpur':'MY',
+  'singapour':'SG','singapore':'SG',
+  'bangledesh':'BD','bangladesh':'BD','dhaka':'BD',
+  'sri lanka':'LK','colombo':'LK',
+  'nepal':'NP','katmandou':'NP',
+  'bangladesh':'BD',
+  'kazakstan':'KZ','kazakhstan':'KZ','astana':'KZ',
+  'ouzbekistan':'UZ','uzbekistan':'UZ','tachkent':'UZ',
+  'azerbaidjan':'AZ','azerbaïdjan':'AZ','bakou':'AZ',
+  'georgie':'GE','georgia':'GE','tbilissi':'GE',
+  'armenie':'AM','armenia':'AM','erevan':'AM',
+  'serbie':'RS','serbia':'RS','belgrade':'RS',
+  'croatie':'HR','croatia':'HR','zagreb':'HR',
+  'pologne':'PL','poland':'PL','varsovie':'PL','warsaw':'PL',
+  'hongrie':'HU','hungary':'HU','budapest':'HU',
+  'grece':'GR','greece':'GR','athenes':'GR','athens':'GR',
+  'suisse':'CH','switzerland':'CH','berne':'CH',
+  'belgique':'BE','belgium':'BE','bruxelles':'BE','brussels':'BE',
+  'pays-bas':'NL','netherlands':'NL','amsterdam':'NL','hollande':'NL',
+  'suede':'SE','sweden':'SE','stockholm':'SE',
+  'norvege':'NO','norway':'NO','oslo':'NO',
+  'finlande':'FI','finland':'FI','helsinki':'FI',
+  'danemark':'DK','denmark':'DK','copenhague':'DK',
+  'espagne':'ES','spain':'ES','madrid':'ES',
+  'portugal':'PT','portugal':'PT','lisbonne':'PT',
+  'italie':'IT','italy':'IT','rome':'IT','roma':'IT',
+  'canada':'CA','ottawa':'CA','toronto':'CA',
+  'australie':'AU','australia':'AU','canberra':'AU',
+  'mexique':'MX','mexico':'MX','guadalajara':'MX',
+  'argentine':'AR','argentina':'AR','buenos aires':'AR',
+  'chili':'CL','chile':'CL','santiago':'CL',
+  'colombie':'CO','colombia':'CO','bogota':'CO',
+  'perou':'PE','peru':'PE','lima':'PE',
+  'afrique':'ZA','kenya':'KE','nairobi':'KE',
+  'ghana':'GH','accra':'GH','tanzanie':'TZ','tanzania':'TZ',
+  'cameroun':'CM','cameroon':'CM','yaounde':'CM',
+  'senegal':'SN','dakar':'SN',
+  'cote ivoire':'CI','abidjan':'CI',
+  'tunisie':'TN','tunis':'TN',
+  'koweït':'KW','kuwait':'KW',
+  'bahrein':'BH','bahrain':'BH','manama':'BH',
+  'liban':'LB','beyrouth':'LB',
+  'iran':'IR','perse':'IR',
+  'irak':'IQ','bagdad':'IQ','baghdad':'IQ',
+  'kurdistan':'IQ',
+  'koweit':'KW',
+  'gardiens de la revolution':'IR','corps des gardiens':'IR','irgc':'IR',
+  'hamas':'PS','jihad islamique':'PS',
+  'hezbollah':'LB','nasrallah':'LB',
+  'houthis':'YE','ansar allah':'YE',
+  'milices pro-iraniennes':'IQ',
+  'etats-unis':'US','trump':'US','biden':'US','harris':'US',
+  'pentagone':'US','maison blanche':'US','cia':'US',
+  'khamenei':'IR','khameneï':'IR','ebrahim raisi':'IR',
+  'naftali bennett':'IL','galant':'IL','sinwar':'PS',
+  'poutine':'RU','medvedev':'RU','lavrov':'RU',
+  'xi jinping':'CN','xi':'CN'
 };
 
 function getCountryCode(nom) {
@@ -1003,7 +1068,7 @@ function drawMapInEl(el, d) {
     el.innerHTML='<div style="padding:1rem;font-size:11px;color:var(--txt3)">Carte non disponible (D3 non chargé)</div>';
     return;
   }
-  const w=el.offsetWidth||300, h=Math.round(w*0.42);
+  const w=el.offsetWidth||el.parentElement?.offsetWidth||600, h=Math.round(w*0.42);
   const svg=d3.select(el).append('svg').attr('viewBox',`0 0 ${w} ${h}`).attr('width','100%').style('background','#060d1a');
   const proj=d3.geoNaturalEarth1().scale(w/6.5).translate([w/2,h/2]);
   const path=d3.geoPath(proj);
@@ -1139,7 +1204,7 @@ function renderSpectre(d) {
 
   if(_tChart){_tChart.destroy();_tChart=null;}
   const tl=d.timeline||{};
-  _tChart=new Chart(document.getElementById('tChart'),{
+  _tChart=typeof Chart!=='undefined'?new Chart(document.getElementById('tChart'),{
     type:'line',
     data:{labels:tl.labels||[],datasets:[
       {label:'G.rad.',data:tl.gauche_radicale||[],borderColor:'#DC2626',backgroundColor:'transparent',pointRadius:2,borderWidth:1.5,tension:.3},
@@ -1149,7 +1214,7 @@ function renderSpectre(d) {
       {label:'D.rad.',data:tl.droite_radicale||[],borderColor:'#2563EB',backgroundColor:'transparent',pointRadius:2,borderWidth:1.5,tension:.3,borderDash:[2,2]}
     ]},
     options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{font:{size:9},color:'#555',autoSkip:false}},y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{font:{size:9},color:'#555'},min:0,max:100}}}
-  });
+  }):null;
   document.getElementById('spec-results').style.display='';
 }
 
@@ -1179,6 +1244,8 @@ function openCampDetail(k) {
 
 document.getElementById('topic-in').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();launch();}});
 document.getElementById('spec-in').addEventListener('keydown',e=>{if(e.key==='Enter')runSpectre();});
+ec-in').addEventListener('keydown',e=>{if(e.key==='Enter')runSpectre();});
+tre();});
 </script>
 </body>
 </html>
