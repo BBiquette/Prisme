@@ -368,12 +368,22 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
       <div class="pane-title">Détail contextuel</div>
       <button class="picon" onclick="togglePane('right')">✕</button>
     </div>
-    <div class="pane-body" id="detail-pane">
+        <div class="pane-body" id="detail-pane">
       <div class="detail-empty" id="detail-empty">
         <div style="font-size:24px;opacity:.3">↙</div>
+        <div style="font-size:12px">Cliquez sur un acteur ou un camp pour afficher le détail contextuel ici.</div>
+      </div>
       <div id="detail-content" style="display:none"></div>
-        <div style="font-size:12px">Cliquez sur un acteur ou un camp pour afficher le détail
+    </div>
+  </div>
+
+</div><!-- /workbench -->
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
 <script>
+
 const PROXY_URL = 'https://summer-glade-e842.elias-kabli.workers.dev/';
 const SYSTEM = "Tu es un analyste geopolitique expert. JSON valide complet uniquement, aucun texte avant/apres, aucun backtick. Regles absolues : 1. Ne jamais deformer l'analyse pour coller a un format. 2. Realite prime sur symetrie : 4 acteurs dans un camp et 0 dans un autre est correct. 3. Ambigu/neutre uniquement si analytiquement justifie. 4. Probabilites refletent la realite, pas une distribution equilibree. 5. JSON toujours complet.";
 /* STATE */
@@ -577,6 +587,28 @@ function getCountryCode(nom) {
   return null;
 }
 
+function getActeurImageUrl(a) {
+  // Selon le type d'acteur : pays → drapeau, organisation → drapeau ou logo, individu/entreprise → Wikipedia
+  const type = (a.type || '').toLowerCase();
+  const nom = a.nom || '';
+
+  if(type === 'pays' || type === 'country') {
+    return getFlagUrl(nom) || null;
+  }
+  if(type === 'individu' || type === 'person') {
+    return null; // Sera rempli par Wikipedia (photo)
+  }
+  if(type === 'entreprise' || type === 'company') {
+    return null; // Wikipedia pour logo
+  }
+  if(type === 'organisation' || type === 'organization') {
+    // Essayer le drapeau d'abord, sinon Wikipedia
+    return getFlagUrl(nom) || null;
+  }
+  // Par défaut : essayer drapeau
+  return getFlagUrl(nom) || null;
+}
+
 function getFlagUrl(nom) {
   const code = getCountryCode(nom);
   if (!code || code === 'NATO' || code === 'EU' || code === 'UN') return null;
@@ -628,7 +660,8 @@ Analyse sans langue de bois ni faux equilibre. JSON:
 
     const p3=callProxy([{role:'user',content:`Sujet : "${t}". Contexte : ${ctx}. Sources : ${as}. Cadres : ${af}. Profondeur : ${dl}. Nomme les biais reels. Ne presente pas deux cotes comme equivalents si ce nest pas la realite.\nJSON 4 sections:\n{"sections":[{"titre":"Biais & angles morts","resume":"<2-3 ph>","detail":"<analyse HTML>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"},{"titre":"Contexte historique","resume":"<2-3 ph>","detail":"<analyse>","type_viz":"line","viz_label":"<titre>","viz_data":{"labels":["<a1>","<a2>","<a3>","<a4>","<a5>"],"values":[0,0,0,0,0]},"image_query":"<2-4 mots anglais>"},{"titre":"Tendances systémiques","resume":"<2-3 ph>","detail":"<analyse>","type_viz":"bar","viz_label":"<titre>","viz_data":{"labels":["<t1>","<t2>","<t3>","<t4>"],"values":[0,0,0,0]},"image_query":"<2-4 mots anglais>"},{"titre":"Trajectoires plausibles","resume":"<2-3 ph>","detail":"<analyse>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"}]}\nviz_data : remplace les 0 par de vraies valeurs numeriques.`}],5000).then(raw=>{try{const d=safeJSON(raw);(d.sections||[]).forEach((s,i)=>analysis.sections[i+4]=s);}catch(e){console.error('[p3]',e.message);}setStep(3);});
 
-    const p4a=callProxy([{role:'user',content:`Sujet : "${t}". Contexte : ${ctx}.
+    // Triple passe acteurs — 3 analyses indépendantes puis synthèse
+    const acteurPrompt = `Sujet : "${t}". Contexte : ${ctx}.
 Identifie 5 acteurs clés et leur position REELLE sur ce sujet.
 Definitions strictes — ne pas utiliser pour equilibrer les colonnes :
 - "pro" : soutient ou beneficie de la position dominante dans ce conflit
@@ -638,39 +671,83 @@ Definitions strictes — ne pas utiliser pour equilibrer les colonnes :
 Il peut y avoir 4 "pro" et 1 "contra" — pas d'imperatif de symetrie.
 JSON uniquement :
 {"acteurs":[
-{"nom":"<nom reel>","role":"<role precis>","camp":"<camp selon realite>","interet":"<interet reel 1 phrase>","wiki":"<titre exact page Wikipedia anglaise>"},
-{"nom":"<nom>","role":"<role>","camp":"<camp>","interet":"<interet>","wiki":"<titre Wikipedia anglais>"},
-{"nom":"<nom>","role":"<role>","camp":"<camp>","interet":"<interet>","wiki":"<titre Wikipedia anglais>"},
-{"nom":"<nom>","role":"<role>","camp":"<camp>","interet":"<interet>","wiki":"<titre Wikipedia anglais>"},
-{"nom":"<nom>","role":"<role>","camp":"<camp>","interet":"<interet>","wiki":"<titre Wikipedia anglais>","leviers":"<2-3 leviers d action concrets>","contraintes":"<2-3 contraintes majeures>"}
-]}`}],2000).then(raw=>{try{
-        const d=safeJSON(raw);
-        analysis.acteurs=d.acteurs||[];
-        _lastActeurs=analysis.acteurs;
-        renderActeurs(analysis);
-        // Images en arrière-plan sans bloquer le rendu
-        loadActeurImages(_lastActeurs).then(() => {
-          _lastActeurs.forEach((a,i) => {
-            if (!a._wikiImg) return;
-            const wraps = document.querySelectorAll('.actor-imgwrap');
-            if (!wraps[i]) return;
-            const img = wraps[i].querySelector('img');
-            if (img) { img.src = a._wikiImg; return; }
-            const ni = document.createElement('img');
-            ni.src = a._wikiImg;
-            ni.style.cssText = 'width:100%;height:80px;object-fit:cover;position:absolute;top:0;left:0';
-            ni.onerror = function(){this.style.display='none';};
-            wraps[i].appendChild(ni);
-          });
-        }).catch(()=>{});
-      }catch(e){console.error('[p4a]',e.message);}
-      setStep(4);});
+{"nom":"<nom reel>","role":"<role precis>","camp":"<camp selon realite>","interet":"<interet reel 1 phrase>","wiki":"<titre exact page Wikipedia anglaise>","type":"<pays|organisation|entreprise|individu>","leviers":"<2-3 leviers>","contraintes":"<2-3 contraintes>"},
+{"nom":"<nom>","role":"<role>","camp":"<camp>","interet":"<interet>","wiki":"<titre Wikipedia anglais>","type":"<pays|organisation|entreprise|individu>","leviers":"<leviers>","contraintes":"<contraintes>"},
+{"nom":"<nom>","role":"<role>","camp":"<camp>","interet":"<interet>","wiki":"<titre Wikipedia anglais>","type":"<pays|organisation|entreprise|individu>","leviers":"<leviers>","contraintes":"<contraintes>"},
+{"nom":"<nom>","role":"<role>","camp":"<camp>","interet":"<interet>","wiki":"<titre Wikipedia anglais>","type":"<pays|organisation|entreprise|individu>","leviers":"<leviers>","contraintes":"<contraintes>"},
+{"nom":"<nom>","role":"<role>","camp":"<camp>","interet":"<interet>","wiki":"<titre Wikipedia anglais>","type":"<pays|organisation|entreprise|individu>","leviers":"<leviers>","contraintes":"<contraintes>"}
+]}`;
+
+    const [r4a1, r4a2, r4a3] = await Promise.allSettled([
+      callProxy([{role:'user',content:acteurPrompt}],2000),
+      callProxy([{role:'user',content:acteurPrompt}],2000),
+      callProxy([{role:'user',content:acteurPrompt}],2000)
+    ]);
+
+    // Synthèse des 3 passes
+    const acteurSets = [r4a1, r4a2, r4a3].map(r => {
+      if(r.status !== 'fulfilled') return [];
+      try { return safeJSON(r.value).acteurs || []; } catch(e) { return []; }
+    }).filter(s => s.length > 0);
+
+    let finalActeurs = [];
+    if(acteurSets.length > 0) {
+      // Consolidation : compter les acteurs mentionnés dans plusieurs passes
+      const nomCount = {};
+      acteurSets.forEach(set => set.forEach(a => {
+        const key = (a.nom||'').toLowerCase().trim();
+        if(!nomCount[key]) nomCount[key] = {count:0, versions:[]};
+        nomCount[key].count++;
+        nomCount[key].versions.push(a);
+      }));
+      // Prendre les acteurs mentionnés au moins 2 fois (ou tous si une seule passe)
+      const threshold = acteurSets.length >= 2 ? 2 : 1;
+      const confirmed = Object.values(nomCount)
+        .filter(e => e.count >= threshold)
+        .sort((a,b) => b.count - a.count)
+        .slice(0, 6);
+      // Synthétiser chaque acteur : prendre la version la plus détaillée
+      finalActeurs = confirmed.map(e => {
+        const versions = e.versions;
+        // Prendre la version avec le plus de champs remplis
+        return versions.reduce((best, v) => {
+          const score = Object.values(v).filter(x=>x&&String(x).length>5).length;
+          const bestScore = Object.values(best).filter(x=>x&&String(x).length>5).length;
+          return score > bestScore ? v : best;
+        }, versions[0]);
+      });
+      // Compléter si moins de 3 acteurs confirmés avec les mieux notés du set 1
+      if(finalActeurs.length < 3 && acteurSets[0]) {
+        const extra = acteurSets[0].filter(a => !finalActeurs.find(f => f.nom===a.nom));
+        finalActeurs = [...finalActeurs, ...extra].slice(0, 5);
+      }
+    }
+
+    analysis.acteurs = finalActeurs;
+    _lastActeurs = finalActeurs;
+    renderActeurs(analysis);
+    // Images en arrière-plan
+    loadActeurImages(_lastActeurs).then(() => {
+      _lastActeurs.forEach((a,i) => {
+        if(!a._wikiImg) return;
+        const wraps = document.querySelectorAll('.actor-imgwrap');
+        if(!wraps[i]) return;
+        const img = wraps[i].querySelector('img');
+        if(img){img.src=a._wikiImg;return;}
+        const ni=document.createElement('img');
+        ni.src=a._wikiImg;
+        ni.style.cssText='width:100%;height:80px;object-fit:cover;position:absolute;top:0;left:0';
+        ni.onerror=function(){this.style.display='none';};
+        wraps[i].appendChild(ni);
+      });
+    }).catch(()=>{});
+    setStep(4);
 
     const p4b=callProxy([{role:'user',content:'Sujet : "'+t+'". Contexte : '+ctx+'. 3 scenarios plausibles. Ne lisse pas les probabilites — dis les vraies valeurs. Somment a 100. JSON : {"scenarios":[{"titre":"<sc1>","probabilite":<n>,"description":"<2ph>","signal":"<sf>","detail":"<3ph>"},{"titre":"<sc2>","probabilite":<n>,"description":"<2ph>","signal":"<sf>","detail":"<3ph>"},{"titre":"<sc3>","probabilite":<n>,"description":"<2ph>","signal":"<sf>","detail":"<3ph>"}]}'}],2000)
 .then(raw=>{try{const d=safeJSON(raw);const sc=d.scenarios||[];analysis.scenarios=sc;if(sc.length>0)renderScenarios(analysis);}catch(e){console.error('[p4b]',e.message);}setStep(5);})
-    const results=await Promise.allSettled([p2,p3,p4a,p4b]);
+    const results=await Promise.allSettled([p2,p3,p4b]);
     const failed=results.filter(r=>r.status==='rejected');
-    if(failed.length===4) throw new Error((failed[0].reason?.message)||'Tous les appels API ont échoué — vérifiez votre connexion');
+    if(failed.length===3) throw new Error((failed[0].reason?.message)||'Tous les appels API ont échoué — vérifiez votre connexion');
     if(failed.length>0) console.warn('[Prisme] Appels échoués:',failed.map(f=>f.reason?.message));
 
     _currentAnalysis=analysis;
@@ -759,8 +836,8 @@ function renderActeurs(d) {
     init.textContent = a.nom.slice(0, 2).toUpperCase();
     wrap.appendChild(init);
 
-    // Image Wikipedia si disponible, sinon drapeau
-    const imgSrc = a._wikiImg || getFlagUrl(a.nom);
+    // Image selon le type : Wikipedia si dispo, sinon drapeau/logo selon type
+    const imgSrc = a._wikiImg || getActeurImageUrl(a);
     if (imgSrc) {
       const img = document.createElement('img');
       img.src = imgSrc;
@@ -815,7 +892,7 @@ function openActeur(idx) {
   document.querySelectorAll('.actor-card').forEach((c,i) => c.classList.toggle('active', i===idx));
   const [bg,fg,lbl] = BADGE[a.camp||'neutre'] || BADGE.neutre;
   const col = {pro:'#1a3a1a',contra:'#7f1d1d',neutre:'#2a2a2a',ambigu:'#633806'}[a.camp||'neutre'];
-  const flagUrl = a._wikiImg || getFlagUrl(a.nom);
+  const flagUrl = a._wikiImg || getActeurImageUrl(a);
 
   const imgHtml = flagUrl
     ? `<div style="position:relative;width:100%;height:140px;background:var(--bg3);border-radius:var(--r);margin-bottom:.75rem;overflow:hidden">
@@ -1101,6 +1178,7 @@ function openCampDetail(k) {
 
 
 document.getElementById('topic-in').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();launch();}});
-document.getElementById('spec-in').addEventListener('keydown',e=>{if(e.key==='Enter')runSpectre();});</script>
+document.getElementById('spec-in').addEventListener('keydown',e=>{if(e.key==='Enter')runSpectre();});
+</script>
 </body>
 </html>
