@@ -5,67 +5,63 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Prisme — Analyse systémique</title>
 <style>
+/* ── RESET & VARS ─────────────────────────────── */
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg:#1a1a1a;--bg2:#232323;--bg3:#2d2d2d;
-  --txt:#ececec;--txt2:#999999;--txt3:#555555;
-  --brd:rgba(255,255,255,0.10);--brd2:rgba(255,255,255,0.18);
+  --txt:#ececec;--txt2:#999;--txt3:#555;
+  --brd:rgba(255,255,255,.10);--brd2:rgba(255,255,255,.18);
   --r:8px;--rl:12px;
 }
 html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg);color:var(--txt)}
 
-/* TOPBAR */
-.topbar{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:0.5px solid var(--brd);flex-shrink:0;background:var(--bg)}
+/* ── TOPBAR ───────────────────────────────────── */
+.topbar{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;border-bottom:0.5px solid var(--brd);flex-shrink:0}
 .brand{font-size:14px;font-weight:500;letter-spacing:-.02em}
 .brand span{font-weight:400;color:var(--txt2);font-size:13px}
 .topic-pill{font-size:11px;color:var(--txt3);font-style:italic;max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tbtn{padding:5px 12px;border:0.5px solid var(--brd2);border-radius:var(--r);background:transparent;font-size:11px;color:var(--txt2);cursor:pointer;font-family:inherit;white-space:nowrap}
+.tbtn{padding:5px 12px;border:0.5px solid var(--brd2);border-radius:var(--r);background:transparent;font-size:11px;color:var(--txt2);cursor:pointer;font-family:inherit}
 .tbtn:hover{background:var(--bg2);color:var(--txt)}
 
-/* WORKBENCH */
+/* ── WORKBENCH ────────────────────────────────── */
 .workbench{display:flex;height:calc(100vh - 44px);width:100vw;overflow:hidden}
-
-/* PANE */
-.pane{display:flex;flex-direction:column;overflow:hidden;min-width:0;position:relative}
-.pane.hidden{flex:0 0 0!important;min-width:0!important}
+.pane{display:flex;flex-direction:column;overflow:hidden;min-width:0}
+.pane.hidden{flex:0 0 0!important;min-width:0}
+.pane.hidden .pane-header,.pane.hidden .pane-body{display:none}
+.pane.hidden .pane-tab{display:flex}
 .pane-header{height:36px;display:flex;align-items:center;justify-content:space-between;padding:0 14px;border-bottom:0.5px solid var(--brd);flex-shrink:0;background:var(--bg2)}
 .pane-title{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--txt3)}
-.picon{width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:4px;cursor:pointer;font-size:12px;color:var(--txt3);border:none;background:transparent}
-.picon:hover{background:var(--bg3);color:var(--txt)}
-.pane-body{flex:1;overflow-y:auto;padding:14px;scroll-behavior:smooth}
+.pane-body{flex:1;overflow-y:auto;padding:14px}
 .pane-body::-webkit-scrollbar{width:4px}
 .pane-body::-webkit-scrollbar-thumb{background:var(--brd2);border-radius:2px}
 .pane-tab{writing-mode:vertical-rl;padding:12px 8px;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.1em;color:var(--txt3);cursor:pointer;border-right:0.5px solid var(--brd);background:var(--bg2);display:none;align-items:center;white-space:nowrap}
 .pane-tab:hover{color:var(--txt);background:var(--bg3)}
-.pane.hidden .pane-tab{display:flex}
-.pane.hidden .pane-header,.pane.hidden .pane-body{display:none}
-
-/* DIVIDER */
+.picon{width:22px;height:22px;display:flex;align-items:center;justify-content:center;border-radius:4px;cursor:pointer;font-size:12px;color:var(--txt3);border:none;background:transparent}
+.picon:hover{background:var(--bg3);color:var(--txt)}
 .divider{width:4px;flex-shrink:0;cursor:col-resize;background:transparent}
 .divider:hover,.divider.dragging{background:var(--brd2)}
-.pane.hidden+.divider,.divider+.pane.hidden{display:none}
 
-/* COMMUNS */
+/* ── COMMUNS ──────────────────────────────────── */
 .slabel{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.07em;color:var(--txt3);margin-bottom:.5rem;margin-top:1rem}
 .slabel:first-child{margin-top:0}
-.sep{border:none;border-top:0.5px solid var(--brd);margin:.75rem 0}
-.etags{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:.6rem}
-.etag{padding:3px 9px;border:0.5px solid var(--brd);border-radius:999px;font-size:11px;color:var(--txt2);cursor:pointer;background:transparent}
+.etag{padding:3px 9px;border:0.5px solid var(--brd);border-radius:999px;font-size:11px;color:var(--txt2);cursor:pointer;background:transparent;white-space:nowrap}
 .etag:hover{background:var(--bg3);color:var(--txt)}
 .spinner{width:20px;height:20px;border:2px solid var(--brd2);border-top-color:var(--txt);border-radius:50%;animation:spin .7s linear infinite;flex-shrink:0}
 @keyframes spin{to{transform:rotate(360deg)}}
-.err-box{padding:8px 12px;border:0.5px solid #7f1d1d;border-radius:var(--r);background:#2a1010;font-size:11px;color:#fca5a5;display:none}
+.err-box{padding:8px 12px;border:0.5px solid #7f1d1d;border-radius:var(--r);background:#2a1010;font-size:11px;color:#fca5a5;display:none;margin-bottom:.6rem}
 .err-box.on{display:block}
+.abtn{padding:6px 11px;border:0.5px solid var(--brd2);border-radius:var(--r);background:transparent;font-size:11px;color:var(--txt2);cursor:pointer;font-family:inherit}
+.abtn:hover{background:var(--bg3);color:var(--txt)}
+.abtn.pri{background:var(--txt);color:var(--bg);border-color:var(--txt)}
 
-/* SPECTRE */
+/* ── SPECTRE ──────────────────────────────────── */
 .spec-row{display:flex;gap:6px;margin-bottom:.6rem}
 .spec-input{flex:1;padding:7px 10px;border:0.5px solid var(--brd2);border-radius:var(--r);background:var(--bg3);font-size:12px;color:var(--txt);font-family:inherit}
 .spec-input:focus{outline:none;border-color:var(--txt3)}
 .spec-btn{padding:6px 12px;border-radius:var(--r);background:var(--txt);border:none;color:var(--bg);font-size:11px;font-weight:500;cursor:pointer;font-family:inherit;white-space:nowrap}
-.spec-btn:hover{opacity:.85}
 .spec-btn:disabled{opacity:.4;cursor:not-allowed}
 .spec-bar{height:22px;border-radius:var(--r);display:flex;overflow:hidden;margin-bottom:4px}
-.seg{display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;min-width:0;overflow:hidden;transition:width .6s cubic-bezier(.4,0,.2,1)}
+.seg{display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;min-width:0;overflow:hidden;transition:width .6s ease}
 .seg-gg{background:#DC2626;color:#fee2e2}
 .seg-g{background:#F97316;color:#7c2d12}
 .seg-c{background:#D1D5DB;color:#374151}
@@ -89,13 +85,13 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .at{width:100%;border-collapse:collapse;font-size:10px;margin-bottom:.6rem}
 .at th{text-align:left;padding:4px 6px;background:var(--bg3);font-weight:500;color:var(--txt2);border-bottom:0.5px solid var(--brd)}
 .at td{padding:4px 6px;border-bottom:0.5px solid var(--brd);vertical-align:top;line-height:1.4;word-wrap:break-word}
-.at td:first-child{font-weight:500;white-space:nowrap;color:inherit}
-.cw{position:relative;width:100%;height:130px;margin-bottom:.5rem}
+.at td:first-child{font-weight:500;white-space:nowrap}
+.cw{position:relative;width:100%;height:120px;margin-bottom:.5rem}
 .cleg{display:flex;gap:8px;margin-bottom:.4rem;font-size:10px;color:var(--txt2);flex-wrap:wrap}
 .cl-item{display:flex;align-items:center;gap:3px}
 .cl-sq{width:10px;height:2px;display:inline-block}
-.spec-list-item{display:flex;align-items:flex-start;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--brd);font-size:11px;color:var(--txt2);line-height:1.5}
-.spec-list-item:last-child{border-bottom:none}
+.list-item{display:flex;align-items:flex-start;gap:6px;padding:5px 0;border-bottom:0.5px solid var(--brd);font-size:11px;color:var(--txt2);line-height:1.5}
+.list-item:last-child{border-bottom:none}
 .src-bar-row{display:flex;align-items:center;gap:7px;margin-bottom:5px}
 .src-bar-name{font-size:10px;width:50px;flex-shrink:0;text-align:right;font-weight:500}
 .src-bar-track{flex:1;height:12px;background:var(--bg3);border-radius:2px;overflow:hidden}
@@ -103,7 +99,7 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .src-bar-nb{font-size:10px;color:var(--txt2);width:24px;flex-shrink:0}
 .discl{font-size:10px;color:var(--txt3);line-height:1.5;margin-top:.4rem}
 
-/* ANALYSE */
+/* ── ANALYSE ──────────────────────────────────── */
 .mbtn{flex:1;padding:6px 0;border:0.5px solid var(--brd2);border-radius:var(--r);background:transparent;font-size:11px;color:var(--txt2);cursor:pointer;font-family:inherit}
 .mbtn.on{background:var(--bg3);color:var(--txt);font-weight:500}
 .tinput{width:100%;padding:7px 10px;border:0.5px solid var(--brd2);border-radius:var(--r);background:var(--bg3);font-size:12px;color:var(--txt);font-family:inherit;margin-bottom:.5rem;resize:none}
@@ -121,40 +117,40 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .gobtn{width:100%;padding:9px;border-radius:var(--r);background:var(--txt);border:none;color:var(--bg);font-size:12px;font-weight:500;cursor:pointer;font-family:inherit;margin-bottom:.5rem}
 .gobtn:hover{opacity:.85}
 .gobtn:disabled{opacity:.4;cursor:not-allowed}
-.vbtn{width:100%;padding:7px;border:0.5px dashed var(--brd2);border-radius:var(--r);background:transparent;font-size:11px;color:var(--txt2);cursor:pointer;font-family:inherit;margin-bottom:.5rem}
-
-/* RÉSULTATS */
 .an-headline{font-size:20px;font-weight:600;line-height:1.3;letter-spacing:-.02em;margin-bottom:5px}
 .an-meta{font-size:11px;color:var(--txt3);display:flex;gap:10px;flex-wrap:wrap;margin-bottom:.75rem}
-.an-resume{font-size:13px;color:var(--txt2);line-height:1.7;margin-bottom:1rem;padding:12px 14px;background:var(--bg3);border-left:2px solid var(--brd2);border-radius:0 var(--r) var(--r) 0}
+.an-resume{font-size:13px;color:var(--txt2);line-height:1.7;margin-bottom:.75rem;padding:12px 14px;background:var(--bg3);border-left:2px solid var(--brd2);border-radius:0 var(--r) var(--r) 0}
 .an-loading{display:none;flex-direction:column;align-items:center;justify-content:center;padding:3rem 1rem;gap:10px;text-align:center}
 .an-loading.on{display:flex}
 .an-loading-lbl{font-size:12px;color:var(--txt2);font-weight:500}
 .an-loading-sub{font-size:11px;color:var(--txt3)}
 .an-prog-wrap{width:160px;height:2px;background:var(--bg3);border-radius:999px;overflow:hidden}
 .an-prog-bar{height:100%;background:var(--txt);border-radius:999px;width:0%;transition:width .4s ease}
-.abtn{padding:6px 11px;border:0.5px solid var(--brd2);border-radius:var(--r);background:transparent;font-size:11px;color:var(--txt2);cursor:pointer;font-family:inherit}
-.abtn:hover{background:var(--bg3);color:var(--txt)}
-.abtn.pri{background:var(--txt);color:var(--bg);border-color:var(--txt)}
 
-/* ACTEURS */
+/* ── CARTE CENTRE ─────────────────────────────── */
+.map-center-wrap{margin-bottom:.75rem;border:0.5px solid var(--brd);border-radius:var(--r);overflow:hidden;display:none}
+.map-center-svg{width:100%;height:160px;background:#060d1a;display:block}
+.map-legend-bar{display:flex;gap:10px;padding:5px 10px;border-top:0.5px solid var(--brd);font-size:10px;color:var(--txt2);flex-wrap:wrap}
+.legend-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:3px}
+
+/* ── ACTEURS ──────────────────────────────────── */
 .actors-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:.75rem}
 .actor-card{border:0.5px solid var(--brd);border-radius:var(--rl);overflow:hidden;background:var(--bg2);cursor:pointer;transition:border-color .15s;width:100%}
 .actor-card:hover{border-color:var(--brd2)}
 .actor-card.active{border-color:var(--txt)}
-.actor-card.actor-ambigu{border-style:dashed}
-.actor-imgwrap{width:100%;height:80px;background:var(--bg3);overflow:hidden;position:relative;flex-shrink:0}
-.actor-imgwrap img{width:100%;height:80px;object-fit:cover;display:block;position:absolute;top:0;left:0}
-.actor-imgwrap .actor-init{position:absolute;top:0;left:0;width:100%;height:80px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:500;color:var(--txt3)}
+.actor-card.ambigu{border-style:dashed}
+.actor-imgwrap{width:100%;height:80px;background:var(--bg3);position:relative;overflow:hidden;flex-shrink:0}
+.actor-imgwrap img{width:100%;height:80px;object-fit:cover;position:absolute;top:0;left:0;display:block}
+.actor-init{position:absolute;top:0;left:0;width:100%;height:80px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:500;color:var(--txt3)}
 .actor-body{padding:8px 10px}
 .actor-badge{display:inline-flex;align-items:center;gap:2px;padding:2px 7px;border-radius:999px;font-size:10px;font-weight:500;margin-bottom:5px}
 .actor-name{font-size:12px;font-weight:500;margin-bottom:1px;color:var(--txt)}
-.actor-role{font-size:10px;color:var(--txt2);margin-bottom:5px}
-.actor-interet{font-size:10px;color:var(--txt2);line-height:1.5;padding-top:5px;border-top:0.5px solid var(--brd)}
+.actor-role{font-size:10px;color:var(--txt2);margin-bottom:4px}
+.actor-interet{font-size:10px;color:var(--txt2);line-height:1.5;padding-top:4px;border-top:0.5px solid var(--brd)}
 
-/* SCÉNARIOS */
+/* ── SCÉNARIOS ────────────────────────────────── */
 .sc-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:.5rem}
-.sc-box{padding:10px 12px;border:0.5px solid var(--brd);border-radius:var(--r);background:var(--bg2);cursor:pointer;display:flex;flex-direction:column;gap:5px;transition:border-color .15s;user-select:none}
+.sc-box{padding:10px 12px;border:0.5px solid var(--brd);border-radius:var(--r);background:var(--bg2);cursor:pointer;display:flex;flex-direction:column;gap:5px;transition:border-color .15s}
 .sc-box:hover{border-color:var(--brd2)}
 .sc-box.active{border-color:var(--txt)}
 .sc-top{display:flex;align-items:center;gap:8px}
@@ -165,27 +161,19 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 .sc-hint{font-size:9px;color:var(--txt3)}
 .sc-panel{display:none;margin-top:8px;padding:12px 14px;border:0.5px solid var(--brd2);border-radius:var(--r);background:var(--bg3);font-size:11px;color:var(--txt2);line-height:1.7}
 .sc-panel.on{display:block}
-.sc-panel-ttl{font-size:12px;font-weight:500;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between}
-.sc-close{background:none;border:none;cursor:pointer;color:var(--txt3);font-size:14px;padding:0}
 
-/* DÉTAIL */
-.detail-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;height:200px;color:var(--txt3);text-align:center;gap:8px}
+/* ── DÉTAIL ───────────────────────────────────── */
+.detail-empty{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:200px;color:var(--txt3);text-align:center;gap:8px;padding:2rem}
 .detail-title{font-size:14px;font-weight:500;margin-bottom:.6rem;padding-bottom:.5rem;border-bottom:0.5px solid var(--brd);line-height:1.4}
-.detail-img{width:100%;height:140px;object-fit:cover;border-radius:var(--r);margin-bottom:.5rem;display:block}
-.detail-caption{font-size:10px;color:var(--txt3);font-style:italic;margin-bottom:.6rem}
-.detail-body{font-size:13px;color:var(--txt2);line-height:1.8}
+.detail-body{font-size:12px;color:var(--txt2);line-height:1.8}
 .detail-body p{margin-bottom:.5rem}
-.detail-chart-wrap{position:relative;width:100%;height:160px;margin:.6rem 0}
-
-/* CARTE */
 .map-wrap{border:0.5px solid var(--brd);border-radius:var(--r);overflow:hidden;margin-bottom:.75rem}
 .map-legend{display:flex;gap:10px;padding:6px 10px;border-top:0.5px solid var(--brd);font-size:10px;color:var(--txt2);flex-wrap:wrap}
-.legend-item{display:flex;align-items:center;gap:4px}
-.legend-dot{width:8px;height:8px;border-radius:50%}
 </style>
 </head>
 <body>
 
+<!-- TOPBAR -->
 <div class="topbar">
   <div class="brand">Prisme <span>· analyse systémique</span></div>
   <div class="topic-pill" id="mast-topic">Aucun sujet sélectionné</div>
@@ -195,6 +183,7 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
   </div>
 </div>
 
+<!-- WORKBENCH -->
 <div class="workbench" id="wb">
 
   <!-- GAUCHE : SPECTRE -->
@@ -204,12 +193,12 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
       <div class="pane-title">Spectre médiatique</div>
       <button class="picon" onclick="togglePane('left')">✕</button>
     </div>
-    <div class="pane-body">
+    <div class="pane-body" id="spec-pane-body">
       <div class="spec-row">
         <input class="spec-input" id="spec-in" placeholder="Sujet à analyser…"/>
         <button class="spec-btn" id="spec-btn" onclick="runSpectre()">Analyser →</button>
       </div>
-      <div class="etags">
+      <div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:.6rem">
         <span class="etag" onclick="specT('Immigration en France')">Immigration</span>
         <span class="etag" onclick="specT('Droites radicales en Europe')">Droites EU</span>
         <span class="etag" onclick="specT('IA et emploi')">IA & emploi</span>
@@ -240,25 +229,21 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
         </div>
         <div class="slabel">Par camp</div>
         <div id="camps-g"></div>
-        <div class="slabel">Consensus factuel</div>
-        <div id="spec-consensus"></div>
-        <div class="slabel">Points de divergence</div>
-        <div id="spec-divergence"></div>
-        <div class="slabel">Angles morts communs</div>
-        <div id="spec-angles"></div>
-        <div class="slabel">Sources par camp</div>
-        <div id="spec-sources-camps"></div>
+        <div class="slabel">Consensus factuel</div><div id="spec-consensus"></div>
+        <div class="slabel">Points de divergence</div><div id="spec-divergence"></div>
+        <div class="slabel">Angles morts communs</div><div id="spec-angles"></div>
+        <div class="slabel">Sources par camp</div><div id="spec-sources-camps"></div>
         <div class="slabel">Cadrage comparé</div>
         <table class="at"><thead><tr><th>Camp</th><th>Met en avant</th><th>Omet</th><th>Récit</th></tr></thead><tbody id="at-body"></tbody></table>
         <div class="slabel">Couverture 7 jours</div>
         <div class="cleg">
-          <span class="cl-item"><span class="cl-sq" style="background:#DC2626"></span>G. rad.</span>
+          <span class="cl-item"><span class="cl-sq" style="background:#DC2626"></span>G.rad.</span>
           <span class="cl-item"><span class="cl-sq" style="background:#F97316"></span>Gauche</span>
           <span class="cl-item"><span class="cl-sq" style="background:#9CA3AF"></span>Centre</span>
           <span class="cl-item"><span class="cl-sq" style="background:#60A5FA"></span>Droite</span>
-          <span class="cl-item"><span class="cl-sq" style="background:#2563EB"></span>D. rad.</span>
+          <span class="cl-item"><span class="cl-sq" style="background:#2563EB"></span>D.rad.</span>
         </div>
-        <div class="cw"><canvas id="tChart" role="img" aria-label="Couverture 7 jours">Données.</canvas></div>
+        <div class="cw"><canvas id="tChart"></canvas></div>
         <div class="discl">Analyse IA — pas une mesure exacte.</div>
       </div>
     </div>
@@ -268,17 +253,17 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 
   <!-- CENTRE : ANALYSE -->
   <div class="pane" id="pane-center" style="flex:1">
-    <div class="pane-header">
-      <div class="pane-title">Analyse systémique</div>
-    </div>
+    <div class="pane-header"><div class="pane-title">Analyse systémique</div></div>
     <div class="pane-body" id="pane-center-body">
-      <div id="analyser-form">
+
+      <!-- FORMULAIRE -->
+      <div id="an-form">
         <div style="display:flex;gap:6px;margin-bottom:.5rem">
           <button class="mbtn on" id="m-s" onclick="setMode('s')">Sujet précis</button>
           <button class="mbtn" id="m-v" onclick="setMode('v')">Veille auto</button>
         </div>
-        <div id="zone-s"><textarea class="tinput" id="topic-in" rows="2" placeholder="Ex : droites radicales en Europe, crise de la dette japonaise…"></textarea></div>
-        <div id="zone-v" style="display:none"><button class="vbtn" onclick="launchVeille()">Identifier les 5 sujets chauds →</button></div>
+        <div id="zone-s"><textarea class="tinput" id="topic-in" rows="2" placeholder="Ex : droites radicales en Europe, guerre USA-Iran…"></textarea></div>
+        <div id="zone-v" style="display:none"><button class="gobtn" onclick="launchVeille()">Identifier les 5 sujets chauds →</button></div>
         <div class="slabel">Profondeur</div>
         <div style="display:flex;gap:4px;margin-bottom:.5rem">
           <button class="dbtn on" id="d-f" onclick="setD('f')">Flash<small>3 min</small></button>
@@ -286,7 +271,7 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
           <button class="dbtn" id="d-d" onclick="setD('d')">Dossier<small>20 min</small></button>
         </div>
         <div class="slabel">Sources</div>
-        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:4px;margin-bottom:.4rem">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-bottom:.4rem">
           <div class="scat on" id="sc-ag" onclick="toggleS('ag')"><div class="scat-h">Agences</div><div class="scat-ex">AFP, Reuters, AP…</div></div>
           <div class="scat on" id="sc-pr" onclick="toggleS('pr')"><div class="scat-h">Presse intl</div><div class="scat-ex">FT, NYT, Le Monde…</div></div>
           <div class="scat on" id="sc-in" onclick="toggleS('in')"><div class="scat-h">Institutions</div><div class="scat-ex">ONU, OCDE, BCE…</div></div>
@@ -298,7 +283,7 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
         </div>
         <div style="font-size:10px;color:var(--txt3);margin-bottom:.4rem" id="src-counter"><span>8</span>/8 sources · <span id="frame-count">8</span>/8 cadres</div>
         <div class="slabel">Cadres</div>
-        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:3px;margin-bottom:.5rem">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:3px;margin-bottom:.5rem">
           <button class="fbtn on" id="f-ge" onclick="tF('ge')">Géopolitique</button>
           <button class="fbtn on" id="f-ep" onclick="tF('ep')">Éco. politique</button>
           <button class="fbtn on" id="f-so" onclick="tF('so')">Sociologie</button>
@@ -310,24 +295,30 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
         </div>
         <button class="gobtn" id="go-btn" onclick="launch()">Lancer l'analyse →</button>
         <div class="slabel">Exemples</div>
-        <div class="etags">
+        <div style="display:flex;flex-wrap:wrap;gap:4px">
           <span class="etag" onclick="setT('Guerre commerciale USA–Chine')">USA–Chine</span>
           <span class="etag" onclick="setT('Droites radicales en Europe')">Droites Europe</span>
           <span class="etag" onclick="setT('Immigration en France')">Immigration France</span>
           <span class="etag" onclick="setT('Sahel post-France')">Sahel</span>
           <span class="etag" onclick="setT('Dédollarisation & BRICS')">BRICS</span>
           <span class="etag" onclick="setT('IA et concentration du capital')">IA & capital</span>
-          <span class="etag" onclick="setT('Conflit en Ukraine : bilan et scénarios')">Ukraine</span>
-          <span class="etag" onclick="setT('Crise démographique européenne')">Démographie EU</span>
+          <span class="etag" onclick="setT('Conflit en Ukraine')">Ukraine</span>
+          <span class="etag" onclick="setT('Guerre USA/Iran')">USA/Iran</span>
         </div>
       </div>
+
+      <!-- ERREUR -->
       <div class="err-box" id="an-err"></div>
+
+      <!-- LOADING -->
       <div class="an-loading" id="an-loading">
         <div class="spinner"></div>
         <div class="an-loading-lbl" id="an-loading-lbl">Analyse en cours…</div>
         <div class="an-loading-sub" id="an-loading-sub">Mobilisation des sources</div>
         <div class="an-prog-wrap"><div class="an-prog-bar" id="an-prog"></div></div>
       </div>
+
+      <!-- RÉSULTATS -->
       <div id="an-results" style="display:none">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.6rem">
           <button class="abtn" onclick="resetAnalyse()" style="font-size:10px;padding:4px 8px">← Nouveau</button>
@@ -336,19 +327,24 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
         <div class="an-headline" id="an-headline"></div>
         <div class="an-meta" id="an-meta"></div>
         <div class="an-resume" id="an-resume"></div>
-        <div id="an-map-center" style="display:none;margin-bottom:.75rem;border:0.5px solid var(--brd);border-radius:var(--r);overflow:hidden">
-            <div id="geo-map-center" style="width:100%;background:var(--bg3)"></div>
-            <div style="display:flex;gap:10px;padding:6px 10px;border-top:0.5px solid var(--brd);font-size:10px;color:var(--txt2);flex-wrap:wrap">
-              <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#1a3a1a;display:inline-block"></span>Favorable</span>
-              <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#7f1d1d;display:inline-block"></span>Opposé</span>
-              <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#888780;display:inline-block"></span>Neutre</span>
-              <span style="display:flex;align-items:center;gap:4px"><span style="width:8px;height:8px;border-radius:50%;background:#633806;display:inline-block"></span>Ambigu</span>
-            </div>
+
+        <!-- CARTE MONDE (remplace l'image hero) -->
+        <div class="map-center-wrap" id="an-map-center">
+          <svg id="geo-map-center" class="map-center-svg"></svg>
+          <div class="map-legend-bar">
+            <span><span class="legend-dot" style="background:#1a3a1a"></span>Favorable</span>
+            <span><span class="legend-dot" style="background:#7f1d1d"></span>Opposé</span>
+            <span><span class="legend-dot" style="background:#888780"></span>Neutre</span>
+            <span><span class="legend-dot" style="background:#633806"></span>Ambigu</span>
           </div>
+        </div>
+
         <div class="slabel">Acteurs & intérêts — <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px">cliquez pour les détails →</span></div>
         <div id="an-acteurs"></div>
+
         <div class="slabel">Trajectoires plausibles — <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:10px">cliquez pour le détail</span></div>
         <div id="an-scenarios"></div>
+
         <div style="display:flex;gap:6px;flex-wrap:wrap;padding-top:.6rem;border-top:0.5px solid var(--brd);margin-top:.6rem">
           <button class="abtn pri" onclick="deepenInChat()">Approfondir →</button>
           <button class="abtn" onclick="syncSpectre()">Spectre →</button>
@@ -363,15 +359,15 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 
   <!-- DROITE : DÉTAIL -->
   <div class="pane" id="pane-right" style="flex:0 0 320px">
-    <div class="pane-tab" onclick="togglePane('right')">Détail contextuel ◨</div>
+    <div class="pane-tab" onclick="togglePane('right')">Détail ◨</div>
     <div class="pane-header">
       <div class="pane-title">Détail contextuel</div>
       <button class="picon" onclick="togglePane('right')">✕</button>
     </div>
-        <div class="pane-body" id="detail-pane">
-      <div class="detail-empty" id="detail-empty">
+    <div class="pane-body" id="detail-pane">
+      <div id="detail-empty" class="detail-empty">
         <div style="font-size:24px;opacity:.3">↙</div>
-        <div style="font-size:12px">Cliquez sur un acteur ou un camp pour afficher le détail contextuel ici.</div>
+        <div style="font-size:12px">Cliquez sur un acteur ou un camp pour afficher le détail ici.</div>
       </div>
       <div id="detail-content" style="display:none"></div>
     </div>
@@ -379,51 +375,255 @@ html,body{height:100%;overflow:hidden;font-family:-apple-system,BlinkMacSystemFo
 
 </div><!-- /workbench -->
 
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/d3@7.8.5/dist/d3.min.js" crossorigin="anonymous"></script>
-<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.
+<!-- LIBS CDN — chargées avant le script principal -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3@7.8.5/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3.1.0/dist/topojson-client.min.js"></script>
 
-const PROXY_URL = 'https://summer-glade-e842.elias-kabli.workers.dev/';
-const SYSTEM = "Tu es un analyste geopolitique expert. JSON valide complet uniquement, aucun texte avant/apres, aucun backtick. Regles absolues : 1. Ne jamais deformer l'analyse pour coller a un format. 2. Realite prime sur symetrie : 4 acteurs dans un camp et 0 dans un autre est correct. 3. Ambigu/neutre uniquement si analytiquement justifie. 4. Probabilites refletent la realite, pas une distribution equilibree. 5. JSON toujours complet.";
-/* STATE */
-let mode='s', depth='f', currentTopic='';
-let srcs={ag:1,pr:1,in:1,tk:1,ac:1,pa:1,lo:1,da:1};
-let frames={ge:1,ep:1,so:1,de:1,jx:1,sy:1,hi:1,me:1};
-let _tChart=null, _detailChart=null, _currentAnalysis=null, _scCurrentIdx=-1, _lastActeurs=[];
-let _spectreData=null;
+<script>
+/* ═══════════════════════════════════════════════════
+   PRISME v8 — Architecture propre
+   Toutes les fonctions définies avant d'être appelées.
+   Pas de mutation globale de state depuis les callbacks.
+═══════════════════════════════════════════════════ */
 
-const SL={ag:'agences AFP Reuters AP Bloomberg',pr:'presse FT NYT Le Monde Al Jazeera Guardian Economist',in:'institutions ONU OCDE FMI BCE Eurostat',tk:'think tanks IFRI Carnegie CSIS Brookings RAND Chatham House',ac:'chercheurs JSTOR SSRN Cairn articles academiques',pa:'sources situees Jacobin Monde Diplo National Review',lo:'medias locaux presse terrain langues locales',da:'donnees Our World in Data WB Data SIPRI Gapminder'};
-const FL={ge:'geopolitique realiste',ep:'economie politique',so:'sociologie',de:'demographie',jx:'theorie des jeux',sy:'theorie des systemes',hi:'histoire longue',me:'analyse mediatique'};
-const CAMP_COLS={gauche_radicale:'#DC2626',gauche:'#F97316',centre:'#9CA3AF',droite:'#60A5FA',droite_radicale:'#2563EB'};
-const CAMP_NAMES={gauche_radicale:'Gauche radicale',gauche:'Gauche',centre:'Centre',droite:'Droite',droite_radicale:'Droite radicale'};
-const CAMP_SHORT={gauche_radicale:'G. rad.',gauche:'Gauche',centre:'Centre',droite:'Droite',droite_radicale:'D. rad.'};
-const CAMP_TBG={gauche_radicale:['#3a1010','#f87171','#7f1d1d'],gauche:['#3a1f0a','#fb923c','#7c2d12'],centre:['#2a2a2a','#9ca3af','#374151'],droite:['#0a1a2e','#93c5fd','#1e3a5f'],droite_radicale:['#0a1230','#60a5fa','#1e3a8a']};
-const CAMP_KEYS=['gauche_radicale','gauche','centre','droite','droite_radicale'];
-const BADGE={pro:['#1a3a1a','#86efac','✓ Favorable'],contra:['#3a1010','#f87171','✕ Opposé'],neutre:['#2a2a2a','#9ca3af','− Neutre'],ambigu:['#3a2a10','#fbbf24','? Ambigu']};
+// ── CONFIG ──────────────────────────────────────────
+const PROXY = 'https://summer-glade-e842.elias-kabli.workers.dev/';
+const SYSTEM = 'Tu reponds UNIQUEMENT en JSON valide et complet. Aucun texte avant ou apres. Aucun backtick. Remplace tous les placeholders. JSON toujours complet et bien ferme. Ne jamais deformer l analyse pour coller a un format. Realite prime sur symetrie.';
+const MODEL = 'claude-sonnet-4-6';
+
+// ── CONSTANTES ──────────────────────────────────────
+const CAMP_COLS   = {gauche_radicale:'#DC2626',gauche:'#F97316',centre:'#9CA3AF',droite:'#60A5FA',droite_radicale:'#2563EB'};
+const CAMP_NAMES  = {gauche_radicale:'Gauche radicale',gauche:'Gauche',centre:'Centre',droite:'Droite',droite_radicale:'Droite radicale'};
+const CAMP_SHORT  = {gauche_radicale:'G. rad.',gauche:'Gauche',centre:'Centre',droite:'Droite',droite_radicale:'D. rad.'};
+const CAMP_KEYS   = ['gauche_radicale','gauche','centre','droite','droite_radicale'];
+const SEG_IDS     = ['gg','g','c','d','dd'];
+const CAMP_TBG    = {gauche_radicale:['#3a1010','#f87171'],gauche:['#3a1f0a','#fb923c'],centre:['#2a2a2a','#9ca3af'],droite:['#0a1a2e','#93c5fd'],droite_radicale:['#0a1230','#60a5fa']};
+const BADGE       = {pro:['#1a3a1a','#86efac','✓ Favorable'],contra:['#3a1010','#f87171','✕ Opposé'],neutre:['#2a2a2a','#9ca3af','− Neutre'],ambigu:['#3a2a10','#fbbf24','? Ambigu']};
+const CAMP_CAMP_COL_MAP = {pro:'#1a3a1a',contra:'#7f1d1d',neutre:'#888780',ambigu:'#633806'};
+
 const CAMP_SOURCES = {
-  gauche_radicale: ['Jacobin','Monde Diplo',"L'Humanité",'WSWS','Mediapart'],
-  gauche: ['Le Monde','Libération','Guardian','NYT','BBC','El País'],
-  centre: ['Reuters','AFP','AP','Bloomberg','FT','Economist'],
-  droite: ['WSJ','Le Figaro','Valeurs Act.','Le Point','Fox Business'],
-  droite_radicale: ['Breitbart','RT','TASS','Sputnik','BV']
+  gauche_radicale:['Jacobin','Monde Diplo',"L'Humanité",'WSWS','Mediapart'],
+  gauche:['Le Monde','Libération','Guardian','NYT','BBC','El País'],
+  centre:['Reuters','AFP','AP','Bloomberg','FT','Economist'],
+  droite:['WSJ','Le Figaro','Valeurs Act.','Le Point','Fox Business'],
+  droite_radicale:['Breitbart','RT','TASS','Sputnik','BV']
 };
 
+const SL = {
+  ag:'agences AFP Reuters AP Bloomberg',pr:'presse FT NYT Le Monde Guardian Economist',
+  in:'institutions ONU OCDE FMI BCE Eurostat',tk:'think tanks IFRI Carnegie CSIS Brookings RAND',
+  ac:'chercheurs JSTOR SSRN Cairn',pa:'sources situees Jacobin Monde Diplo National Review',
+  lo:'medias locaux presse terrain',da:'donnees Our World in Data WB Data SIPRI Gapminder'
+};
+const FL = {
+  ge:'geopolitique realiste',ep:'economie politique',so:'sociologie',de:'demographie',
+  jx:'theorie des jeux',sy:'theorie des systemes',hi:'histoire longue',me:'analyse mediatique'
+};
 
-/* PANELS */
+// Drapeaux
+const FLAG_MAP = {
+  'etats-unis':'US','états-unis':'US','usa':'US','united states':'US','washington':'US','trump':'US','biden':'US','pentagone':'US',
+  'iran':'IR','tehran':'IR','khamenei':'IR','irgc':'IR','gardiens de la revolution':'IR','corps des gardiens':'IR',
+  'russie':'RU','russia':'RU','poutine':'RU','kremlin':'RU','moscou':'RU',
+  'chine':'CN','china':'CN','beijing':'CN','pekin':'CN','xi jinping':'CN','xi':'CN',
+  'israel':'IL','israël':'IL','netanyahu':'IL','tel aviv':'IL','tsahal':'IL',
+  'arabie saoudite':'SA','saudi':'SA','riyad':'SA','mbs':'SA','bin salman':'SA',
+  'turquie':'TR','turkey':'TR','erdogan':'TR','ankara':'TR',
+  'france':'FR','paris':'FR','macron':'FR','elysee':'FR',
+  'allemagne':'DE','berlin':'DE','scholz':'DE',
+  'royaume-uni':'GB','uk':'GB','london':'GB','londres':'GB','sunak':'GB',
+  'irak':'IQ','iraq':'IQ','bagdad':'IQ','baghdad':'IQ',
+  'emirats':'AE','uae':'AE','dubai':'AE','abu dhabi':'AE',
+  'qatar':'QA','doha':'QA',
+  'oman':'OM','muscat':'OM',
+  'pakistan':'PK','islamabad':'PK',
+  'inde':'IN','india':'IN','modi':'IN','delhi':'IN','new delhi':'IN',
+  'japon':'JP','japan':'JP','tokyo':'JP',
+  'coree du sud':'KR','korea':'KR','seoul':'KR',
+  'coree du nord':'KP','north korea':'KP','pyongyang':'KP',
+  'ukraine':'UA','kiev':'UA','kyiv':'UA','zelensky':'UA',
+  'liban':'LB','beyrouth':'LB','beirut':'LB','hezbollah':'LB','nasrallah':'LB',
+  'palestine':'PS','gaza':'PS','hamas':'PS','ramallah':'PS','jihad islamique':'PS',
+  'yemen':'YE','houthis':'YE','sanaa':'YE','ansar allah':'YE',
+  'syrie':'SY','damas':'SY','damascus':'SY','assad':'SY',
+  'egypte':'EG','egypt':'EG','le caire':'EG','caire':'EG','sisi':'EG',
+  'jordanie':'JO','amman':'JO',
+  'iran':'IR',
+  'maroc':'MA','rabat':'MA',
+  'algerie':'DZ','alger':'DZ',
+  'tunisie':'TN','tunis':'TN',
+  'libye':'LY','tripoli':'LY',
+  'afrique du sud':'ZA','pretoria':'ZA','johannesburg':'ZA',
+  'nigeria':'NG','abuja':'NG','lagos':'NG',
+  'kenya':'KE','nairobi':'KE',
+  'ethiopie':'ET','addis-abeba':'ET',
+  'ghana':'GH','accra':'GH',
+  'senegal':'SN','dakar':'SN',
+  'bresil':'BR','brazil':'BR','brasilia':'BR','lula':'BR',
+  'argentine':'AR','argentina':'AR','buenos aires':'AR','milei':'AR',
+  'mexique':'MX','mexico':'MX','mexico city':'MX',
+  'colombie':'CO','bogota':'CO',
+  'venezuela':'VE','caracas':'VE','maduro':'VE',
+  'canada':'CA','ottawa':'CA','toronto':'CA','trudeau':'CA',
+  'australie':'AU','australia':'AU','canberra':'AU',
+  'espagne':'ES','spain':'ES','madrid':'ES','sanchez':'ES',
+  'italie':'IT','italy':'IT','rome':'IT','meloni':'IT',
+  'pologne':'PL','poland':'PL','varsovie':'PL',
+  'pays-bas':'NL','netherlands':'NL','amsterdam':'NL','hollande':'NL',
+  'belgique':'BE','belgium':'BE','bruxelles':'BE',
+  'suisse':'CH','switzerland':'CH','geneve':'CH',
+  'suede':'SE','sweden':'SE','stockholm':'SE',
+  'afghanistan':'AF','kaboul':'AF','taliban':'AF',
+  'myanmar':'MM','birmanie':'MM',
+  'vietnam':'VN','hanoi':'VN',
+  'taiwan':'TW','taipei':'TW',
+  'philippines':'PH','manille':'PH','marcos':'PH',
+  'indonesie':'ID','indonesia':'ID','jakarta':'ID',
+  'malaisie':'MY','malaysia':'MY','kuala lumpur':'MY',
+  'singapour':'SG','singapore':'SG',
+  'bangladesh':'BD','dhaka':'BD',
+  'kazakhstan':'KZ','astana':'KZ',
+  'azerbaidjan':'AZ','azerbaïdjan':'AZ','bakou':'AZ',
+  'georgie':'GE','georgia':'GE','tbilissi':'GE',
+  'armenie':'AM','armenia':'AM','erevan':'AM',
+  'serbie':'RS','belgrade':'RS',
+  'grece':'GR','greece':'GR','athenes':'GR',
+  'koweït':'KW','kuwait':'KW','al-sabah':'KW',
+  'bahrein':'BH','bahrain':'BH','manama':'BH',
+  'corée du nord':'KP',
+  'milices pro-iraniennes':'IQ',
+  'gardiens':'IR','pasdarans':'IR'
+};
+
+// ── ÉTAT APPLICATION ─────────────────────────────────
+let mode='s', depth='f', currentTopic='', spectreData=null;
+let srcs={ag:1,pr:1,in:1,tk:1,ac:1,pa:1,lo:1,da:1};
+let frames={ge:1,ep:1,so:1,de:1,jx:1,sy:1,hi:1,me:1};
+let lastActeurs=[], currentAnalysis=null;
+let tChart=null;
+
+// ── UTILITAIRES ──────────────────────────────────────
+
+function getCountryCode(nom) {
+  if(!nom) return null;
+  const key = nom.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z\s\-]/g,'').trim();
+  for(const [k,v] of Object.entries(FLAG_MAP)){
+    const nk = k.normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    if(key === nk || key.includes(nk) || nk.includes(key)) return v;
+  }
+  return null;
+}
+
+function getFlagUrl(nom) {
+  const code = getCountryCode(nom);
+  if(!code || ['NATO','EU','UN'].includes(code)) return null;
+  return 'https://flagcdn.com/w160/' + code.toLowerCase() + '.png';
+}
+
+function getActeurImg(a) {
+  // Wikipedia en priorité (photo/logo chargé en async)
+  // Sinon drapeau pour pays/organisations, null pour individus sans photo
+  return getFlagUrl(a.nom) || null;
+}
+
+function safeJSON(raw) {
+  if(!raw || typeof raw !== 'string') throw new Error('Réponse vide');
+  const s = raw.replace(/```json/gi,'').replace(/```/g,'').trim();
+  const a = s.indexOf('{'), b = s.lastIndexOf('}');
+  if(a===-1||b===-1) throw new Error('Pas de JSON valide');
+  const candidate = s.slice(a, b+1);
+  // Vérifier profondeur accolades (hors strings)
+  let depth=0, inStr=false, esc=false;
+  for(const ch of candidate){
+    if(esc){esc=false;continue;}
+    if(ch==='\\'){esc=true;continue;}
+    if(ch==='"'&&!esc){inStr=!inStr;continue;}
+    if(!inStr){if(ch==='{')depth++;else if(ch==='}')depth--;}
+  }
+  if(depth!==0) throw new Error('JSON tronqué');
+  return JSON.parse(candidate);
+}
+
+// ── APPEL API ────────────────────────────────────────
+
+async function callAPI(messages, maxTokens=4000, timeoutMs=90000) {
+  const ctrl = new AbortController();
+  const tid = setTimeout(()=>ctrl.abort(), timeoutMs);
+  try {
+    const res = await fetch(PROXY, {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({model:MODEL, max_tokens:maxTokens, system:SYSTEM, messages}),
+      signal: ctrl.signal
+    });
+    clearTimeout(tid);
+    if(!res.ok) throw new Error('HTTP '+res.status);
+
+    // Lire le body (SSE streaming ou JSON direct)
+    const ct = res.headers.get('content-type')||'';
+    if(ct.includes('event-stream')) {
+      const reader = res.body.getReader();
+      const dec = new TextDecoder();
+      let text='', buf='';
+      while(true) {
+        const {done,value} = await reader.read();
+        if(done) break;
+        buf += dec.decode(value, {stream:true});
+        const lines = buf.split('\n'); buf = lines.pop();
+        for(const line of lines) {
+          if(!line.startsWith('data: ')) continue;
+          const pl = line.slice(6).trim();
+          if(pl==='[DONE]') continue;
+          try { const e=JSON.parse(pl); if(e.delta?.text) text+=e.delta.text; } catch(_){}
+        }
+      }
+      if(!text) throw new Error('Stream SSE vide');
+      return text;
+    } else {
+      const data = await res.json();
+      if(data.error) throw new Error(JSON.stringify(data.error));
+      return (data.content||[]).map(x=>x.text||'').join('');
+    }
+  } finally {
+    clearTimeout(tid);
+  }
+}
+
+// ── DÉTAIL CONTEXTUEL ────────────────────────────────
+
+function showDetail(html) {
+  const empty = document.getElementById('detail-empty');
+  const dc = document.getElementById('detail-content');
+  if(empty) empty.style.display='none';
+  if(dc) { dc.style.display=''; dc.innerHTML=html; }
+  const right = document.getElementById('pane-right');
+  if(right && right.classList.contains('hidden')) togglePane('right');
+}
+
+function clearDetail() {
+  const empty = document.getElementById('detail-empty');
+  const dc = document.getElementById('detail-content');
+  if(empty) empty.style.display='';
+  if(dc) { dc.style.display='none'; dc.innerHTML=''; }
+}
+
+// ── PANNEAUX ─────────────────────────────────────────
+
 function togglePane(side) {
   const id = side==='left' ? 'pane-left' : 'pane-right';
   const divId = side==='left' ? 'div-lc' : 'div-cr';
   const el = document.getElementById(id);
   const div = document.getElementById(divId);
   const hidden = el.classList.contains('hidden');
-  if (hidden) {
+  if(hidden) {
     el.classList.remove('hidden');
     el.style.flex = side==='left' ? '0 0 300px' : '0 0 320px';
-    if (div) div.style.display='';
+    if(div) div.style.display='';
   } else {
     el.classList.add('hidden');
     el.style.flex='0 0 0';
-    if (div) div.style.display='none';
+    if(div) div.style.display='none';
   }
 }
 
@@ -433,9 +633,10 @@ document.querySelectorAll('.divider').forEach(div => {
     startX=e.clientX;
     const lp=document.getElementById(div.dataset.l);
     const rp=document.getElementById(div.dataset.r);
+    if(!lp||!rp) return;
     startLW=lp.offsetWidth; startRW=rp.offsetWidth;
     div.classList.add('dragging');
-    const onMove=ev => {
+    const onMove=ev=>{
       const dx=ev.clientX-startX;
       lp.style.flex=`0 0 ${Math.max(180,startLW+dx)}px`;
       rp.style.flex=`0 0 ${Math.max(180,startRW-dx)}px`;
@@ -447,805 +648,652 @@ document.querySelectorAll('.divider').forEach(div => {
   });
 });
 
-/* DETAIL PANE */
-function showDetail(html) {
-  document.getElementById('detail-empty').style.display='none';
-  const dc=document.getElementById('detail-content');
-  dc.style.display='';
-  dc.innerHTML=html;
-  if (document.getElementById('pane-right').classList.contains('hidden')) togglePane('right');
+// ── UI FORMULAIRE ────────────────────────────────────
+
+function setMode(m) {
+  mode=m;
+  ['s','v'].forEach(x=>{ document.getElementById('m-'+x).classList.toggle('on',x===m); });
+  document.getElementById('zone-s').style.display=m==='s'?'':'none';
+  document.getElementById('zone-v').style.display=m==='v'?'':'none';
 }
-function clearDetail() {
-  document.getElementById('detail-empty').style.display='';
-  document.getElementById('detail-content').style.display='none';
+function setD(d) {
+  depth=d;
+  ['f','a','d'].forEach(x=>document.getElementById('d-'+x).classList.toggle('on',x===d));
 }
-
-/* UI */
-function setMode(m){mode=m;['s','v'].forEach(x=>{document.getElementById('m-'+x).classList.toggle('on',x===m)});document.getElementById('zone-s').style.display=m==='s'?'':'none';document.getElementById('zone-v').style.display=m==='v'?'':'none';}
-function setD(d){depth=d;['f','a','d'].forEach(x=>document.getElementById('d-'+x).classList.toggle('on',x===d));}
-function toggleS(k){srcs[k]=srcs[k]?0:1;document.getElementById('sc-'+k).classList.toggle('on',!!srcs[k]);updC();}
-function tF(k){frames[k]=frames[k]?0:1;document.getElementById('f-'+k).classList.toggle('on',!!frames[k]);updC();}
-function updC(){const sc=Object.values(srcs).filter(Boolean).length,fc=Object.values(frames).filter(Boolean).length;document.getElementById('src-counter').innerHTML=`<span>${sc}</span>/8 sources · <span id="frame-count">${fc}</span>/8 cadres`;}
-function setT(t){setMode('s');document.getElementById('topic-in').value=t;}
-function specT(t){document.getElementById('spec-in').value=t;}
-function setCurrentTopic(t){currentTopic=t;document.getElementById('mast-topic').textContent=t;document.getElementById('spec-in').value=t;}
-function resetAnalyse(){document.getElementById('an-results').style.display='none';document.getElementById('analyser-form').style.display='';_currentAnalysis=null;}
-function deepenInChat(){if(!currentTopic)return;const p=`Approfondis l'analyse de "${currentTopic}" : développe chaque point en détail, cite des sources précises, inclus des données chiffrées.`;if(typeof sendPrompt==='function')sendPrompt(p);else window.open('https://claude.ai','_blank');}
-function syncSpectre(){if(currentTopic)document.getElementById('spec-in').value=currentTopic;if(document.getElementById('pane-left').classList.contains('hidden'))togglePane('left');}
-function doBiasChat(){if(!currentTopic)return;const p=`Déconstruis les biais médiatiques sur : "${currentTopic}".`;if(typeof sendPrompt==='function')sendPrompt(p);else window.open('https://claude.ai','_blank');}
-function launchVeille(){const p='Identifie les 5 sujets géopolitiques les plus importants du moment.';if(typeof sendPrompt==='function')sendPrompt(p);else alert('Disponible dans Claude.ai');}
-
-/* API */
-async function callProxy(messages, maxTokens, timeoutMs=90000) {
-  const ctrl = new AbortController();
-  const tid = setTimeout(() => ctrl.abort(), timeoutMs);
-  let res;
-  try {
-    res = await fetch(PROXY_URL, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({model:'claude-sonnet-4-6', max_tokens:maxTokens||4000, system:SYSTEM, messages}),
-      signal: ctrl.signal
-    });
-  } finally {
-    clearTimeout(tid);
-  }
-  if (!res.ok) throw new Error('HTTP '+res.status);
-  const ct = res.headers.get('content-type')||'';
-  if (ct.includes('text/event-stream')) {
-    const reader=res.body.getReader(), dec=new TextDecoder();
-    let text='', buf='';
-    while(true) {
-      const {done,value}=await reader.read();
-      if(done) break;
-      buf+=dec.decode(value,{stream:true});
-      const lines=buf.split('\n'); buf=lines.pop();
-      for(const line of lines) {
-        if(!line.startsWith('data: ')) continue;
-        const pl=line.slice(6).trim();
-        if(pl==='[DONE]') continue;
-        try{const e=JSON.parse(pl);if(e.type==='content_block_delta'&&e.delta&&e.delta.text)text+=e.delta.text;}catch(e){}
-      }
-    }
-    if(!text){const s=buf.indexOf('{'),e=buf.lastIndexOf('}');if(s!==-1&&e!==-1){try{const d=JSON.parse(buf.slice(s,e+1));if(d.content)return d.content.map(x=>x.text||'').join('');}catch(e){}}throw new Error('Stream SSE vide');}
-    return text;
-  }
-  const reader=res.body.getReader(), dec=new TextDecoder(); let raw='';
-  while(true){const{done,value}=await reader.read();if(done)break;raw+=dec.decode(value,{stream:true});}
-  const data=JSON.parse(raw.trim());
-  if(data.error)throw new Error(JSON.stringify(data.error));
-  return (data.content||[]).map(x=>x.text||'').join('');
+function toggleS(k) {
+  srcs[k]=srcs[k]?0:1;
+  document.getElementById('sc-'+k).classList.toggle('on',!!srcs[k]);
+  updCounters();
 }
-
-function safeJSON(raw) {
-  if (!raw || typeof raw !== 'string') throw new Error('Réponse vide');
-  let s = raw.replace(/```json/gi,'').replace(/```/g,'').trim();
-  const a = s.indexOf('{'), b = s.lastIndexOf('}');
-  if (a === -1 || b === -1 || b < a) throw new Error('Pas de JSON dans la réponse');
-  const candidate = s.slice(a, b+1);
-  // Vérifier que le JSON n'est pas tronqué (accolades équilibrées)
-  let depth = 0;
-  let inStr = false, esc = false;
-  for (const ch of candidate) {
-    if (esc) { esc = false; continue; }
-    if (ch === '\\') { esc = true; continue; }
-    if (ch === '"' && !esc) { inStr = !inStr; continue; }
-    if (!inStr) { if (ch==='{') depth++; else if (ch==='}') depth--; }
-  }
-  if (depth !== 0) throw new Error('JSON tronqué (accolades non fermées)');
-  return JSON.parse(candidate);
+function tF(k) {
+  frames[k]=frames[k]?0:1;
+  document.getElementById('f-'+k).classList.toggle('on',!!frames[k]);
+  updCounters();
 }
-
-function imgUrl(q,w,h){ return getFlagUrl(q) || ''; }
-
-// Mapping nom d'acteur -> code ISO du pays pour le drapeau
-const FLAG_MAP = {
-  'etats-unis':'US','états-unis':'US','usa':'US','united states':'US','washington':'US',
-  'iran':'IR','tehran':'IR','teheran':'IR','khamenei':'IR','raisi':'IR',
-  'russie':'RU','russia':'RU','poutine':'RU','kremlin':'RU','moscou':'RU',
-  'chine':'CN','china':'CN','beijing':'CN','pekin':'CN','xi':'CN',
-  'israel':'IL','israël':'IL','netanyahu':'IL','tel aviv':'IL',
-  'arabie saoudite':'SA','saudi':'SA','riyad':'SA','mbs':'SA',
-  'turquie':'TR','turkey':'TR','erdogan':'TR','ankara':'TR',
-  'france':'FR','paris':'FR','macron':'FR',
-  'allemagne':'DE','berlin':'DE','scholz':'DE',
-  'royaume-uni':'GB','uk':'GB','london':'GB','boris':'GB',
-  'irak':'IQ','iraq':'IQ','bagdad':'IQ',
-  'emirats':'AE','uae':'AE','dubai':'AE',
-  'qatar':'QA','doha':'QA',
-  'oman':'OM','muscat':'OM',
-  'pakistan':'PK','islamabad':'PK',
-  'inde':'IN','india':'IN','modi':'IN','delhi':'IN',
-  'japon':'JP','japan':'JP','tokyo':'JP',
-  'coree':'KR','korea':'KR','seoul':'KR',
-  'ukraine':'UA','kiev':'UA','zelensky':'UA',
-  'otan':'NATO','nato':'NATO',
-  'union europeenne':'EU','ue ':'EU','europe':'EU',
-  'onu':'UN','nations unies':'UN',
-  'hezbollah':'LB','liban':'LB','beirut':'LB',
-  'hamas':'PS','gaza':'PS','palestine':'PS',
-  'yemen':'YE','houthis':'YE',
-  'syrie':'SY','damas':'SY',
-  'egypte':'EG','egypt':'EG','le caire':'EG',
-  'jordanie':'JO','amman':'JO',
-  'maroc':'MA','rabat':'MA',
-  'algerie':'DZ','alger':'DZ',
-  'afrique du sud':'ZA','pretoria':'ZA',
-  'nigeria':'NG','abuja':'NG',
-  'bresil':'BR','brazil':'BR','brasilia':'BR',
-  'mexique':'MX','mexico':'MX',
-  'venezuela':'VE','caracas':'VE',
-  'iran':'IR','corée du nord':'KP','north korea':'KP',
-  'libye':'LY','libya':'LY','tripoli':'LY',
-  'soudan':'SD','sudan':'SD','khartoum':'SD',
-  'ethiopie':'ET','ethiopia':'ET','addis-abeba':'ET',
-  'afghanistan':'AF','kaboul':'AF','taliban':'AF',
-  'myanmar':'MM','birmanie':'MM','rangoon':'MM',
-  'vietnam':'VN','hanoi':'VN','ho chi minh':'VN',
-  'taiwan':'TW','taipei':'TW',
-  'philippines':'PH','manille':'PH',
-  'indonesia':'ID','indonesie':'ID','jakarta':'ID',
-  'malaisie':'MY','malaysia':'MY','kuala lumpur':'MY',
-  'singapour':'SG','singapore':'SG',
-  'bangledesh':'BD','bangladesh':'BD','dhaka':'BD',
-  'sri lanka':'LK','colombo':'LK',
-  'nepal':'NP','katmandou':'NP',
-  'bangladesh':'BD',
-  'kazakstan':'KZ','kazakhstan':'KZ','astana':'KZ',
-  'ouzbekistan':'UZ','uzbekistan':'UZ','tachkent':'UZ',
-  'azerbaidjan':'AZ','azerbaïdjan':'AZ','bakou':'AZ',
-  'georgie':'GE','georgia':'GE','tbilissi':'GE',
-  'armenie':'AM','armenia':'AM','erevan':'AM',
-  'serbie':'RS','serbia':'RS','belgrade':'RS',
-  'croatie':'HR','croatia':'HR','zagreb':'HR',
-  'pologne':'PL','poland':'PL','varsovie':'PL','warsaw':'PL',
-  'hongrie':'HU','hungary':'HU','budapest':'HU',
-  'grece':'GR','greece':'GR','athenes':'GR','athens':'GR',
-  'suisse':'CH','switzerland':'CH','berne':'CH',
-  'belgique':'BE','belgium':'BE','bruxelles':'BE','brussels':'BE',
-  'pays-bas':'NL','netherlands':'NL','amsterdam':'NL','hollande':'NL',
-  'suede':'SE','sweden':'SE','stockholm':'SE',
-  'norvege':'NO','norway':'NO','oslo':'NO',
-  'finlande':'FI','finland':'FI','helsinki':'FI',
-  'danemark':'DK','denmark':'DK','copenhague':'DK',
-  'espagne':'ES','spain':'ES','madrid':'ES',
-  'portugal':'PT','portugal':'PT','lisbonne':'PT',
-  'italie':'IT','italy':'IT','rome':'IT','roma':'IT',
-  'canada':'CA','ottawa':'CA','toronto':'CA',
-  'australie':'AU','australia':'AU','canberra':'AU',
-  'mexique':'MX','mexico':'MX','guadalajara':'MX',
-  'argentine':'AR','argentina':'AR','buenos aires':'AR',
-  'chili':'CL','chile':'CL','santiago':'CL',
-  'colombie':'CO','colombia':'CO','bogota':'CO',
-  'perou':'PE','peru':'PE','lima':'PE',
-  'afrique':'ZA','kenya':'KE','nairobi':'KE',
-  'ghana':'GH','accra':'GH','tanzanie':'TZ','tanzania':'TZ',
-  'cameroun':'CM','cameroon':'CM','yaounde':'CM',
-  'senegal':'SN','dakar':'SN',
-  'cote ivoire':'CI','abidjan':'CI',
-  'tunisie':'TN','tunis':'TN',
-  'koweït':'KW','kuwait':'KW',
-  'bahrein':'BH','bahrain':'BH','manama':'BH',
-  'liban':'LB','beyrouth':'LB',
-  'iran':'IR','perse':'IR',
-  'irak':'IQ','bagdad':'IQ','baghdad':'IQ',
-  'kurdistan':'IQ',
-  'koweit':'KW',
-  'gardiens de la revolution':'IR','corps des gardiens':'IR','irgc':'IR',
-  'hamas':'PS','jihad islamique':'PS',
-  'hezbollah':'LB','nasrallah':'LB',
-  'houthis':'YE','ansar allah':'YE',
-  'milices pro-iraniennes':'IQ',
-  'etats-unis':'US','trump':'US','biden':'US','harris':'US',
-  'pentagone':'US','maison blanche':'US','cia':'US',
-  'khamenei':'IR','khameneï':'IR','ebrahim raisi':'IR',
-  'naftali bennett':'IL','galant':'IL','sinwar':'PS',
-  'poutine':'RU','medvedev':'RU','lavrov':'RU',
-  'xi jinping':'CN','xi':'CN'
-};
-
-function getCountryCode(nom) {
-  const key = (nom||'').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g,'').replace(/[^a-z\s-]/g,'').trim();
-  for (const [k,v] of Object.entries(FLAG_MAP)) {
-    const nk = k.normalize('NFD').replace(/[̀-ͯ]/g,'');
-    if (key.includes(nk) || nk.includes(key)) return v;
-  }
-  return null;
+function updCounters() {
+  const sc=Object.values(srcs).filter(Boolean).length, fc=Object.values(frames).filter(Boolean).length;
+  document.getElementById('src-counter').innerHTML=`<span>${sc}</span>/8 sources · <span id="frame-count">${fc}</span>/8 cadres`;
 }
-
-function getActeurImageUrl(a) {
-  // Selon le type d'acteur : pays → drapeau, organisation → drapeau ou logo, individu/entreprise → Wikipedia
-  const type = (a.type || '').toLowerCase();
-  const nom = a.nom || '';
-
-  if(type === 'pays' || type === 'country') {
-    return getFlagUrl(nom) || null;
-  }
-  if(type === 'individu' || type === 'person') {
-    return null; // Sera rempli par Wikipedia (photo)
-  }
-  if(type === 'entreprise' || type === 'company') {
-    return null; // Wikipedia pour logo
-  }
-  if(type === 'organisation' || type === 'organization') {
-    // Essayer le drapeau d'abord, sinon Wikipedia
-    return getFlagUrl(nom) || null;
-  }
-  // Par défaut : essayer drapeau
-  return getFlagUrl(nom) || null;
+function setT(t){ setMode('s'); document.getElementById('topic-in').value=t; }
+function specT(t){ document.getElementById('spec-in').value=t; }
+function setTopic(t){ currentTopic=t; document.getElementById('mast-topic').textContent=t; document.getElementById('spec-in').value=t; }
+function resetAnalyse(){
+  document.getElementById('an-results').style.display='none';
+  document.getElementById('an-form').style.display='';
+  currentAnalysis=null; lastActeurs=[];
 }
+function syncSpectre(){ if(currentTopic) document.getElementById('spec-in').value=currentTopic; if(document.getElementById('pane-left').classList.contains('hidden'))togglePane('left'); }
+function deepenInChat(){ if(!currentTopic)return; const p=`Approfondis l'analyse de "${currentTopic}" : développe chaque point en détail, cite des sources précises, inclus des données chiffrées.`; if(typeof sendPrompt==='function')sendPrompt(p); }
+function doBiasChat(){ if(!currentTopic)return; const p=`Déconstruis les biais médiatiques sur : "${currentTopic}".`; if(typeof sendPrompt==='function')sendPrompt(p); }
+function launchVeille(){ if(typeof sendPrompt==='function') sendPrompt('Identifie les 5 sujets géopolitiques les plus importants du moment.'); }
 
-function getFlagUrl(nom) {
-  const code = getCountryCode(nom);
-  if (!code || code === 'NATO' || code === 'EU' || code === 'UN') return null;
-  return 'https://flagcdn.com/w320/' + code.toLowerCase() + '.png';
-}
-
-/* LOADING */
-const STEPS=[['Synthèse…','Header et contexte',15],['Sections 1-4…','Faits, sources, certitudes',35],['Sections 5-8…','Biais, histoire, tendances',60],['Acteurs…','Motivations réelles',75],['Scénarios…','Trajectoires plausibles',88],['Finalisation…','Assemblage',95]];
-let _ticker=null, _step=0;
+// ── LOADING ──────────────────────────────────────────
+const STEPS=[
+  ['Synthèse générale…','Headline, résumé, contexte',10],
+  ['Sections 1-4…','Faits, sources, certitudes',30],
+  ['Sections 5-8…','Biais, histoire, tendances',55],
+  ['Acteurs (3 passes)…','Analyses indépendantes + synthèse',75],
+  ['Trajectoires…','Scénarios plausibles',88],
+  ['Finalisation…','Assemblage',96]
+];
+let loadTicker=null, loadStep=0;
 
 function startLoading() {
-  _step=0;
+  loadStep=0;
   document.getElementById('an-loading').classList.add('on');
   document.getElementById('an-results').style.display='none';
-  document.getElementById('analyser-form').style.display='none';
+  document.getElementById('an-form').style.display='none';
   document.getElementById('an-err').classList.remove('on');
   document.getElementById('go-btn').disabled=true;
-  setStep(0);
-  _ticker=setInterval(()=>{_step=Math.min(_step+1,STEPS.length-1);setStep(_step);},3000);
+  setLoadStep(0);
+  loadTicker=setInterval(()=>{ loadStep=Math.min(loadStep+1,STEPS.length-1); setLoadStep(loadStep); },3500);
 }
-function setStep(i){const[l,s,p]=STEPS[i];document.getElementById('an-loading-lbl').textContent=l;document.getElementById('an-loading-sub').textContent=s;document.getElementById('an-prog').style.width=p+'%';}
-function stopLoading(){clearInterval(_ticker);document.getElementById('an-loading').classList.remove('on');document.getElementById('go-btn').disabled=false;}
-function showAnErr(m){const el=document.getElementById('an-err');el.textContent=m;el.classList.add('on');document.getElementById('analyser-form').style.display='';}
+function setLoadStep(i) {
+  const [l,s,p]=STEPS[i];
+  document.getElementById('an-loading-lbl').textContent=l;
+  document.getElementById('an-loading-sub').textContent=s;
+  document.getElementById('an-prog').style.width=p+'%';
+}
+function stopLoading() {
+  clearInterval(loadTicker);
+  document.getElementById('an-loading').classList.remove('on');
+  document.getElementById('go-btn').disabled=false;
+}
+function showErr(id, msg) {
+  const el=document.getElementById(id);
+  el.textContent=msg; el.classList.add('on');
+  document.getElementById('an-form').style.display='';
+}
 
-/* LAUNCH */
-async function launch() {
-  const t=(document.getElementById('topic-in').value||'').trim();
-  if(!t){document.getElementById('topic-in').focus();return;}
-  setCurrentTopic(t);
-  startLoading();
-  const as=Object.entries(srcs).filter(([k,v])=>v).map(([k])=>SL[k]).join(', ');
-  const af=Object.entries(frames).filter(([k,v])=>v).map(([k])=>FL[k]).join(', ');
-  const dl={f:'2 phrases max par point',a:'3-4 phrases par point',d:'5-6 phrases par point'}[depth];
-  const analysis={topic:t,sections:[],acteurs:[],scenarios:[]};
+// ── CARTE GÉOPOLITIQUE ───────────────────────────────
 
-  try {
-    /* Appel 1 : header */
-    const r1=await callProxy([{role:'user',content:`Sujet : "${t}". Sources : ${as}. Cadres : ${af}. Profondeur : ${dl}.
-Analyse sans langue de bois ni faux equilibre. JSON:
-{"headline":"<titre percutant max 12 mots — reflète la réalité>","date_contexte":"<periode exacte>","resume":"<résumé factuel sans langue de bois>","image_query":"<2-4 mots anglais Unsplash>","contexte_commun":"<4-5 phrases sur faits clés, rapports de force réels, enjeux concrets — sans faux équilibre>"}`}],800);
-    const d1=safeJSON(r1);
-    Object.assign(analysis,d1);
-    renderHeader(analysis);
-    setStep(1);
-    const ctx=d1.contexte_commun||d1.resume||'';
-
-    /* Appels parallèles */
-    const p2=callProxy([{role:'user',content:`Sujet : "${t}". Contexte : ${ctx}. Sources : ${as}. Cadres : ${af}. Profondeur : ${dl}. Analyse factuelle — ne relativise pas pour sembler neutre.\nJSON 4 sections:\n{"sections":[{"titre":"Faits établis","resume":"<2-3 ph>","detail":"<analyse HTML>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"},{"titre":"Sources & récits","resume":"<2-3 ph>","detail":"<analyse>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"},{"titre":"Certitudes & incertitudes","resume":"<2-3 ph>","detail":"<analyse>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"},{"titre":"Intérêts des acteurs","resume":"<2-3 ph>","detail":"<analyse>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"}]}`}],5000).then(raw=>{try{const d=safeJSON(raw);(d.sections||[]).forEach((s,i)=>analysis.sections[i]=s);}catch(e){console.error('[p2]',e.message);}setStep(2);});
-
-    const p3=callProxy([{role:'user',content:`Sujet : "${t}". Contexte : ${ctx}. Sources : ${as}. Cadres : ${af}. Profondeur : ${dl}. Nomme les biais reels. Ne presente pas deux cotes comme equivalents si ce nest pas la realite.\nJSON 4 sections:\n{"sections":[{"titre":"Biais & angles morts","resume":"<2-3 ph>","detail":"<analyse HTML>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"},{"titre":"Contexte historique","resume":"<2-3 ph>","detail":"<analyse>","type_viz":"line","viz_label":"<titre>","viz_data":{"labels":["<a1>","<a2>","<a3>","<a4>","<a5>"],"values":[0,0,0,0,0]},"image_query":"<2-4 mots anglais>"},{"titre":"Tendances systémiques","resume":"<2-3 ph>","detail":"<analyse>","type_viz":"bar","viz_label":"<titre>","viz_data":{"labels":["<t1>","<t2>","<t3>","<t4>"],"values":[0,0,0,0]},"image_query":"<2-4 mots anglais>"},{"titre":"Trajectoires plausibles","resume":"<2-3 ph>","detail":"<analyse>","type_viz":"none","viz_label":null,"viz_data":null,"image_query":"<2-4 mots anglais>"}]}\nviz_data : remplace les 0 par de vraies valeurs numeriques.`}],5000).then(raw=>{try{const d=safeJSON(raw);(d.sections||[]).forEach((s,i)=>analysis.sections[i+4]=s);}catch(e){console.error('[p3]',e.message);}setStep(3);});
-
-    // Triple passe acteurs — 3 analyses indépendantes puis synthèse
-    const acteurPrompt = `Sujet : "${t}". Contexte : ${ctx}.
-Identifie 5 acteurs clés et leur position REELLE sur ce sujet.
-Definitions strictes — ne pas utiliser pour equilibrer les colonnes :
-- "pro" : soutient ou beneficie de la position dominante dans ce conflit
-- "contra" : s'oppose ou nuit a cette position
-- "neutre" : veritablement equidistant, sans alignement clair
-- "ambigu" : position REELLEMENT contradictoire — uniquement si justifie analytiquement
-Il peut y avoir 4 "pro" et 1 "contra" — pas d'imperatif de symetrie.
-JSON uniquement :
-{"acteurs":[
-{"nom":"<nom reel>","role":"<role precis>","camp":"<camp selon realite>","interet":"<interet reel 1 phrase>","wiki":"<titre exact page Wikipedia anglaise>","type":"<pays|organisation|entreprise|individu>","leviers":"<2-3 leviers>","contraintes":"<2-3 contraintes>"},
-{"nom":"<nom>","role":"<role>","camp":"<camp>","interet":"<interet>","wiki":"<titre Wikipedia anglais>","type":"<pays|organisation|entreprise|individu>","leviers":"<leviers>","contraintes":"<contraintes>"},
-{"nom":"<nom>","role":"<role>","camp":"<camp>","interet":"<interet>","wiki":"<titre Wikipedia anglais>","type":"<pays|organisation|entreprise|individu>","leviers":"<leviers>","contraintes":"<contraintes>"},
-{"nom":"<nom>","role":"<role>","camp":"<camp>","interet":"<interet>","wiki":"<titre Wikipedia anglais>","type":"<pays|organisation|entreprise|individu>","leviers":"<leviers>","contraintes":"<contraintes>"},
-{"nom":"<nom>","role":"<role>","camp":"<camp>","interet":"<interet>","wiki":"<titre Wikipedia anglais>","type":"<pays|organisation|entreprise|individu>","leviers":"<leviers>","contraintes":"<contraintes>"}
-]}`;
-
-    const [r4a1, r4a2, r4a3] = await Promise.allSettled([
-      callProxy([{role:'user',content:acteurPrompt}],2000),
-      callProxy([{role:'user',content:acteurPrompt}],2000),
-      callProxy([{role:'user',content:acteurPrompt}],2000)
-    ]);
-
-    // Synthèse des 3 passes
-    const acteurSets = [r4a1, r4a2, r4a3].map(r => {
-      if(r.status !== 'fulfilled') return [];
-      try { return safeJSON(r.value).acteurs || []; } catch(e) { return []; }
-    }).filter(s => s.length > 0);
-
-    let finalActeurs = [];
-    if(acteurSets.length > 0) {
-      // Consolidation : compter les acteurs mentionnés dans plusieurs passes
-      const nomCount = {};
-      acteurSets.forEach(set => set.forEach(a => {
-        const key = (a.nom||'').toLowerCase().trim();
-        if(!nomCount[key]) nomCount[key] = {count:0, versions:[]};
-        nomCount[key].count++;
-        nomCount[key].versions.push(a);
-      }));
-      // Prendre les acteurs mentionnés au moins 2 fois (ou tous si une seule passe)
-      const threshold = acteurSets.length >= 2 ? 2 : 1;
-      const confirmed = Object.values(nomCount)
-        .filter(e => e.count >= threshold)
-        .sort((a,b) => b.count - a.count)
-        .slice(0, 6);
-      // Synthétiser chaque acteur : prendre la version la plus détaillée
-      finalActeurs = confirmed.map(e => {
-        const versions = e.versions;
-        // Prendre la version avec le plus de champs remplis
-        return versions.reduce((best, v) => {
-          const score = Object.values(v).filter(x=>x&&String(x).length>5).length;
-          const bestScore = Object.values(best).filter(x=>x&&String(x).length>5).length;
-          return score > bestScore ? v : best;
-        }, versions[0]);
-      });
-      // Compléter si moins de 3 acteurs confirmés avec les mieux notés du set 1
-      if(finalActeurs.length < 3 && acteurSets[0]) {
-        const extra = acteurSets[0].filter(a => !finalActeurs.find(f => f.nom===a.nom));
-        finalActeurs = [...finalActeurs, ...extra].slice(0, 5);
-      }
-    }
-
-    analysis.acteurs = finalActeurs;
-    _lastActeurs = finalActeurs;
-    renderActeurs(analysis);
-    // Images en arrière-plan
-    loadActeurImages(_lastActeurs).then(() => {
-      _lastActeurs.forEach((a,i) => {
-        if(!a._wikiImg) return;
-        const wraps = document.querySelectorAll('.actor-imgwrap');
-        if(!wraps[i]) return;
-        const img = wraps[i].querySelector('img');
-        if(img){img.src=a._wikiImg;return;}
-        const ni=document.createElement('img');
-        ni.src=a._wikiImg;
-        ni.style.cssText='width:100%;height:80px;object-fit:cover;position:absolute;top:0;left:0';
-        ni.onerror=function(){this.style.display='none';};
-        wraps[i].appendChild(ni);
-      });
-    }).catch(()=>{});
-    setStep(4);
-
-    const p4b=callProxy([{role:'user',content:'Sujet : "'+t+'". Contexte : '+ctx+'. 3 scenarios plausibles. Ne lisse pas les probabilites — dis les vraies valeurs. Somment a 100. JSON : {"scenarios":[{"titre":"<sc1>","probabilite":<n>,"description":"<2ph>","signal":"<sf>","detail":"<3ph>"},{"titre":"<sc2>","probabilite":<n>,"description":"<2ph>","signal":"<sf>","detail":"<3ph>"},{"titre":"<sc3>","probabilite":<n>,"description":"<2ph>","signal":"<sf>","detail":"<3ph>"}]}'}],2000)
-.then(raw=>{try{const d=safeJSON(raw);const sc=d.scenarios||[];analysis.scenarios=sc;if(sc.length>0)renderScenarios(analysis);}catch(e){console.error('[p4b]',e.message);}setStep(5);})
-    const results=await Promise.allSettled([p2,p3,p4b]);
-    const failed=results.filter(r=>r.status==='rejected');
-    if(failed.length===3) throw new Error((failed[0].reason?.message)||'Tous les appels API ont échoué — vérifiez votre connexion');
-    if(failed.length>0) console.warn('[Prisme] Appels échoués:',failed.map(f=>f.reason?.message));
-
-    _currentAnalysis=analysis;
-    stopLoading();
-    document.getElementById('an-results').style.display='';
-    renderGeoMap(analysis);
-
-  } catch(err) {
-    stopLoading();
-    showAnErr('Erreur : '+err.message);
-    console.error('[Prisme]',err);
+function drawMap(svgEl, acteurs) {
+  if(!svgEl) return;
+  if(typeof d3==='undefined'||typeof topojson==='undefined') {
+    svgEl.innerHTML='<text x="10" y="20" font-size="11" fill="#555">Carte non disponible</text>';
+    return;
   }
-}
+  // Nettoyer le SVG existant
+  while(svgEl.firstChild) svgEl.removeChild(svgEl.firstChild);
 
-/* RENDER HEADER */
-function renderHeader(d) {
-  document.getElementById('an-headline').textContent=d.headline||d.topic||'';
-  document.getElementById('an-meta').innerHTML=`<span>📅 ${d.date_contexte||''}</span><span>· ${Object.values(srcs).filter(Boolean).length} sources</span><span>· ${Object.values(frames).filter(Boolean).length} cadres</span>`;
-  document.getElementById('an-resume').textContent=d.resume||'';
-  // Afficher le placeholder de la carte (sera remplie par renderGeoMap après les acteurs)
-  const mapCenter = document.getElementById('an-map-center');
-  if(mapCenter) mapCenter.style.display='';
-  document.getElementById('an-results').style.display='';
-}
+  const w = svgEl.parentElement ? svgEl.parentElement.offsetWidth||600 : 600;
+  const h = Math.round(w*0.42);
+  svgEl.setAttribute('viewBox',`0 0 ${w} ${h}`);
+  svgEl.setAttribute('width','100%');
+  svgEl.setAttribute('height',h);
+  svgEl.style.background='#060d1a';
 
-/* RENDER ACTEURS */
-function withRetry(fn, retries=1, delayMs=1500) {
-  return fn().catch(err => {
-    if (retries <= 0) throw err;
-    return new Promise(r => setTimeout(r, delayMs)).then(() => withRetry(fn, retries-1, delayMs));
+  const proj = d3.geoNaturalEarth1().scale(w/6.5).translate([w/2,h/2]);
+  const path = d3.geoPath(proj);
+  const svg = d3.select(svgEl);
+
+  // Mapper acteurs → codes pays
+  const colMap={pro:'#1a3a1a',contra:'#7f1d1d',neutre:'#888780',ambigu:'#633806'};
+  const campById={};
+  const nameToId={
+    840:['etats-unis','états-unis','usa','united states','trump','biden','washington'],
+    364:['iran','khamenei','irgc'],
+    643:['russie','russia','poutine','kremlin'],
+    156:['chine','china','xi','beijing','pekin'],
+    376:['israel','israël','netanyahu'],
+    682:['arabie saoudite','saudi','riyad','mbs'],
+    792:['turquie','turkey','erdogan','ankara'],
+    250:['france','macron','paris'],
+    276:['allemagne','berlin','scholz'],
+    826:['royaume-uni','uk','london','sunak'],
+    368:['irak','iraq','bagdad','baghdad'],
+    422:['liban','beyrouth','hezbollah'],
+    275:['palestine','gaza','hamas'],
+    887:['yemen','houthis','sanaa'],
+    760:['syrie','damas','assad'],
+    818:['egypte','le caire','sisi'],
+    784:['emirats','uae','dubai'],
+    356:['inde','india','modi','delhi'],
+    392:['japon','japan','tokyo'],
+    410:['coree du sud','seoul'],
+    408:['coree du nord','pyongyang'],
+    804:['ukraine','kiev','kyiv','zelensky'],
+  };
+  (acteurs||[]).forEach(a=>{
+    const key=(a.nom||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    for(const [id,names] of Object.entries(nameToId)){
+      if(names.some(n=>key.includes(n))) { campById[+id]=a.camp; break; }
+    }
   });
+
+  const pts={
+    840:[-100,38],364:[53,33],643:[105,62],156:[104,35],376:[35,31],
+    682:[45,24],792:[35,39],250:[2,46],276:[10,51],826:[-2,54],
+    368:[44,33],422:[35,33.5],887:[44,15],760:[38,34.5],818:[30,26],
+    356:[78,22],392:[138,36],410:[127,37],804:[32,49]
+  };
+  const lbls={840:'USA',364:'Iran',643:'Russie',156:'Chine',376:'Israël',682:'Arabie S.',
+    792:'Turquie',250:'France',356:'Inde',392:'Japon',804:'Ukraine'};
+
+  d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(world=>{
+    svg.selectAll('path')
+      .data(topojson.feature(world,world.objects.countries).features)
+      .join('path')
+      .attr('d',path)
+      .attr('fill',dd=>{ const c=campById[+dd.id]; return c?colMap[c]:'#1e2530'; })
+      .attr('stroke','#060d1a')
+      .attr('stroke-width',0.4);
+
+    Object.entries(pts).forEach(([id,[lng,lat]])=>{
+      const [px,py]=proj([lng,lat]);
+      if(!px) return;
+      const c=campById[+id];
+      if(c){
+        svg.append('circle').attr('cx',px).attr('cy',py).attr('r',3.5)
+          .attr('fill',colMap[c]).attr('stroke','#060d1a').attr('stroke-width',1);
+      }
+      if(lbls[+id]){
+        svg.append('text').attr('x',px).attr('y',py-6)
+          .attr('text-anchor','middle').attr('font-size',8).attr('font-weight','500')
+          .attr('font-family','system-ui,sans-serif').attr('fill','#ececec')
+          .text(lbls[+id]);
+      }
+    });
+  }).catch(()=>{});
 }
 
-async function fetchWikiImage(title) {
-  if (!title) return null;
+// ── WIKIPEDIA IMAGE ──────────────────────────────────
+
+async function fetchWikiImg(title) {
+  if(!title) return null;
   try {
-    const ctrl = new AbortController();
-    const tid = setTimeout(() => ctrl.abort(), 5000);
-    let r;
-    try { r = await fetch('https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&pithumbsize=240&format=json&origin=*&titles='+encodeURIComponent(title),{signal:ctrl.signal}); }
-    finally { clearTimeout(tid); }
-    if (!r.ok) return null;
-    const d = await r.json();
-    const pages = d.query && d.query.pages;
-    if (!pages) return null;
-    const page = Object.values(pages)[0];
-    let src = page && page.thumbnail && page.thumbnail.source;
-    if (!src) return null;
-    if (src.startsWith('//')) src = 'https:' + src;
-    return src;
-  } catch(e) { return null; }
+    const ctrl=new AbortController();
+    const tid=setTimeout(()=>ctrl.abort(),5000);
+    try {
+      const r=await fetch(
+        'https://en.wikipedia.org/w/api.php?action=query&prop=pageimages&pithumbsize=240&format=json&origin=*&titles='+encodeURIComponent(title),
+        {signal:ctrl.signal}
+      );
+      clearTimeout(tid);
+      if(!r.ok) return null;
+      const d=await r.json();
+      const pages=d.query?.pages;
+      if(!pages) return null;
+      const page=Object.values(pages)[0];
+      let src=page?.thumbnail?.source;
+      if(!src) return null;
+      if(src.startsWith('//')) src='https:'+src;
+      return src;
+    } finally { clearTimeout(tid); }
+  } catch(_){ return null; }
 }
 
-async function loadActeurImages(acteurs) {
-  // Charger en parallèle avec timeout global de 8s
-  const race = (p, ms) => Promise.race([p, new Promise(r => setTimeout(() => r(null), ms))]);
-  const urls = await Promise.all(acteurs.map(a => race(fetchWikiImage(a.wiki), 5000)));
-  urls.forEach((url, i) => { acteurs[i]._wikiImg = url || null; });
+async function loadWikiImages(acteurs) {
+  const urls=await Promise.all(acteurs.map(a=>
+    Promise.race([fetchWikiImg(a.wiki), new Promise(r=>setTimeout(()=>r(null),5000))])
+  ));
+  urls.forEach((url,i)=>{ acteurs[i]._img=url||null; });
 }
 
-function renderActeurs(d) {
-  _lastActeurs = d.acteurs || [];
-  const acteurs = _lastActeurs;
+// ── RENDER ACTEURS ───────────────────────────────────
 
-  // Séparer par camp — les neutres/ambigus vont au centre
-  const leftActors  = acteurs.filter(a => a.camp === 'pro');
-  const centerActors = acteurs.filter(a => a.camp === 'neutre' || a.camp === 'ambigu');
-  const rightActors = acteurs.filter(a => a.camp === 'contra');
+function makeActorCard(a, globalIdx) {
+  const c=a.camp||'neutre';
+  const [bg,fg,lbl]=BADGE[c]||BADGE.neutre;
 
-  // Nombre de lignes = max des 3 colonnes
-  const nRows = Math.max(leftActors.length, centerActors.length, rightActors.length, 1);
+  const card=document.createElement('div');
+  card.className='actor-card'+(c==='ambigu'?' ambigu':'');
+  card.onclick=()=>openActeur(globalIdx);
 
-  function makeCard(a, i) {
-    const c = a.camp || 'neutre';
-    const [bg, fg, lbl] = BADGE[c] || BADGE.neutre;
-    const card = document.createElement('div');
-    card.className = 'actor-card' + (c === 'ambigu' ? ' actor-ambigu' : '');
-    card.onclick = () => openActeur(i);
+  // Image
+  const wrap=document.createElement('div');
+  wrap.className='actor-imgwrap';
+  const init=document.createElement('div');
+  init.className='actor-init';
+  init.textContent=(a.nom||'?').slice(0,2).toUpperCase();
+  wrap.appendChild(init);
 
-    const wrap = document.createElement('div');
-    wrap.className = 'actor-imgwrap';
-
-    // Initiale toujours visible en fond
-    const init = document.createElement('div');
-    init.className = 'actor-init';
-    init.textContent = a.nom.slice(0, 2).toUpperCase();
-    wrap.appendChild(init);
-
-    // Image selon le type : Wikipedia si dispo, sinon drapeau/logo selon type
-    const imgSrc = a._wikiImg || getActeurImageUrl(a);
-    if (imgSrc) {
-      const img = document.createElement('img');
-      img.src = imgSrc;
-      img.alt = a.nom;
-      img.setAttribute('loading', 'eager');
-      img.style.cssText = 'width:100%;height:80px;object-fit:cover;position:absolute;top:0;left:0;display:block';
-      img.onerror = function() { this.style.display = 'none'; };
-      wrap.appendChild(img);
-    }
-    card.appendChild(wrap);
-
-    const body = document.createElement('div');
-    body.className = 'actor-body';
-    body.innerHTML =
-      `<span class="actor-badge" style="background:${bg};color:${fg}">${lbl}</span>` +
-      `<div class="actor-name">${a.nom}</div>` +
-      `<div class="actor-role">${a.role}</div>` +
-      `<div class="actor-interet">${a.interet}</div>`;
-    card.appendChild(body);
-    return card;
+  const imgSrc = a._img || getFlagUrl(a.nom);
+  if(imgSrc){
+    const img=document.createElement('img');
+    img.src=imgSrc;
+    img.alt=a.nom;
+    img.onerror=function(){this.style.display='none';};
+    wrap.appendChild(img);
   }
+  card.appendChild(wrap);
 
-  const el = document.getElementById('an-acteurs');
-  el.innerHTML = '';
-  const grid = document.createElement('div');
-  grid.className = 'actors-grid';
+  const body=document.createElement('div');
+  body.className='actor-body';
+  const badge=document.createElement('span');
+  badge.className='actor-badge';
+  badge.style.background=bg; badge.style.color=fg;
+  badge.textContent=lbl;
+  body.appendChild(badge);
+  body.innerHTML+=`<div class="actor-name">${a.nom||''}</div><div class="actor-role">${a.role||''}</div><div class="actor-interet">${a.interet||''}</div>`;
+  card.appendChild(body);
+  return card;
+}
 
-  // Remplir ligne par ligne
-  for (let row = 0; row < nRows; row++) {
-    // Colonne gauche (pro)
-    const leftCell = document.createElement('div');
-    if (leftActors[row]) leftCell.appendChild(makeCard(leftActors[row], acteurs.indexOf(leftActors[row])));
-    grid.appendChild(leftCell);
+function renderActeurs(analysis) {
+  lastActeurs=analysis.acteurs||[];
+  const el=document.getElementById('an-acteurs');
+  if(!el) return;
+  el.innerHTML='';
+  if(!lastActeurs.length){ el.innerHTML='<div style="font-size:11px;color:var(--txt3)">Aucun acteur identifié.</div>'; return; }
 
-    // Colonne centre (neutre/ambigu)
-    const centerCell = document.createElement('div');
-    if (centerActors[row]) centerCell.appendChild(makeCard(centerActors[row], acteurs.indexOf(centerActors[row])));
-    grid.appendChild(centerCell);
+  const pros=lastActeurs.map((a,i)=>({a,i})).filter(({a})=>a.camp==='pro');
+  const contras=lastActeurs.map((a,i)=>({a,i})).filter(({a})=>a.camp==='contra');
+  const others=lastActeurs.map((a,i)=>({a,i})).filter(({a})=>a.camp!=='pro'&&a.camp!=='contra');
 
-    // Colonne droite (contra)
-    const rightCell = document.createElement('div');
-    if (rightActors[row]) rightCell.appendChild(makeCard(rightActors[row], acteurs.indexOf(rightActors[row])));
-    grid.appendChild(rightCell);
+  const grid=document.createElement('div');
+  grid.className='actors-grid';
+  const nRows=Math.max(pros.length,contras.length,Math.max(1,others.length));
+
+  for(let r=0;r<nRows;r++){
+    const left=document.createElement('div');
+    if(pros[r]) left.appendChild(makeActorCard(pros[r].a, pros[r].i));
+    grid.appendChild(left);
+
+    const center=document.createElement('div');
+    if(others[r]) center.appendChild(makeActorCard(others[r].a, others[r].i));
+    grid.appendChild(center);
+
+    const right=document.createElement('div');
+    if(contras[r]) right.appendChild(makeActorCard(contras[r].a, contras[r].i));
+    grid.appendChild(right);
   }
-
   el.appendChild(grid);
-}
 
+  // Mettre à jour les images en arrière-plan
+  loadWikiImages(lastActeurs).then(()=>{
+    lastActeurs.forEach((a,i)=>{
+      if(!a._img) return;
+      const wraps=document.querySelectorAll('.actor-imgwrap');
+      if(!wraps[i]) return;
+      const existing=wraps[i].querySelector('img');
+      if(existing){ existing.src=a._img; return; }
+      const img=document.createElement('img');
+      img.src=a._img;
+      img.onerror=function(){this.style.display='none';};
+      wraps[i].appendChild(img);
+    });
+  }).catch(()=>{});
+}
 
 function openActeur(idx) {
-  const a = _lastActeurs[idx]; if (!a) return;
-  document.querySelectorAll('.actor-card').forEach((c,i) => c.classList.toggle('active', i===idx));
-  const [bg,fg,lbl] = BADGE[a.camp||'neutre'] || BADGE.neutre;
-  const col = {pro:'#1a3a1a',contra:'#7f1d1d',neutre:'#2a2a2a',ambigu:'#633806'}[a.camp||'neutre'];
-  const flagUrl = a._wikiImg || getActeurImageUrl(a);
+  const a=lastActeurs[idx]; if(!a) return;
+  document.querySelectorAll('.actor-card').forEach((c,i)=>c.classList.toggle('active',i===idx));
+  const [bg,fg,lbl]=BADGE[a.camp||'neutre']||BADGE.neutre;
+  const col=CAMP_CAMP_COL_MAP[a.camp||'neutre'];
+  const imgSrc=a._img||getFlagUrl(a.nom);
 
-  const imgHtml = flagUrl
-    ? `<div style="position:relative;width:100%;height:140px;background:var(--bg3);border-radius:var(--r);margin-bottom:.75rem;overflow:hidden">
-        <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:36px;font-weight:500;color:var(--txt3)">${a.nom.slice(0,2).toUpperCase()}</div>
-        <img src="${flagUrl}" loading="eager" style="width:100%;height:140px;object-fit:cover;position:absolute;top:0;left:0" onerror="this.style.display='none'">
-      </div>`
-    : `<div style="width:100%;height:80px;background:var(--bg3);border-radius:var(--r);margin-bottom:.75rem;display:flex;align-items:center;justify-content:center;font-size:36px;font-weight:500;color:var(--txt3)">${a.nom.slice(0,2).toUpperCase()}</div>`;
-
-  // Sections d'analyse
-  const sections = [];
-
-  // Badge + rôle
-  sections.push(`<div style="display:flex;align-items:center;gap:8px;margin-bottom:.75rem;flex-wrap:wrap">
+  let html=`<div class="detail-title">${a.nom}</div>`;
+  if(imgSrc){
+    html+=`<div style="position:relative;width:100%;height:130px;background:var(--bg3);border-radius:var(--r);margin-bottom:.6rem;overflow:hidden">
+      <div class="actor-init">${(a.nom||'?').slice(0,2).toUpperCase()}</div>
+      <img src="${imgSrc}" style="width:100%;height:130px;object-fit:cover;position:absolute;top:0;left:0" onerror="this.style.display='none'">
+    </div>`;
+  }
+  html+=`<div style="display:flex;align-items:center;gap:8px;margin-bottom:.6rem">
     <span class="actor-badge" style="background:${bg};color:${fg};padding:3px 10px;border-radius:999px;font-size:11px;font-weight:500">${lbl}</span>
-    <span style="font-size:12px;color:var(--txt2)">${a.role}</span>
-  </div>`);
-
-  // Intérêt géopolitique
-  sections.push(`<div class="slabel" style="margin-top:0">Intérêt géopolitique</div>
-  <div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:.75rem;padding:10px 12px;background:var(--bg3);border-radius:var(--r);border-left:3px solid ${col};font-style:italic">${a.interet}</div>`);
-
-  // Analyse détaillée
-  if(a.detail){
-    sections.push(`<div class="slabel">Analyse</div>
-    <div class="detail-body" style="font-size:12px">${a.detail.split('\n').join('<br>')}</div>`);
-  }
-
-  // Leviers d'action
-  if(a.leviers){
-    sections.push(`<div class="slabel">Leviers d'action</div>
-    <div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:.75rem">${a.leviers}</div>`);
-  }
-
-  // Contraintes
-  if(a.contraintes){
-    sections.push(`<div class="slabel">Contraintes</div>
-    <div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:.75rem">${a.contraintes}</div>`);
-  }
-
-  showDetail([`<div class="detail-title">${a.nom}</div>`, imgHtml, ...sections].join(''));
+    <span style="font-size:12px;color:var(--txt2)">${a.role||''}</span>
+  </div>`;
+  html+=`<div class="slabel" style="margin-top:0">Intérêt géopolitique</div>
+  <div style="font-size:12px;color:var(--txt2);line-height:1.6;padding:9px 11px;background:var(--bg3);border-radius:var(--r);border-left:3px solid ${col};font-style:italic;margin-bottom:.6rem">${a.interet||''}</div>`;
+  if(a.leviers) html+=`<div class="slabel">Leviers d'action</div><div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:.6rem">${a.leviers}</div>`;
+  if(a.contraintes) html+=`<div class="slabel">Contraintes</div><div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:.6rem">${a.contraintes}</div>`;
+  if(a.detail) html+=`<div class="slabel">Analyse</div><div class="detail-body" style="font-size:12px">${a.detail.replace(/\n/g,'<br>')}</div>`;
+  showDetail(html);
 }
 
+// ── RENDER SCÉNARIOS ─────────────────────────────────
 
-function renderScenarios(d) {
-  const scenarios=d.scenarios||[];
+function renderScenarios(analysis) {
+  const scenarios=analysis.scenarios||[];
   const el=document.getElementById('an-scenarios');
-  if (!el) return;
+  if(!el) return;
   el.innerHTML='';
+  if(!scenarios.length){ el.innerHTML='<div style="font-size:11px;color:var(--txt3)">Trajectoires non disponibles.</div>'; return; }
+
   const grid=document.createElement('div');
   grid.className='sc-grid';
   grid.style.gridTemplateColumns=`repeat(${Math.min(scenarios.length,3)},minmax(0,1fr))`;
+  const panel=document.createElement('div');
+  panel.className='sc-panel';
+  let activeSc=-1;
 
-  let currentSc=-1;
   scenarios.forEach((sc,i)=>{
     const p=Math.round(sc.probabilite||0);
     const col=p>=60?'#27500A':p>=35?'#633806':'#7f1d1d';
     const box=document.createElement('div');
     box.className='sc-box';
-    box.id='scbox-'+i;
-    box.innerHTML=`<div class="sc-top"><div class="sc-prob" style="color:${col}">${p}%</div><div class="sc-title">${sc.titre}</div></div><div class="sc-desc">${sc.description}</div>${sc.signal?`<div class="sc-signal">⚠ ${sc.signal}</div>`:''}<div class="sc-hint">▾ Voir le détail</div>`;
+    box.innerHTML=`<div class="sc-top"><div class="sc-prob" style="color:${col}">${p}%</div><div class="sc-title">${sc.titre||''}</div></div>
+      <div class="sc-desc">${sc.description||''}</div>
+      ${sc.signal?`<div class="sc-signal">⚠ ${sc.signal}</div>`:''}
+      <div class="sc-hint">▾ Voir le détail</div>`;
     box.onclick=()=>{
-      if(currentSc===i){currentSc=-1;box.classList.remove('active');panel.classList.remove('on');return;}
-      currentSc=i;
-      document.querySelectorAll('.sc-box').forEach((b,j)=>b.classList.toggle('active',j===i));
+      if(activeSc===i){ activeSc=-1; box.classList.remove('active'); panel.classList.remove('on'); return; }
+      activeSc=i;
+      grid.querySelectorAll('.sc-box').forEach((b,j)=>b.classList.toggle('active',j===i));
       const p2=Math.round(sc.probabilite||0);
       const col2=p2>=60?'#27500A':p2>=35?'#633806':'#7f1d1d';
-      panel.innerHTML=`<div class="sc-panel-ttl"><span style="color:${col2}">${p2}% — ${sc.titre}</span><button class="sc-close" onclick="this.closest('.sc-panel').classList.remove('on');document.querySelectorAll('.sc-box').forEach(b=>b.classList.remove('active'))">✕</button></div>${sc.detail||sc.description||''}`;
+      panel.innerHTML=`<div style="font-size:12px;font-weight:500;color:${col2};margin-bottom:7px;display:flex;align-items:center;justify-content:space-between">
+        <span>${p2}% — ${sc.titre||''}</span>
+        <button onclick="this.closest('.sc-panel').classList.remove('on')" style="background:none;border:none;cursor:pointer;color:var(--txt3);font-size:14px">✕</button>
+      </div>${sc.detail||sc.description||''}`;
       panel.classList.add('on');
     };
     grid.appendChild(box);
   });
 
-  const panel=document.createElement('div');
-  panel.className='sc-panel';
-
   el.appendChild(grid);
   el.appendChild(panel);
-  // Fix: si scenarios est vide, afficher un message
-  if(scenarios.length===0){
-    el.innerHTML='<div style="font-size:11px;color:var(--txt3);padding:.5rem 0">Trajectoires en cours de chargement…</div>';
+}
+
+// ── LAUNCH ANALYSE ───────────────────────────────────
+
+async function launch() {
+  const t=(document.getElementById('topic-in').value||'').trim();
+  if(!t){ document.getElementById('topic-in').focus(); return; }
+  setTopic(t);
+  startLoading();
+
+  const as=Object.entries(srcs).filter(([,v])=>v).map(([k])=>SL[k]).join(', ');
+  const af=Object.entries(frames).filter(([,v])=>v).map(([k])=>FL[k]).join(', ');
+  const dl={f:'2 phrases max par point',a:'3-4 phrases',d:'5-6 phrases exhaustif'}[depth];
+  const analysis={topic:t, acteurs:[], scenarios:[]};
+
+  try {
+    // ── Appel 1 : header (séquentiel, bloque pour avoir le contexte)
+    const raw1=await callAPI([{role:'user',content:
+      `Sujet:"${t}". Sources:${as}. Cadres:${af}. Profondeur:${dl}. Analyse sans langue de bois.
+JSON:{"headline":"<titre 12 mots max>","date_contexte":"<periode>","resume":"<resume factuel>","contexte_commun":"<4-5 phrases faits cles>"}`
+    }], 800);
+    const d1=safeJSON(raw1);
+    Object.assign(analysis,d1);
+    // Afficher header immédiatement
+    document.getElementById('an-headline').textContent=d1.headline||t;
+    document.getElementById('an-meta').innerHTML=`<span>📅 ${d1.date_contexte||''}</span><span>· ${Object.values(srcs).filter(Boolean).length} sources · ${Object.values(frames).filter(Boolean).length} cadres</span>`;
+    document.getElementById('an-resume').textContent=d1.resume||'';
+    document.getElementById('an-map-center').style.display='';
+    document.getElementById('an-results').style.display='';
+    setLoadStep(1);
+    const ctx=d1.contexte_commun||d1.resume||'';
+
+    // ── Prompt acteurs (réutilisé 3x)
+    const acteurPrompt=`Sujet:"${t}". Contexte:${ctx}.
+Identifie 5-6 acteurs REELS et leur position sur ce sujet spécifique.
+camp:"pro"|"contra"|"neutre"|"ambigu" selon la réalité — pas d'impératif de symétrie.
+type:"pays"|"organisation"|"entreprise"|"individu"
+JSON:{"acteurs":[
+{"nom":"<nom>","role":"<role>","camp":"<camp>","interet":"<1 phrase>","wiki":"<titre Wikipedia anglais>","type":"<type>","leviers":"<2-3 leviers>","contraintes":"<2-3 contraintes>"},
+{"nom":"<nom>","role":"<role>","camp":"<camp>","interet":"<1 phrase>","wiki":"<titre Wikipedia anglais>","type":"<type>","leviers":"<leviers>","contraintes":"<contraintes>"},
+{"nom":"<nom>","role":"<role>","camp":"<camp>","interet":"<1 phrase>","wiki":"<titre Wikipedia anglais>","type":"<type>","leviers":"<leviers>","contraintes":"<contraintes>"},
+{"nom":"<nom>","role":"<role>","camp":"<camp>","interet":"<1 phrase>","wiki":"<titre Wikipedia anglais>","type":"<type>","leviers":"<leviers>","contraintes":"<contraintes>"},
+{"nom":"<nom>","role":"<role>","camp":"<camp>","interet":"<1 phrase>","wiki":"<titre Wikipedia anglais>","type":"<type>","leviers":"<leviers>","contraintes":"<contraintes>"}
+]}`;
+
+    // ── Appels parallèles
+    const [rSec1, rSec2, rAct1, rAct2, rAct3, rSc]=await Promise.allSettled([
+      callAPI([{role:'user',content:`Sujet:"${t}". Contexte:${ctx}. Sources:${as}. Cadres:${af}. ${dl}.
+JSON 4 sections:{"sections":[{"titre":"Faits établis","resume":"<2-3 ph>","detail":"<analyse>"},{"titre":"Sources & récits","resume":"<2-3 ph>","detail":"<analyse>"},{"titre":"Certitudes & incertitudes","resume":"<2-3 ph>","detail":"<analyse>"},{"titre":"Intérêts des acteurs","resume":"<2-3 ph>","detail":"<analyse>"}]}`}], 4000),
+      callAPI([{role:'user',content:`Sujet:"${t}". Contexte:${ctx}. Sources:${as}. Cadres:${af}. ${dl}.
+JSON 4 sections:{"sections":[{"titre":"Biais & angles morts","resume":"<2-3 ph>","detail":"<analyse>"},{"titre":"Contexte historique","resume":"<2-3 ph>","detail":"<analyse>"},{"titre":"Tendances systémiques","resume":"<2-3 ph>","detail":"<analyse>"},{"titre":"Trajectoires plausibles","resume":"<2-3 ph>","detail":"<analyse>"}]}`}], 4000),
+      callAPI([{role:'user',content:acteurPrompt}], 2000),
+      callAPI([{role:'user',content:acteurPrompt}], 2000),
+      callAPI([{role:'user',content:acteurPrompt}], 2000),
+      callAPI([{role:'user',content:`Sujet:"${t}". Contexte:${ctx}.
+3 scénarios plausibles. Probabilités réelles (somment à 100), pas équilibrées artificiellement.
+JSON:{"scenarios":[{"titre":"<sc>","probabilite":<n>,"description":"<2 ph>","signal":"<signal faible>","detail":"<3-4 ph>"},{"titre":"<sc>","probabilite":<n>,"description":"<2 ph>","signal":"<signal>","detail":"<analyse>"},{"titre":"<sc>","probabilite":<n>,"description":"<2 ph>","signal":"<signal>","detail":"<analyse>"}]}`}], 2000)
+    ]);
+
+    // ── Traiter sections (non affichées mais gardées pour le chat)
+    [rSec1,rSec2].forEach((r,i)=>{
+      if(r.status==='fulfilled'){
+        try{ const d=safeJSON(r.value); analysis['sections'+(i+1)]=d.sections||[]; }catch(_){}
+      }
+    });
+    setLoadStep(2);
+
+    // ── Triple passe acteurs + synthèse
+    const acteurSets=[rAct1,rAct2,rAct3].map(r=>{
+      if(r.status!=='fulfilled') return [];
+      try{ return safeJSON(r.value).acteurs||[]; }catch(_){ return []; }
+    }).filter(s=>s.length>0);
+
+    let finalActeurs=[];
+    if(acteurSets.length>0){
+      const nomCount={};
+      acteurSets.forEach(set=>set.forEach(a=>{
+        const key=(a.nom||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim();
+        if(!nomCount[key]){nomCount[key]={count:0,versions:[]};}
+        nomCount[key].count++;
+        nomCount[key].versions.push(a);
+      }));
+      const threshold=acteurSets.length>=2?2:1;
+      finalActeurs=Object.values(nomCount)
+        .filter(e=>e.count>=threshold)
+        .sort((a,b)=>b.count-a.count)
+        .slice(0,6)
+        .map(e=>e.versions.reduce((best,v)=>{
+          const score=Object.values(v).filter(x=>x&&String(x).length>5).length;
+          return score>Object.values(best).filter(x=>x&&String(x).length>5).length?v:best;
+        }, e.versions[0]));
+      if(finalActeurs.length<3&&acteurSets[0]){
+        const extra=acteurSets[0].filter(a=>!finalActeurs.find(f=>f.nom===a.nom));
+        finalActeurs=[...finalActeurs,...extra].slice(0,6);
+      }
+    }
+    analysis.acteurs=finalActeurs;
+    renderActeurs(analysis);
+    setLoadStep(3);
+
+    // ── Scénarios
+    if(rSc.status==='fulfilled'){
+      try{ const d=safeJSON(rSc.value); analysis.scenarios=d.scenarios||[]; }catch(_){}
+    }
+    renderScenarios(analysis);
+    setLoadStep(4);
+
+    // ── Carte
+    const svgEl=document.getElementById('geo-map-center');
+    if(svgEl) drawMap(svgEl, analysis.acteurs);
+
+    currentAnalysis=analysis;
+    setLoadStep(5);
+    stopLoading();
+    document.getElementById('an-results').style.display='';
+
+    // Carte dans le panneau droit
+    showDetail(`<div class="detail-title">Carte géopolitique</div>
+      <div class="map-wrap"><svg id="geo-map-detail" style="width:100%;height:180px;background:#060d1a;display:block"></svg>
+      <div class="map-legend"><span><span class="legend-dot" style="background:#1a3a1a"></span>Favorable</span><span><span class="legend-dot" style="background:#7f1d1d"></span>Opposé</span><span><span class="legend-dot" style="background:#888780"></span>Neutre</span><span><span class="legend-dot" style="background:#633806"></span>Ambigu</span></div></div>
+      <div style="font-size:11px;color:var(--txt3)">Cliquez sur un acteur pour le détail.</div>`);
+    setTimeout(()=>{
+      const det=document.getElementById('geo-map-detail');
+      if(det) drawMap(det, analysis.acteurs);
+    }, 300);
+
+  } catch(err) {
+    stopLoading();
+    showErr('an-err','Erreur : '+err.message);
+    console.error('[Prisme]', err);
   }
 }
 
-/* CARTE GÉO */
-function renderGeoMap(d) {
-  // Dessiner la carte dans le panneau centre
-  const centerEl = document.getElementById('geo-map-center');
-  if(centerEl) drawMapInEl(centerEl, d);
+// ── SPECTRE MÉDIATIQUE ───────────────────────────────
 
-  // Aussi dans le panneau détail droit
-  const html=[
-    `<div class="detail-title">Carte géopolitique</div>`,
-    `<div class="map-wrap"><div id="geo-map" style="width:100%;background:var(--bg3)"></div>`,
-    `<div class="map-legend"><span class="legend-item"><span class="legend-dot" style="background:#1a3a1a"></span>Favorable</span><span class="legend-item"><span class="legend-dot" style="background:#7f1d1d"></span>Opposé</span><span class="legend-item"><span class="legend-dot" style="background:#888780"></span>Neutre</span><span class="legend-item"><span class="legend-dot" style="background:#633806"></span>Ambigu</span></div></div>`,
-    `<div style="font-size:11px;color:var(--txt3);margin-top:.5rem">Cliquez sur un acteur pour afficher le détail contextuel ici.</div>`
-  ];
-  showDetail(html.join(''));
-  setTimeout(()=>{
-    const el=document.getElementById('geo-map');
-    if(el) drawMapInEl(el, d);
-  },200);
-}
-
-
-function drawMapInEl(el, d) {
-  if(!el) return;
-  if(typeof d3==='undefined'||typeof topojson==='undefined'){
-    el.innerHTML='<div style="padding:1rem;font-size:11px;color:var(--txt3)">Carte non disponible (D3 non chargé)</div>';
-    return;
-  }
-  const w=el.offsetWidth||el.parentElement?.offsetWidth||600, h=Math.round(w*0.42);
-  const svg=d3.select(el).append('svg').attr('viewBox',`0 0 ${w} ${h}`).attr('width','100%').style('background','#060d1a');
-  const proj=d3.geoNaturalEarth1().scale(w/6.5).translate([w/2,h/2]);
-  const path=d3.geoPath(proj);
-  const colMap={pro:'#1a3a1a',contra:'#7f1d1d',neutre:'#888780',ambigu:'#633806'};
-  const nameMap={
-    'etats-unis':840,'états-unis':840,'usa':840,'united states':840,
-    'iran':364,'russie':643,'russia':643,'chine':156,'china':156,
-    'israël':376,'israel':376,'arabie saoudite':682,'turquie':792,
-    'france':250,'allemagne':276,'royaume-uni':826,'union europeenne':null,
-    'irak':368,'iraq':368,'arabie':682,'saudi':682
-  };
-  const campById={};
-  (d.acteurs||[]).forEach(a=>{
-    const key=(a.nom||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-    Object.entries(nameMap).forEach(([k,id])=>{
-      if(id&&key.includes(k.normalize('NFD').replace(/[\u0300-\u036f]/g,''))) campById[id]=a.camp;
-    });
-  });
-  d3.json('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json').then(world=>{
-    svg.selectAll('path').data(topojson.feature(world,world.objects.countries).features).join('path')
-      .attr('d',path)
-      .attr('fill',dd=>{const c=campById[+dd.id];return c?colMap[c]:'#1e2530';})
-      .attr('stroke','#1a1a1a').attr('stroke-width',0.4);
-    const pts={840:[-100,38],364:[53,33],643:[105,62],156:[104,35],376:[35,31],368:[44,33],682:[45,24]};
-    const lbl={840:'USA',364:'Iran',643:'Russie',156:'Chine',376:'Israël',368:'Irak',682:'Arabie S.'};
-    Object.entries(pts).forEach(([id,[lng,lat]])=>{
-      const [px,py]=proj([lng,lat]);
-      if(!px) return;
-      const c=campById[+id];
-      if(!c) return;
-      svg.append('circle').attr('cx',px).attr('cy',py).attr('r',4).attr('fill',colMap[c]).attr('stroke','#1a1a1a').attr('stroke-width',1.5);
-      svg.append('text').attr('x',px).attr('y',py-7).attr('text-anchor','middle').attr('font-size',9).attr('font-weight','500').attr('font-family','system-ui,sans-serif').attr('fill','#ececec').text(lbl[+id]||'');
-    });
-  });
-}
-
-/* SPECTRE */
 function runSpectre() {
   const t=(document.getElementById('spec-in').value||'').trim();
-  if(!t){document.getElementById('spec-in').focus();return;}
-  setCurrentTopic(t);
+  if(!t){ document.getElementById('spec-in').focus(); return; }
+  setTopic(t);
   document.getElementById('spec-err').classList.remove('on');
-  const loading=document.getElementById('spec-loading');
-  loading.style.display='flex';
+  document.getElementById('spec-loading').style.display='flex';
   document.getElementById('spec-btn').disabled=true;
   document.getElementById('spec-results').style.display='none';
+
   const msgs=['Cartographie…','Calibrage spectre…','Analyse par camp…'];
   let mi=0;
-  const ticker=setInterval(()=>{document.getElementById('spec-lbl').textContent=msgs[++mi%msgs.length];},1800);
+  const ticker=setInterval(()=>{
+    document.getElementById('spec-lbl').textContent=msgs[++mi%msgs.length];
+  },1800);
 
-  const specPrompt = 'Analyse médiatique comparée de : "'+t+'". Le spectre reflète la réalité de la couverture, pas une distribution artificielle. JSON uniquement, remplace tous les <...> :'
-    + '{"topic":"'+t+'",'
-    + '"spectrum":{"gauche_radicale":0,"gauche":0,"centre":0,"droite":0,"droite_radicale":0},'
-    + '"stats":{"sources":0,"consensus":0,"polarisation":"<Faible|Moderee|Forte|Tres forte>","tonalite":"<mot>"},'
-    + '"camps":{"gauche_radicale":{"angle":"<angle>","elements_langage":["<m1>","<m2>","<m3>"],"angle_mort":"<omission>","nb_sources":0},'
-    + '"gauche":{"angle":"<angle>","elements_langage":["<m1>","<m2>","<m3>"],"angle_mort":"<omission>","nb_sources":0},'
-    + '"centre":{"angle":"<angle>","elements_langage":["<m1>","<m2>","<m3>"],"angle_mort":"<omission>","nb_sources":0},'
-    + '"droite":{"angle":"<angle>","elements_langage":["<m1>","<m2>","<m3>"],"angle_mort":"<omission>","nb_sources":0},'
-    + '"droite_radicale":{"angle":"<angle>","elements_langage":["<m1>","<m2>","<m3>"],"angle_mort":"<omission>","nb_sources":0}},'
-    + '"consensus":["<fait factuel partage>","<fait 2>","<fait 3>"],'
-    + '"divergences":["<point de desaccord>","<desaccord 2>","<desaccord 3>"],'
-    + '"angles_morts":["<angle mort commun>","<angle mort 2>","<angle mort 3>"],'
-    + '"cadrage":{"gauche_radicale":{"met_en_avant":"<...>","omet":"<...>","recit":"<...>"},'
-    + '"gauche":{"met_en_avant":"<...>","omet":"<...>","recit":"<...>"},'
-    + '"centre":{"met_en_avant":"<...>","omet":"<...>","recit":"<...>"},'
-    + '"droite":{"met_en_avant":"<...>","omet":"<...>","recit":"<...>"},'
-    + '"droite_radicale":{"met_en_avant":"<...>","omet":"<...>","recit":"<...>"}},'
-    + '"timeline":{"labels":["J-6","J-5","J-4","J-3","J-2","J-1","Auj."],'
-    + '"gauche_radicale":[0,0,0,0,0,0,0],"gauche":[0,0,0,0,0,0,0],"centre":[0,0,0,0,0,0,0],"droite":[0,0,0,0,0,0,0],"droite_radicale":[0,0,0,0,0,0,0]}}'
-    + ' spectrum doit sommer a 100. nb_sources = nombre estime de sources.';
+  const specPrompt='Analyse médiatique comparée de : "'+t+'". Spectre réel — pas de distribution artificielle. JSON uniquement :'
+    +'{"topic":"'+t+'",'
+    +'"spectrum":{"gauche_radicale":0,"gauche":0,"centre":0,"droite":0,"droite_radicale":0},'
+    +'"stats":{"sources":0,"consensus":0,"polarisation":"<Faible|Moderee|Forte|Tres forte>","tonalite":"<mot>"},'
+    +'"camps":{"gauche_radicale":{"angle":"<angle>","elements_langage":["<m1>","<m2>","<m3>"],"angle_mort":"<omission>","nb_sources":0},'
+    +'"gauche":{"angle":"<angle>","elements_langage":["<m1>","<m2>","<m3>"],"angle_mort":"<omission>","nb_sources":0},'
+    +'"centre":{"angle":"<angle>","elements_langage":["<m1>","<m2>","<m3>"],"angle_mort":"<omission>","nb_sources":0},'
+    +'"droite":{"angle":"<angle>","elements_langage":["<m1>","<m2>","<m3>"],"angle_mort":"<omission>","nb_sources":0},'
+    +'"droite_radicale":{"angle":"<angle>","elements_langage":["<m1>","<m2>","<m3>"],"angle_mort":"<omission>","nb_sources":0}},'
+    +'"consensus":["<fait>","<fait>","<fait>"],'
+    +'"divergences":["<desaccord>","<desaccord>","<desaccord>"],'
+    +'"angles_morts":["<angle mort>","<angle mort>","<angle mort>"],'
+    +'"cadrage":{"gauche_radicale":{"met_en_avant":"<...>","omet":"<...>","recit":"<...>"},'
+    +'"gauche":{"met_en_avant":"<...>","omet":"<...>","recit":"<...>"},'
+    +'"centre":{"met_en_avant":"<...>","omet":"<...>","recit":"<...>"},'
+    +'"droite":{"met_en_avant":"<...>","omet":"<...>","recit":"<...>"},'
+    +'"droite_radicale":{"met_en_avant":"<...>","omet":"<...>","recit":"<...>"}},'
+    +'"timeline":{"labels":["J-6","J-5","J-4","J-3","J-2","J-1","Auj."],'
+    +'"gauche_radicale":[0,0,0,0,0,0,0],"gauche":[0,0,0,0,0,0,0],"centre":[0,0,0,0,0,0,0],"droite":[0,0,0,0,0,0,0],"droite_radicale":[0,0,0,0,0,0,0]}}'
+    +' spectrum doit sommer a 100.';
 
-  callProxy([{role:'user',content:specPrompt}],4000)
+  callAPI([{role:'user',content:specPrompt}], 4000)
   .then(raw=>{
     clearInterval(ticker);
-    loading.style.display='none';
+    document.getElementById('spec-loading').style.display='none';
     document.getElementById('spec-btn').disabled=false;
-    try { renderSpectre(safeJSON(raw)); }
-    catch(e) {
+    try{ renderSpectre(safeJSON(raw)); }
+    catch(e){
       const eb=document.getElementById('spec-err');
-      eb.textContent='Erreur : '+e.message;
-      eb.classList.add('on');
+      eb.textContent='Erreur : '+e.message; eb.classList.add('on');
     }
   })
   .catch(err=>{
     clearInterval(ticker);
-    loading.style.display='none';
+    document.getElementById('spec-loading').style.display='none';
     document.getElementById('spec-btn').disabled=false;
     const eb=document.getElementById('spec-err');
-    eb.textContent='Erreur : '+err.message;
-    eb.classList.add('on');
+    eb.textContent='Erreur : '+err.message; eb.classList.add('on');
   });
 }
 
-
 function renderSpectre(d) {
-  _spectreData=d;
-  const SEG=['gg','g','c','d','dd'];
-  CAMP_KEYS.forEach((k,i)=>{const v=Math.round(d.spectrum[k]||0),el=document.getElementById('s-'+SEG[i]);if(el){el.style.width=v+'%';el.textContent=v>5?v+'%':'';}});
-  document.getElementById('st-src').textContent=d.stats.sources||'—';
-  document.getElementById('st-con').textContent=(d.stats.consensus||'—')+'%';
-  document.getElementById('st-pol').textContent=d.stats.polarisation||'—';
-  document.getElementById('st-ton').textContent=d.stats.tonalite||'—';
+  spectreData=d;
+  // Spectre
+  CAMP_KEYS.forEach((k,i)=>{
+    const v=Math.round(d.spectrum[k]||0);
+    const el=document.getElementById('s-'+SEG_IDS[i]);
+    if(el){ el.style.width=v+'%'; el.textContent=v>5?v+'%':''; }
+  });
+  document.getElementById('st-src').textContent=d.stats?.sources||'—';
+  document.getElementById('st-con').textContent=(d.stats?.consensus||'—')+'%';
+  document.getElementById('st-pol').textContent=d.stats?.polarisation||'—';
+  document.getElementById('st-ton').textContent=d.stats?.tonalite||'—';
 
-  const cg=document.getElementById('camps-g');cg.innerHTML='';
+  // Camps
+  const cg=document.getElementById('camps-g'); cg.innerHTML='';
   CAMP_KEYS.forEach(k=>{
     const c=d.camps[k]||{};
     const [tbg,tfg]=CAMP_TBG[k];
     const pct=Math.round(d.spectrum[k]||0);
     const tags=(c.elements_langage||[]).map(t=>`<span class="tag-m" style="background:${tbg};color:${tfg};border-color:${tfg}">${t}</span>`).join('');
     const card=document.createElement('div');
-    card.className='ccard';card.id='ccard-'+k;
+    card.className='ccard'; card.id='ccard-'+k;
     card.innerHTML=`<div class="ch"><div class="cdot" style="background:${CAMP_COLS[k]}"></div><div class="cn">${CAMP_NAMES[k]}</div><div class="cpct">${pct}%</div><span style="font-size:10px;color:var(--txt3);margin-left:2px">▾</span></div><div class="cst">Angle</div><div class="ctxt">${c.angle||''}</div><div class="cst">Langage</div><div style="margin-top:2px">${tags}</div>`;
     card.addEventListener('click',()=>openCampDetail(k));
     cg.appendChild(card);
   });
 
-  const consEl=document.getElementById('spec-consensus');
-  if(consEl)consEl.innerHTML=(d.consensus||[]).map(pt=>`<div class="spec-list-item"><span style="color:#86efac;font-weight:600;flex-shrink:0">✓</span>${pt}</div>`).join('');
-  const divEl=document.getElementById('spec-divergence');
-  if(divEl)divEl.innerHTML=(d.divergences||[]).map(pt=>`<div class="spec-list-item"><span style="color:#f87171;font-weight:600;flex-shrink:0">✗</span>${pt}</div>`).join('');
-  const angEl=document.getElementById('spec-angles');
-  if(angEl)angEl.innerHTML=(d.angles_morts||[]).map(pt=>`<div class="spec-list-item"><span style="color:#fbbf24;font-weight:600;flex-shrink:0">○</span>${pt}</div>`).join('');
+  // Consensus / Divergences / Angles morts
+  function renderList(id, items, icon, color) {
+    const el=document.getElementById(id); if(!el) return;
+    el.innerHTML=(items||[]).map(pt=>`<div class="list-item"><span style="color:${color};font-weight:600;flex-shrink:0">${icon}</span>${pt}</div>`).join('');
+  }
+  renderList('spec-consensus',d.consensus,'✓','#86efac');
+  renderList('spec-divergence',d.divergences,'✗','#f87171');
+  renderList('spec-angles',d.angles_morts,'○','#fbbf24');
 
-  const srcEl=document.getElementById('spec-sources-camps');
-  if(srcEl){
-    const data=CAMP_KEYS.map(k=>({name:CAMP_SHORT[k],col:CAMP_COLS[k],nb:d.camps[k]&&d.camps[k].nb_sources?d.camps[k].nb_sources:Math.max(1,Math.round(d.spectrum[k]/5))}));
+  // Sources par camp
+  const srcEl=document.getElementById('spec-sources-camps'); if(srcEl){
+    const data=CAMP_KEYS.map(k=>({name:CAMP_SHORT[k],col:CAMP_COLS[k],nb:d.camps[k]?.nb_sources||Math.max(1,Math.round(d.spectrum[k]/5))}));
     const mx=Math.max(...data.map(c=>c.nb),1);
     srcEl.innerHTML=data.map(c=>`<div class="src-bar-row"><div class="src-bar-name" style="color:${c.col}">${c.name}</div><div class="src-bar-track"><div class="src-bar-fill" style="width:${Math.round(c.nb/mx*100)}%;background:${c.col}"></div></div><div class="src-bar-nb">${c.nb}</div></div>`).join('');
   }
 
-  const tb=document.getElementById('at-body');tb.innerHTML='';
-  CAMP_KEYS.forEach(k=>{const cd=d.cadrage[k]||{};tb.innerHTML+=`<tr><td style="color:${CAMP_COLS[k]}">${CAMP_SHORT[k]}</td><td>${cd.met_en_avant||''}</td><td>${cd.omet||''}</td><td>${cd.recit||''}</td></tr>`;});
+  // Tableau cadrage
+  const tb=document.getElementById('at-body'); tb.innerHTML='';
+  CAMP_KEYS.forEach(k=>{
+    const cd=d.cadrage[k]||{};
+    tb.innerHTML+=`<tr><td style="color:${CAMP_COLS[k]}">${CAMP_SHORT[k]}</td><td>${cd.met_en_avant||''}</td><td>${cd.omet||''}</td><td>${cd.recit||''}</td></tr>`;
+  });
 
-  if(_tChart){_tChart.destroy();_tChart=null;}
+  // Timeline Chart
   const tl=d.timeline||{};
-  _tChart=typeof Chart!=='undefined'?new Chart(document.getElementById('tChart'),{
-    type:'line',
-    data:{labels:tl.labels||[],datasets:[
-      {label:'G.rad.',data:tl.gauche_radicale||[],borderColor:'#DC2626',backgroundColor:'transparent',pointRadius:2,borderWidth:1.5,tension:.3},
-      {label:'Gauche',data:tl.gauche||[],borderColor:'#F97316',backgroundColor:'transparent',pointRadius:2,borderWidth:1.5,tension:.3},
-      {label:'Centre',data:tl.centre||[],borderColor:'#9CA3AF',backgroundColor:'transparent',pointRadius:2,borderWidth:1.5,tension:.3,borderDash:[4,3]},
-      {label:'Droite',data:tl.droite||[],borderColor:'#60A5FA',backgroundColor:'transparent',pointRadius:2,borderWidth:1.5,tension:.3},
-      {label:'D.rad.',data:tl.droite_radicale||[],borderColor:'#2563EB',backgroundColor:'transparent',pointRadius:2,borderWidth:1.5,tension:.3,borderDash:[2,2]}
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{font:{size:9},color:'#555',autoSkip:false}},y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{font:{size:9},color:'#555'},min:0,max:100}}}
-  }):null;
+  const canvas=document.getElementById('tChart');
+  if(canvas && typeof Chart!=='undefined'){
+    if(tChart){tChart.destroy();tChart=null;}
+    tChart=new Chart(canvas,{
+      type:'line',
+      data:{labels:tl.labels||[],datasets:[
+        {label:'G.rad.',data:tl.gauche_radicale||[],borderColor:'#DC2626',backgroundColor:'transparent',pointRadius:2,borderWidth:1.5,tension:.3},
+        {label:'Gauche',data:tl.gauche||[],borderColor:'#F97316',backgroundColor:'transparent',pointRadius:2,borderWidth:1.5,tension:.3},
+        {label:'Centre',data:tl.centre||[],borderColor:'#9CA3AF',backgroundColor:'transparent',pointRadius:2,borderWidth:1.5,tension:.3,borderDash:[4,3]},
+        {label:'Droite',data:tl.droite||[],borderColor:'#60A5FA',backgroundColor:'transparent',pointRadius:2,borderWidth:1.5,tension:.3},
+        {label:'D.rad.',data:tl.droite_radicale||[],borderColor:'#2563EB',backgroundColor:'transparent',pointRadius:2,borderWidth:1.5,tension:.3,borderDash:[2,2]}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{color:'rgba(255,255,255,.05)'},ticks:{font:{size:9},color:'#555',autoSkip:false}},y:{grid:{color:'rgba(255,255,255,.05)'},ticks:{font:{size:9},color:'#555'},min:0,max:100}}}
+    });
+  }
   document.getElementById('spec-results').style.display='';
 }
 
 function openCampDetail(k) {
-  const d=_spectreData; if(!d) return;
+  const d=spectreData; if(!d) return;
   const c=d.camps[k]||{}, cd=d.cadrage[k]||{};
   const [tbg,tfg]=CAMP_TBG[k];
   const col=CAMP_COLS[k];
   const pct=Math.round(d.spectrum[k]||0);
-  CAMP_KEYS.forEach(kk=>{const el=document.getElementById('ccard-'+kk);if(el)el.style.borderColor=kk===k?col:'';});
+  CAMP_KEYS.forEach(kk=>{ const el=document.getElementById('ccard-'+kk); if(el) el.style.borderColor=kk===k?col:''; });
   const tags=(c.elements_langage||[]).map(t=>`<span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;margin:2px;background:${tbg};color:${tfg};border:0.5px solid ${tfg}">${t}</span>`).join('');
+  const sources=(CAMP_SOURCES[k]||[]).map(s=>`<span style="padding:2px 9px;border-radius:999px;font-size:11px;margin:2px;display:inline-block;background:${tbg};color:${tfg};border:0.5px solid ${tfg}">${s}</span>`).join('');
+  let html=`<div class="detail-title" style="color:${col}">${CAMP_NAMES[k]} — ${pct}%</div>`;
+  html+=`<div class="slabel" style="margin-top:0">Angle éditorial</div><div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:.6rem;padding:9px 11px;background:var(--bg3);border-radius:var(--r);border-left:2px solid ${col}">${c.angle||'—'}</div>`;
+  html+=`<div class="slabel">Éléments de langage</div><div style="margin-bottom:.6rem">${tags||'—'}</div>`;
+  html+=`<div class="slabel">Angle mort</div><div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:.6rem;padding:8px 10px;background:var(--bg3);border-radius:var(--r)"><span style="color:#fbbf24;font-weight:600">○ </span>${c.angle_mort||'—'}</div>`;
+  if(cd.met_en_avant) html+=`<div class="slabel">Met en avant</div><div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:.6rem">${cd.met_en_avant}</div>`;
+  if(cd.omet) html+=`<div class="slabel">Minimise / omet</div><div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:.6rem">${cd.omet}</div>`;
+  if(cd.recit) html+=`<div class="slabel">Récit dominant</div><div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:.6rem;padding:9px 11px;background:var(--bg3);border-radius:var(--r);font-style:italic">"${cd.recit}"</div>`;
   const nb=c.nb_sources||0;
-  const parts=[
-    `<div style="display:flex;align-items:center;gap:10px;margin-bottom:.75rem;padding-bottom:.5rem;border-bottom:0.5px solid var(--brd)"><div style="width:10px;height:10px;border-radius:50%;background:${col}"></div><div style="font-size:14px;font-weight:500;flex:1">${CAMP_NAMES[k]}</div><div style="font-size:20px;font-weight:500;color:${col}">${pct}%</div></div>`,
-    `<div class="slabel" style="margin-top:0">Angle éditorial</div><div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:.6rem;padding:9px 11px;background:var(--bg3);border-radius:var(--r);border-left:2px solid ${col}">${c.angle||'—'}</div>`,
-    `<div class="slabel">Éléments de langage</div><div style="margin-bottom:.6rem">${tags||'—'}</div>`,
-    `<div class="slabel">Angle mort</div><div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:.6rem;padding:8px 10px;background:var(--bg3);border-radius:var(--r)"><span style="color:#fbbf24;font-weight:600">○ </span>${c.angle_mort||'—'}</div>`,
-    cd.met_en_avant?`<div class="slabel">Met en avant</div><div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:.6rem">${cd.met_en_avant}</div>`:'',
-    cd.omet?`<div class="slabel">Minimise / omet</div><div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:.6rem">${cd.omet}</div>`:'',
-    cd.recit?`<div class="slabel">Récit dominant</div><div style="font-size:12px;color:var(--txt2);line-height:1.6;margin-bottom:.6rem;padding:9px 11px;background:var(--bg3);border-radius:var(--r);font-style:italic">"${cd.recit}"</div>`:'',
-    nb?`<div class="slabel">Volume estimé</div><div style="font-size:12px;color:var(--txt2);margin-bottom:.75rem"><span style="font-size:18px;font-weight:500;color:${col}">${nb}</span><span style="margin-left:6px">sources mobilisées sur 7 jours</span></div>`:'',
-    `<div class="slabel">Sources typiques</div><div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:.75rem">${(CAMP_SOURCES[k]||[]).map(s=>'<span style="padding:2px 9px;border-radius:999px;font-size:11px;background:'+tbg+';color:'+tfg+';border:0.5px solid '+tfg+'">'+s+'</span>').join('')}</div>`,,
-  ];
-  showDetail(parts.join(''));
+  if(nb) html+=`<div class="slabel">Volume estimé</div><div style="font-size:12px;color:var(--txt2);margin-bottom:.5rem"><span style="font-size:18px;font-weight:500;color:${col}">${nb}</span> sources sur 7 jours</div>`;
+  html+=`<div class="slabel">Sources typiques</div><div style="margin-bottom:.6rem">${sources||'—'}</div>`;
+  showDetail(html);
 }
 
-
-document.getElementById('topic-in').addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();launch();}});
-document.getElementById('spec-in').addEventListener('keydown',e=>{if(e.key==='Enter')runSpectre();});
-ec-in').addEventListener('keydown',e=>{if(e.key==='Enter')runSpectre();});
-tre();});
+// ── KEYBOARD ─────────────────────────────────────────
+document.getElementById('topic-in').addEventListener('keydown',e=>{
+  if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();launch();}
+});
+document.getElementById('spec-in').addEventListener('keydown',e=>{
+  if(e.key==='Enter') runSpectre();
+});
 </script>
 </body>
 </html>
